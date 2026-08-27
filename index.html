@@ -130,7 +130,10 @@
   .menu a:not(.menu-cta):hover::after{ right:0; }
   .menu-cta{
     display:inline-flex; align-items:center; justify-content:center; text-align:center; white-space:nowrap;
-    background:var(--gradient-vivid); color:#fff; padding:9px 18px; border-radius:var(--radius-pill);
+    background:var(--gradient-vivid); color:#fff; border-radius:var(--radius-pill);
+    /* letter-spacing adds a trailing gap after the LAST letter too, which pushes the visible
+       text ~half a letter-space off-centre. Shift the content box right by half of it. */
+    padding:9px calc(18px - 0.04em) 9px calc(18px + 0.04em);
     box-shadow:0 10px 24px -12px rgba(155,93,246,.6);
     transition:transform .2s ease, box-shadow .2s ease;
   }
@@ -172,7 +175,7 @@
     display:inline-flex; align-items:center; justify-content:center; gap:10px; text-decoration:none;
     background:var(--gradient-vivid); color:#fff; font-family:'IBM Plex Mono',monospace;
     font-weight:600; font-size:.82rem; letter-spacing:.06em; text-transform:uppercase;
-    padding:16px 28px; border-radius:var(--radius-pill); border:1px solid transparent;
+    padding:16px calc(28px - 0.03em) 16px calc(28px + 0.03em); border-radius:var(--radius-pill); border:1px solid transparent;
     box-shadow:var(--glow);
     transition:transform .2s ease, box-shadow .2s ease;
   }
@@ -380,7 +383,7 @@
     display:inline-flex; align-items:center; gap:10px; margin-top:8px;
     background:#FFFFFF; color:var(--v-900); border:none; font-family:'IBM Plex Mono',monospace;
     font-weight:600; font-size:.82rem; letter-spacing:.06em; text-transform:uppercase;
-    padding:15px 26px; border-radius:var(--radius-pill); cursor:pointer;
+    padding:15px calc(26px - 0.03em) 15px calc(26px + 0.03em); border-radius:var(--radius-pill); cursor:pointer;
     box-shadow:0 16px 34px -14px rgba(20,8,40,.5);
     transition:transform .2s ease, box-shadow .2s ease;
   }
