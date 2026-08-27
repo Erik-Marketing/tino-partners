@@ -189,7 +189,7 @@
     height:0; padding-bottom:100%; /* intrinsic-ratio trick: guarantees a perfect square in every browser, unlike aspect-ratio which Safari sometimes fails to resolve here */
   }
   .hero-graphic{
-    position:absolute; inset:0;
+    position:absolute; inset:0; z-index:1;
     border-radius:46% 54% 58% 42% / 42% 46% 54% 58%; /* static organic blob — not animated, to avoid the Safari border-radius-animation repaint glitch */
     background:var(--gradient-vivid);
     box-shadow:var(--glow);
@@ -208,14 +208,16 @@
       radial-gradient(1.3px 1.3px at 12% 78%, rgba(255,255,255,.7), transparent),
       radial-gradient(1.3px 1.3px at 92% 84%, rgba(255,255,255,.6), transparent);
   }
-  .hero-graphic .orb{
-    position:absolute; border-radius:50%; z-index:0;
+  /* Orbs live outside the clipped .hero-graphic on purpose, so the "peeking past the edge" glow
+     is identical on every browser instead of depending on how precisely each engine clips
+     overflow:hidden against the organic border-radius. */
+  .hero-graphic-frame .orb{
+    position:absolute; border-radius:50%; z-index:2; pointer-events:none;
     background:radial-gradient(circle at 32% 28%, #fff, var(--pink-300) 42%, transparent 72%);
-    filter:blur(.2px);
   }
-  .hero-graphic .orb-a{ width:88px; height:88px; top:5%; right:5%; opacity:.95; }
-  .hero-graphic .orb-b{
-    width:46px; height:46px; bottom:12%; left:5%; opacity:.9;
+  .hero-graphic-frame .orb-a{ width:88px; height:88px; top:-3%; right:-2%; opacity:.95; }
+  .hero-graphic-frame .orb-b{
+    width:46px; height:46px; bottom:9%; left:-3%; opacity:.9;
     background:radial-gradient(circle at 32% 28%, #fff, var(--v-500) 55%, transparent 75%);
   }
   .hero-graphic svg{ position:relative; z-index:1; width:82%; height:82%; margin:9%; overflow:visible; }
@@ -506,9 +508,9 @@
     </div>
     <div class="hero-visual reveal">
       <div class="hero-graphic-frame">
+      <span class="orb orb-a"></span>
+      <span class="orb orb-b"></span>
       <div class="hero-graphic">
-        <span class="orb orb-a"></span>
-        <span class="orb orb-b"></span>
         <svg viewBox="0 0 420 420">
           <circle cx="210" cy="210" r="200" stroke="rgba(255,255,255,.32)" stroke-width="1"/>
           <circle cx="210" cy="210" r="150" stroke="rgba(255,255,255,.22)" stroke-width="1"/>
