@@ -186,18 +186,12 @@
 
   .hero-graphic{
     position:relative; aspect-ratio:1/1; width:100%; max-width:460px; margin-inline:auto;
-    border-radius:46% 54% 58% 42% / 42% 46% 54% 58%;
+    border-radius:50%;
     background:var(--gradient-vivid);
     box-shadow:var(--glow);
     overflow:hidden;
     isolation:isolate;
-    animation:blobmorph 16s ease-in-out infinite;
     transition:transform .3s ease-out;
-  }
-  @keyframes blobmorph{
-    0%,100%{ border-radius:46% 54% 58% 42% / 42% 46% 54% 58%; }
-    34%{ border-radius:58% 42% 46% 54% / 54% 58% 42% 46%; }
-    67%{ border-radius:42% 58% 54% 46% / 46% 42% 58% 54%; }
   }
   .hero-graphic::before{
     content:""; position:absolute; inset:0; z-index:0;
@@ -400,6 +394,40 @@
   .reveal.is-visible{ opacity:1; transform:none; }
   @media (prefers-reduced-motion: reduce){ .reveal{ opacity:1; transform:none; transition:none; } }
 
+  /* ---- WhatsApp floating button ---- */
+  .wa-float{
+    position:fixed; right:20px; bottom:20px; z-index:50;
+    width:58px; height:58px; border-radius:50%;
+    background:#25D366; color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 14px 30px -10px rgba(0,0,0,.5);
+    text-decoration:none;
+    transition:transform .2s ease, box-shadow .2s ease;
+  }
+  .wa-float:hover{ transform:translateY(-2px) scale(1.04); box-shadow:0 18px 36px -10px rgba(0,0,0,.55); }
+  .wa-float svg{ width:29px; height:29px; position:relative; z-index:2; }
+  .wa-badge{
+    position:absolute; top:-3px; right:-3px; z-index:3;
+    min-width:19px; height:19px; padding:0 4px; border-radius:999px;
+    background:var(--coral-fill); color:#3a0a2e;
+    font-family:'IBM Plex Mono', monospace; font-size:.66rem; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 0 0 3px var(--paper);
+  }
+  .wa-ping{
+    position:absolute; inset:0; border-radius:50%;
+    border:2px solid #25D366; opacity:0; pointer-events:none;
+    animation:waPing 3s ease-out infinite;
+  }
+  .wa-ping-2{ animation-delay:.35s; }
+  @keyframes waPing{
+    0%{ transform:scale(1); opacity:.55; }
+    30%{ transform:scale(1.9); opacity:0; }
+    100%{ transform:scale(1.9); opacity:0; }
+  }
+  @media (prefers-reduced-motion: reduce){ .wa-ping{ animation:none; display:none; } }
+  @media (max-width: 900px){ .wa-float{ right:16px; bottom:16px; width:52px; height:52px; } .wa-float svg{ width:26px; height:26px; } }
+
   @media (max-width: 900px){
     .menu{ position:fixed; inset:64px 0 0 0; background:var(--paper); flex-direction:column; align-items:flex-start;
       padding:28px clamp(20px,5vw,64px); gap:26px; transform:translateY(-12px); opacity:0; pointer-events:none;
@@ -424,6 +452,15 @@
 
 <div class="grain"></div>
 
+<a class="wa-float" href="https://wa.me/5491100000000" target="_blank" rel="noopener" aria-label="Escribinos por WhatsApp">
+  <span class="wa-ping"></span>
+  <span class="wa-ping wa-ping-2"></span>
+  <span class="wa-badge">1</span>
+  <svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">
+    <path d="M16.001 3C9.373 3 4 8.373 4 15c0 2.36.687 4.56 1.872 6.41L4 29l7.78-1.84A11.94 11.94 0 0 0 16 27c6.627 0 12-5.373 12-12S22.628 3 16.001 3zm6.965 16.845c-.294.828-1.463 1.518-2.403 1.716-.64.135-1.475.243-4.29-.92-3.6-1.49-5.918-5.14-6.098-5.378-.173-.238-1.457-1.94-1.457-3.7 0-1.76.92-2.62 1.246-2.98.294-.32.646-.4.862-.4.216 0 .432.002.62.012.2.01.468-.076.732.56.294.703 1 2.42 1.087 2.596.087.176.146.383.03.62-.116.238-.176.383-.343.588-.173.207-.36.462-.514.62-.173.176-.353.365-.152.716.2.35.887 1.464 1.905 2.372 1.31 1.166 2.415 1.528 2.767 1.702.353.176.56.148.767-.09.207-.236.883-1.03 1.118-1.383.235-.353.47-.294.79-.176.323.118 2.043.966 2.394 1.142.353.176.588.264.674.412.088.148.088.856-.206 1.684z"/>
+  </svg>
+</a>
+
 <header class="nav" id="siteNav">
   <a class="brand" href="#home">
     <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -439,6 +476,7 @@
   </a>
   <nav class="menu" id="siteMenu">
     <a href="#home">Home</a>
+    <a href="nosotros.html">Nosotros</a>
     <a href="#servicios">Servicios</a>
     <a href="#trabajos">Trabajos</a>
     <a href="#contacto" class="menu-cta">Contactanos</a>
@@ -611,7 +649,7 @@
       <div class="reveal">
         <p class="eyebrow">Contacto</p>
         <h2>Contános qué querés lograr.</h2>
-        <p class="contact-lede">Respondemos en persona, no con un bot. Contanos un poco de tu marca y del objetivo, y coordinamos una primera charla sin costo.</p>
+        <p class="contact-lede">Contanos un poco de tu marca y del objetivo, y coordinamos una primera charla sin costo.</p>
 
         <form id="contactForm" novalidate>
           <div class="field">
@@ -621,6 +659,10 @@
           <div class="field">
             <label for="email">Email</label>
             <input id="email" name="email" type="email" placeholder="tu@empresa.com" required>
+          </div>
+          <div class="field">
+            <label for="rubro">Rubro del negocio</label>
+            <input id="rubro" name="rubro" type="text" placeholder="Ej: indumentaria, gastronomía, salud" required>
           </div>
           <div class="field">
             <label for="mensaje">Mensaje</label>
@@ -658,7 +700,7 @@
 
 <footer class="footer">
   <span>© 2026 Tino Partners</span>
-  <span>Home · Servicios · Trabajos · Contacto</span>
+  <span><a href="#home">Home</a> · <a href="nosotros.html">Nosotros</a> · <a href="#servicios">Servicios</a> · <a href="#trabajos">Trabajos</a> · <a href="#contacto">Contacto</a></span>
 </footer>
 
 <script>
