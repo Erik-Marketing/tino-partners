@@ -135,6 +135,10 @@
        text ~half a letter-space off-centre. Shift the content box right by half of it. */
     padding:9px calc(18px - 0.04em) 9px calc(18px + 0.04em);
     box-shadow:0 10px 24px -12px rgba(155,93,246,.6);
+    /* the gradient is much darker on the left than the right, so white text reads with far more
+       contrast on that side and LOOKS shifted left even though it's centered — a matching shadow
+       on every letter evens out the contrast across the whole pill. */
+    text-shadow:0 1px 3px rgba(20,8,40,.45);
     transition:transform .2s ease, box-shadow .2s ease;
   }
   .menu-cta:hover{ transform:translateY(-1px); box-shadow:0 14px 28px -12px rgba(155,93,246,.75); }
@@ -177,6 +181,7 @@
     font-weight:600; font-size:.82rem; letter-spacing:.06em; text-transform:uppercase;
     padding:16px calc(28px - 0.03em) 16px calc(28px + 0.03em); border-radius:var(--radius-pill); border:1px solid transparent;
     box-shadow:var(--glow);
+    text-shadow:0 1px 3px rgba(20,8,40,.45);
     transition:transform .2s ease, box-shadow .2s ease;
   }
   .btn-primary:hover{ transform:translateY(-2px); box-shadow:0 26px 54px -16px rgba(155,93,246,.65); }

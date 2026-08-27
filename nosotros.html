@@ -136,6 +136,7 @@
        text ~half a letter-space off-centre. Shift the content box right by half of it. */
     padding:9px calc(18px - 0.04em) 9px calc(18px + 0.04em);
     box-shadow:0 10px 24px -12px rgba(155,93,246,.6);
+    text-shadow:0 1px 3px rgba(20,8,40,.45);
     transition:transform .2s ease, box-shadow .2s ease;
   }
   .menu-cta:hover{ transform:translateY(-1px); box-shadow:0 14px 28px -12px rgba(155,93,246,.75); }
@@ -175,6 +176,7 @@
     font-weight:600; font-size:.82rem; letter-spacing:.06em; text-transform:uppercase;
     padding:16px calc(28px - 0.03em) 16px calc(28px + 0.03em); border-radius:var(--radius-pill); border:1px solid transparent;
     box-shadow:var(--glow);
+    text-shadow:0 1px 3px rgba(20,8,40,.45);
     transition:transform .2s ease, box-shadow .2s ease;
   }
   .btn-primary:hover{ transform:translateY(-2px); box-shadow:0 26px 54px -16px rgba(155,93,246,.65); }
@@ -246,7 +248,7 @@
   .cta-band .eyebrow{ color:rgba(255,255,255,.7); margin-bottom:16px; }
   .cta-band h2{ color:#fff; font-size:clamp(1.9rem,4.2vw,2.8rem); margin:0 auto 18px; max-width:20ch; }
   .cta-band p{ color:rgba(255,255,255,.82); max-width:52ch; margin:0 auto 30px; line-height:1.6; }
-  .cta-band .btn-primary{ background:#fff; color:var(--v-900); box-shadow:0 16px 34px -14px rgba(20,8,40,.5); }
+  .cta-band .btn-primary{ background:#fff; color:var(--v-900); box-shadow:0 16px 34px -14px rgba(20,8,40,.5); text-shadow:none; }
   .cta-band .btn-primary:hover{ box-shadow:0 20px 40px -14px rgba(20,8,40,.6); }
 
   /* ---- footer ---- */
