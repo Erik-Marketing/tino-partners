@@ -213,27 +213,32 @@
     width:220px; height:220px; bottom:-80px; right:-50px; background:radial-gradient(circle, var(--pink-300), transparent 70%);
     animation-duration:23s; animation-delay:-6s;
   }
-  .pillar{
-    display:grid; grid-template-columns:.9fr 1.5fr; gap:clamp(20px,4vw,56px);
-    padding:clamp(32px,4vw,44px) 0; border-top:1px solid var(--line); align-items:start;
+  .team-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(28px,4vw,40px); }
+  .founder-card{
+    display:flex; flex-direction:column; align-items:flex-start; gap:4px;
+    padding-top:clamp(28px,4vw,36px); border-top:1px solid var(--line);
   }
-  .pillar:last-child{ border-bottom:1px solid var(--line); }
-  .pillar-head{ display:flex; align-items:flex-start; gap:16px; }
-  .pillar-mark{
-    width:16px; height:16px; border-radius:50%; margin-top:8px; flex:none;
-    box-shadow:0 4px 10px -3px rgba(74,49,112,.5), 0 0 0 0 rgba(155,93,246,.35);
+  .founder-photo{
+    width:88px; height:88px; border-radius:50%; flex:none; margin-bottom:14px;
+    display:flex; align-items:center; justify-content:center;
+    border:1.5px dashed var(--line-strong);
+    font-family:'Big Shoulders Display',sans-serif; font-weight:800; font-size:2rem; color:var(--paper-flat);
+    box-shadow:0 4px 14px -4px rgba(74,49,112,.4), 0 0 0 0 rgba(155,93,246,.35);
     animation:pillarPulse 3.2s ease-in-out infinite;
   }
   @keyframes pillarPulse{
-    0%,100%{ box-shadow:0 4px 10px -3px rgba(74,49,112,.5), 0 0 0 0 rgba(155,93,246,.35); }
-    50%{ box-shadow:0 4px 10px -3px rgba(74,49,112,.5), 0 0 0 7px rgba(155,93,246,0); }
+    0%,100%{ box-shadow:0 4px 14px -4px rgba(74,49,112,.4), 0 0 0 0 rgba(155,93,246,.35); }
+    50%{ box-shadow:0 4px 14px -4px rgba(74,49,112,.4), 0 0 0 7px rgba(155,93,246,0); }
   }
-  .pillar[data-pillar="produccion"] .pillar-mark{ background:radial-gradient(circle at 32% 28%, #fff, var(--coral-fill) 55%, var(--coral) 100%); }
-  .pillar[data-pillar="estrategia"] .pillar-mark{ background:radial-gradient(circle at 32% 28%, #fff, var(--lime-fill) 55%, var(--lime) 100%); }
-  .pillar[data-pillar="tecnologia"] .pillar-mark{ background:radial-gradient(circle at 32% 28%, #fff, var(--steel) 55%, var(--ink-soft) 100%); }
-  .pillar h3{ font-size:clamp(1.7rem,3.2vw,2.5rem); }
-  .pillar-who{ font-family:'IBM Plex Mono',monospace; font-size:.7rem; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); margin-top:8px; }
-  .pillar-body p{ font-size:1rem; line-height:1.6; color:var(--ink-soft); max-width:56ch; }
+  .founder-card[data-pillar="produccion"] .founder-photo{ background:radial-gradient(circle at 32% 28%, var(--coral-fill), var(--coral) 100%); }
+  .founder-card[data-pillar="estrategia"] .founder-photo{ background:radial-gradient(circle at 32% 28%, var(--lime-fill), var(--lime) 100%); }
+  .founder-card[data-pillar="tecnologia"] .founder-photo{ background:radial-gradient(circle at 32% 28%, var(--steel), var(--ink-soft) 100%); }
+  .founder-card h3{ font-size:clamp(1.5rem,2.6vw,1.9rem); }
+  .founder-role{
+    font-family:'IBM Plex Mono',monospace; font-size:.7rem; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--ink-soft); margin-top:2px; margin-bottom:14px;
+  }
+  .founder-bio{ font-size:.96rem; line-height:1.6; color:var(--ink-soft); }
 
   /* ---- por qué tino ---- */
   .concept{ padding:clamp(72px,10vh,120px) 0; }
@@ -273,7 +278,7 @@
   /* reveal on scroll */
   .reveal{ opacity:0; transform:translateY(18px); transition:opacity .7s ease, transform .7s ease; }
   .reveal.is-visible{ opacity:1; transform:none; }
-  @media (prefers-reduced-motion: reduce){ .reveal{ opacity:1; transform:none; transition:none; } .pillar-mark, .ambient-orb{ animation:none; } }
+  @media (prefers-reduced-motion: reduce){ .reveal{ opacity:1; transform:none; transition:none; } .founder-photo, .ambient-orb{ animation:none; } }
 
   /* ---- WhatsApp floating button ---- */
   .wa-float{
@@ -323,7 +328,9 @@
     .nav-toggle.is-open span:nth-child(1){ transform:translateY(7px) rotate(45deg); }
     .nav-toggle.is-open span:nth-child(2){ opacity:0; }
     .nav-toggle.is-open span:nth-child(3){ transform:translateY(-7px) rotate(-45deg); }
-    .pillar{ grid-template-columns:1fr; }
+    .team-grid{ grid-template-columns:1fr; gap:0; }
+    .founder-card{ padding-bottom:clamp(28px,4vw,36px); }
+    .founder-card:last-child{ border-bottom:1px solid var(--line); }
   }
 </style>
 
@@ -370,8 +377,8 @@
 <main>
   <section class="page-hero">
     <p class="eyebrow reveal">Nosotros</p>
-    <h1 class="reveal">Somos tres. No una agencia genérica.</h1>
-    <p class="lede reveal">Tino Partners nace de juntar tres disciplinas que casi nunca están bajo el mismo techo: producción de contenido, estrategia de medios y tecnología aplicada. En vez de ser tu proveedor de turno, queremos ser parte de cómo tu negocio toma decisiones.</p>
+    <h1 class="reveal">No somos una agencia. Somos tu partner de negocio.</h1>
+    <p class="lede reveal">Tino Partners une producción de contenido, estrategia de medios y tecnología aplicada bajo un mismo equipo de liderazgo, para que tengas un solo interlocutor pensando tu negocio de punta a punta — no un proveedor más en la lista.</p>
   </section>
 
   <section id="equipo" class="services">
@@ -379,46 +386,30 @@
     <span class="ambient-orb ambient-2" aria-hidden="true"></span>
     <div class="section-inner">
       <div class="section-head reveal">
-        <p class="eyebrow">El equipo</p>
-        <h2>Tres personas.<br>Tres miradas.</h2>
+        <p class="eyebrow">Liderazgo</p>
+        <h2>Un mismo partner.<br>Distintas especialidades.</h2>
       </div>
 
-      <div class="pillar reveal" data-pillar="produccion">
-        <div class="pillar-head">
-          <span class="pillar-mark"></span>
-          <div>
-            <h3>Juan</h3>
-            <p class="pillar-who">Producción &amp; contenido</p>
-          </div>
+      <div class="team-grid">
+        <div class="founder-card reveal" data-pillar="produccion">
+          <div class="founder-photo"><span>J</span></div>
+          <h3>Juan</h3>
+          <p class="founder-role">CEO — Producción &amp; Contenido</p>
+          <p class="founder-bio">Pasó años detrás de cámara produciendo para marcas que necesitaban contenido consistente, no solo lindo. Hoy dirige la producción audiovisual y la presencia en redes de cada cliente, de principio a fin.</p>
         </div>
-        <div class="pillar-body">
-          <p>Pasó años detrás de cámara produciendo para marcas que necesitaban contenido consistente, no solo lindo. Hoy dirige la producción audiovisual y la presencia en redes de cada cliente, de principio a fin.</p>
-        </div>
-      </div>
 
-      <div class="pillar reveal" data-pillar="estrategia">
-        <div class="pillar-head">
-          <span class="pillar-mark"></span>
-          <div>
-            <h3>Fran</h3>
-            <p class="pillar-who">Estrategia &amp; medios</p>
-          </div>
+        <div class="founder-card reveal" data-pillar="estrategia">
+          <div class="founder-photo"><span>F</span></div>
+          <h3>Fran</h3>
+          <p class="founder-role">CEO — Estrategia &amp; Medios</p>
+          <p class="founder-bio">Viene del lado de medios y estrategia comercial, armando planes que se miden en resultados de negocio, no en likes. Lidera las campañas y las decisiones de marca de cada cuenta.</p>
         </div>
-        <div class="pillar-body">
-          <p>Viene del lado de medios y estrategia comercial, armando planes que se miden en resultados de negocio, no en likes. Lidera las campañas y las decisiones de marca de cada cuenta.</p>
-        </div>
-      </div>
 
-      <div class="pillar reveal" data-pillar="tecnologia">
-        <div class="pillar-head">
-          <span class="pillar-mark"></span>
-          <div>
-            <h3>Erik</h3>
-            <p class="pillar-who">Tecnología &amp; IA</p>
-          </div>
-        </div>
-        <div class="pillar-body">
-          <p>Se especializa en llevar procesos manuales a sistemas automáticos, IA aplicada y medición real. Es quien construye la infraestructura técnica detrás de cada campaña — incluida esta misma web.</p>
+        <div class="founder-card reveal" data-pillar="tecnologia">
+          <div class="founder-photo"><span>E</span></div>
+          <h3>Erik</h3>
+          <p class="founder-role">CEO — Tecnología &amp; IA</p>
+          <p class="founder-bio">Se especializa en llevar procesos manuales a sistemas automáticos, IA aplicada y medición real. Es quien construye la infraestructura técnica detrás de cada campaña — incluida esta misma web.</p>
         </div>
       </div>
     </div>
@@ -437,7 +428,7 @@
     <div class="section-inner">
       <p class="eyebrow reveal">¿Hablamos?</p>
       <h2 class="reveal">Contános en qué estás pensando.</h2>
-      <p class="reveal">Una primera charla no tiene costo ni compromiso. Si tiene sentido seguir, lo vemos juntos.</p>
+      <p class="reveal">Una primera charla no tiene costo ni compromiso. Si hay fit de los dos lados, seguimos adelante juntos.</p>
       <a href="index.html#contacto" class="btn-primary reveal">Contactanos →</a>
     </div>
   </section>
