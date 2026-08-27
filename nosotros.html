@@ -130,7 +130,7 @@
   }
   .menu a:not(.menu-cta):hover::after{ right:0; }
   .menu-cta{
-    display:inline-flex; align-items:center; justify-content:center;
+    display:inline-flex; align-items:center; justify-content:center; text-align:center; white-space:nowrap;
     background:var(--gradient-vivid); color:#fff; padding:9px 18px; border-radius:var(--radius-pill);
     box-shadow:0 10px 24px -12px rgba(155,93,246,.6);
     transition:transform .2s ease, box-shadow .2s ease;
@@ -476,13 +476,17 @@
     var root = document.documentElement;
     var themeToggle = document.getElementById('themeToggle');
     if(!themeToggle) return;
+    var label = themeToggle.querySelector('.theme-toggle-text');
+    var setLabel = function(isLight){ if(label) label.textContent = isLight ? 'Modo oscuro' : 'Modo claro'; };
     var isLight = root.getAttribute('data-theme') === 'light';
     themeToggle.setAttribute('aria-pressed', isLight ? 'true' : 'false');
+    setLabel(isLight);
     themeToggle.addEventListener('click', function(){
       var nowLight = root.getAttribute('data-theme') !== 'light';
       if(nowLight){ root.setAttribute('data-theme', 'light'); }
       else{ root.removeAttribute('data-theme'); }
       themeToggle.setAttribute('aria-pressed', nowLight ? 'true' : 'false');
+      setLabel(nowLight);
       try{ localStorage.setItem('tino-theme', nowLight ? 'light' : 'dark'); }catch(e){}
     });
   })();
