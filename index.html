@@ -118,27 +118,34 @@
   .brand-word span{ display:block; font-family:'IBM Plex Mono', monospace; font-size:.55rem; font-weight:600; letter-spacing:.22em; color:var(--ink-soft); text-transform:uppercase; margin-top:-2px; }
 
   .menu{ display:flex; align-items:center; gap:clamp(18px,2.6vw,34px); }
-  .menu a{
-    text-decoration:none; font-family:'IBM Plex Mono', monospace;
+
+  /* Shared type for every menu entry. Deliberately a class (.menu-link) rather than a
+     descendant selector (.menu a): `.menu a` out-specifies `.menu-cta`, so a padding-bottom
+     declared there silently overrode the pill's own shorthand and left it vertically lopsided. */
+  .menu-link, .menu-cta{
+    text-decoration:none;
+    font-family:'IBM Plex Mono', monospace;
     font-size:.76rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase;
-    color:var(--ink); position:relative; padding-bottom:3px;
+    line-height:1;
   }
-  .menu a:not(.menu-cta)::after{
-    content:""; position:absolute; left:0; right:100%; bottom:0; height:1px; background:var(--coral-fill);
-    transition:right .25s ease;
+
+  /* No vertical padding here, so the plain links' text centre lands exactly on the flex row's
+     centre — the same place the pill's text centre lands. That is what keeps every menu label
+     sitting on one line. The hover underline is offset instead of being made of padding. */
+  .menu-link{ color:var(--ink); position:relative; padding:0; }
+  .menu-link::after{
+    content:""; position:absolute; left:0; right:100%; bottom:-4px; height:1px;
+    background:var(--coral-fill); transition:right .25s ease;
   }
-  .menu a:not(.menu-cta):hover::after{ right:0; }
+  .menu-link:hover::after{ right:0; }
+
   .menu-cta{
-    display:inline-flex; align-items:center; justify-content:center; text-align:center; white-space:nowrap;
+    display:inline-flex; align-items:center; justify-content:center; white-space:nowrap;
+    /* symmetric vertical padding; horizontally the right side is trimmed by half a letter-space
+       because letter-spacing also adds a trailing gap after the final character */
+    padding:10px calc(18px - 0.04em) 10px calc(18px + 0.04em);
     background:var(--gradient-vivid); color:#fff; border-radius:var(--radius-pill);
-    /* manual visual nudge — measurements said ~centered but it read as left-shifted, so shift
-       the content box right by a deliberately visible amount and adjust from there */
-    padding:9px 15px 9px 21px;
     box-shadow:0 10px 24px -12px rgba(155,93,246,.6);
-    /* the gradient is much darker on the left than the right, so white text reads with far more
-       contrast on that side and LOOKS shifted left even though it's centered — a matching shadow
-       on every letter evens out the contrast across the whole pill. */
-    text-shadow:0 1px 3px rgba(20,8,40,.45);
     transition:transform .2s ease, box-shadow .2s ease;
   }
   .menu-cta:hover{ transform:translateY(-1px); box-shadow:0 14px 28px -12px rgba(155,93,246,.75); }
@@ -181,7 +188,6 @@
     font-weight:600; font-size:.82rem; letter-spacing:.06em; text-transform:uppercase;
     padding:16px calc(28px - 0.03em) 16px calc(28px + 0.03em); border-radius:var(--radius-pill); border:1px solid transparent;
     box-shadow:var(--glow);
-    text-shadow:0 1px 3px rgba(20,8,40,.45);
     transition:transform .2s ease, box-shadow .2s ease;
   }
   .btn-primary:hover{ transform:translateY(-2px); box-shadow:0 26px 54px -16px rgba(155,93,246,.65); }
@@ -393,7 +399,7 @@
     transition:transform .2s ease, box-shadow .2s ease;
   }
   .submit-btn:hover{ transform:translateY(-2px); box-shadow:0 20px 40px -14px rgba(20,8,40,.6); }
-  .submit-btn:focus-visible, a:focus-visible, .menu a:focus-visible{ outline:2px solid var(--coral-fill); outline-offset:3px; }
+  .submit-btn:focus-visible, a:focus-visible{ outline:2px solid var(--coral-fill); outline-offset:3px; }
   .form-note{
     margin-top:14px; font-family:'IBM Plex Mono',monospace; font-size:.76rem; color:#FFFFFF;
     min-height:1em;
@@ -463,7 +469,7 @@
       padding:28px clamp(20px,5vw,64px); gap:26px; transform:translateY(-12px); opacity:0; pointer-events:none;
       transition:opacity .25s ease, transform .25s ease; border-top:1px solid var(--line); }
     .menu.is-open{ opacity:1; transform:none; pointer-events:auto; }
-    .menu a{ font-size:1rem; }
+    .menu-link, .menu-cta{ font-size:1rem; }
     .theme-toggle{ margin-top:6px; padding-top:22px; border-top:1px solid var(--line); width:100%; font-size:.8rem; }
     .nav-toggle{
       display:flex; flex-direction:column; gap:5px; background:none; border:none; cursor:pointer; padding:8px; z-index:41;
@@ -505,11 +511,11 @@
     <span class="brand-word">Tino<span>Partners</span></span>
   </a>
   <nav class="menu" id="siteMenu">
-    <a href="#home">Home</a>
-    <a href="nosotros.html">Nosotros</a>
-    <a href="#servicios">Servicios</a>
-    <a href="#trabajos">Trabajos</a>
-    <a href="#contacto" class="menu-cta">Contactanos</a>
+    <a class="menu-link" href="#home">Home</a>
+    <a class="menu-link" href="nosotros.html">Nosotros</a>
+    <a class="menu-link" href="#servicios">Servicios</a>
+    <a class="menu-link" href="#trabajos">Trabajos</a>
+    <a class="menu-cta" href="#contacto">Contactanos</a>
     <button class="theme-toggle" id="themeToggle" type="button" aria-pressed="false" aria-label="Cambiar a modo claro">
       <span class="theme-toggle-track"><span class="theme-toggle-thumb"></span></span>
       <span class="theme-toggle-text">Modo claro</span>
