@@ -131,9 +131,9 @@
   .menu-cta{
     display:inline-flex; align-items:center; justify-content:center; text-align:center; white-space:nowrap;
     background:var(--gradient-vivid); color:#fff; border-radius:var(--radius-pill);
-    /* letter-spacing adds a trailing gap after the LAST letter too, which pushes the visible
-       text ~half a letter-space off-centre. Shift the content box right by half of it. */
-    padding:9px calc(18px - 0.04em) 9px calc(18px + 0.04em);
+    /* manual visual nudge — measurements said ~centered but it read as left-shifted, so shift
+       the content box right by a deliberately visible amount and adjust from there */
+    padding:9px 15px 9px 21px;
     box-shadow:0 10px 24px -12px rgba(155,93,246,.6);
     /* the gradient is much darker on the left than the right, so white text reads with far more
        contrast on that side and LOOKS shifted left even though it's centered — a matching shadow
