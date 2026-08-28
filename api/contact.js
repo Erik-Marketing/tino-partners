@@ -1,18 +1,4 @@
-const { get, put } = require('@vercel/blob');
-
-const STORE_KEY = 'consultas/consultas.json';
-
-async function readAll() {
-  const result = await get(STORE_KEY, { access: 'private', useCache: false });
-  if (!result || result.statusCode !== 200) return [];
-  const text = await new Response(result.stream).text();
-  try {
-    const parsed = JSON.parse(text);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
+const { put } = require('@vercel/blob');
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -33,17 +19,16 @@ module.exports = async function handler(req, res) {
     fecha: new Date().toISOString(),
   };
 
-  try {
-    const items = await readAll();
-    items.push(entry);
+  // Each submission is its own blob (no shared file to read-modify-write), so
+  // two submissions arriving at the same time can never overwrite each other.
+  const path = `consultas/${Date.now()}-${Math.random().toString(36).slice(2, 10)}.json`;
 
-    await put(STORE_KEY, JSON.stringify(items), {
+  try {
+    await put(path, JSON.stringify(entry), {
       access: 'private',
       contentType: 'application/json',
       addRandomSuffix: false,
-      allowOverwrite: true,
     });
-
     return res.status(200).json({ ok: true });
   } catch (err) {
     console.error('contact submission failed', err);

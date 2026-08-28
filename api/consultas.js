@@ -1,6 +1,5 @@
-const { get } = require('@vercel/blob');
+const { list, get } = require('@vercel/blob');
 
-const STORE_KEY = 'consultas/consultas.json';
 const COOKIE_NAME = 'tp_admin';
 
 function readCookie(req, name) {
@@ -25,12 +24,22 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const result = await get(STORE_KEY, { access: 'private', useCache: false });
-    if (!result || result.statusCode !== 200) {
-      return res.status(200).json({ items: [] });
-    }
-    const text = await new Response(result.stream).text();
-    const items = JSON.parse(text);
+    const { blobs } = await list({ prefix: 'consultas/', mode: 'expanded' });
+
+    const items = (await Promise.all(
+      blobs.map(async (blob) => {
+        try {
+          const result = await get(blob.pathname, { access: 'private', useCache: false });
+          if (!result || result.statusCode !== 200) return null;
+          const text = await new Response(result.stream).text();
+          return JSON.parse(text);
+        } catch (err) {
+          console.error('failed to read', blob.pathname, err);
+          return null;
+        }
+      })
+    )).filter(Boolean);
+
     items.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
     return res.status(200).json({ items });
   } catch (err) {
