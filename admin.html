@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Consultas — Tino Partners</title>
+<style>
+  :root{color-scheme:dark;}
+  body{margin:0;background:#0e0a1a;color:#f2eefb;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:32px;}
+  h1{font-size:20px;margin:0 0 20px;}
+  .bar{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap;}
+  input{background:#1a1430;border:1px solid #3a3060;color:#fff;padding:10px 12px;border-radius:8px;font-size:14px;min-width:260px;}
+  button{background:#7c5cff;border:none;color:#fff;padding:10px 16px;border-radius:8px;font-size:14px;cursor:pointer;}
+  button:hover{background:#6a4bee;}
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid #2a2148;vertical-align:top;}
+  th{color:#a89cd6;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.04em;}
+  #status{color:#a89cd6;font-size:13px;margin-bottom:16px;}
+  .msg{max-width:360px;white-space:pre-wrap;}
+</style>
+</head>
+<body>
+  <h1>Consultas recibidas</h1>
+  <div class="bar">
+    <input id="token" type="password" placeholder="Token de administrador">
+    <button id="load">Ver consultas</button>
+  </div>
+  <p id="status"></p>
+  <table id="table" style="display:none">
+    <thead>
+      <tr><th>Fecha</th><th>Nombre</th><th>Email</th><th>Rubro</th><th>Mensaje</th></tr>
+    </thead>
+    <tbody id="rows"></tbody>
+  </table>
+
+<script>
+  var tokenInput = document.getElementById('token');
+  var status = document.getElementById('status');
+  var table = document.getElementById('table');
+  var rows = document.getElementById('rows');
+
+  var saved = localStorage.getItem('tp_admin_token');
+  if (saved) tokenInput.value = saved;
+
+  document.getElementById('load').addEventListener('click', load);
+  tokenInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') load(); });
+
+  function load(){
+    var token = tokenInput.value.trim();
+    if (!token) { status.textContent = 'Ingresá el token.'; return; }
+    localStorage.setItem('tp_admin_token', token);
+    status.textContent = 'Cargando...';
+    table.style.display = 'none';
+
+    fetch('/api/consultas?token=' + encodeURIComponent(token))
+      .then(function(r){
+        if (!r.ok) throw new Error(r.status === 401 ? 'Token incorrecto' : 'Error del servidor');
+        return r.json();
+      })
+      .then(function(data){
+        rows.innerHTML = '';
+        if (!data.items.length) {
+          status.textContent = 'Todavía no hay consultas.';
+          return;
+        }
+        data.items.forEach(function(item){
+          var tr = document.createElement('tr');
+          var fecha = new Date(item.fecha).toLocaleString('es-AR');
+          tr.innerHTML =
+            '<td>' + fecha + '</td>' +
+            '<td>' + escapeHtml(item.nombre) + '</td>' +
+            '<td>' + escapeHtml(item.email) + '</td>' +
+            '<td>' + escapeHtml(item.rubro) + '</td>' +
+            '<td class="msg">' + escapeHtml(item.mensaje) + '</td>';
+          rows.appendChild(tr);
+        });
+        status.textContent = data.items.length + ' consulta(s).';
+        table.style.display = '';
+      })
+      .catch(function(err){
+        status.textContent = err.message;
+      });
+  }
+
+  function escapeHtml(str){
+    var div = document.createElement('div');
+    div.textContent = str == null ? '' : String(str);
+    return div.innerHTML;
+  }
+
+  if (saved) load();
+</script>
+</body>
+</html>

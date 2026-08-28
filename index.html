@@ -189,6 +189,7 @@
     margin-top:22px; max-width:46ch; font-size:1.06rem; line-height:1.55; color:var(--ink-soft);
   }
   .hero-actions{ display:flex; align-items:center; gap:20px; margin-top:36px; flex-wrap:wrap; }
+  .work-actions{ margin-top:24px; }
   .btn-primary{
     display:inline-flex; align-items:center; justify-content:center; gap:10px; text-decoration:none;
     background:var(--gradient-vivid); color:#fff; font-family:'IBM Plex Mono',monospace;
@@ -661,6 +662,9 @@
       <div class="section-head reveal">
         <p class="eyebrow">Trabajos</p>
         <h2>Estamos armando<br>el portfolio, en vivo.</h2>
+        <div class="work-actions">
+          <a href="#trabajos" class="btn-ghost">Ver trabajos</a>
+        </div>
       </div>
       <div class="work-grid">
         <div class="work-tile reveal">
@@ -840,11 +844,33 @@
     });
   })();
 
-  // contact form (static preview — no backend wired yet)
+  // contact form
   var form = document.getElementById('contactForm');
   var note = document.getElementById('formNote');
   form.addEventListener('submit', function(e){
     e.preventDefault();
-    note.textContent = '¡Gracias! En esta vista previa el formulario no envía datos todavía — hay que conectarlo a un servicio real.';
+    var submitBtn = form.querySelector('.submit-btn');
+    var data = {
+      nombre: form.nombre.value.trim(),
+      email: form.email.value.trim(),
+      rubro: form.rubro.value.trim(),
+      mensaje: form.mensaje.value.trim()
+    };
+    submitBtn.disabled = true;
+    note.textContent = 'Enviando...';
+    fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    })
+      .then(function(r){ if (!r.ok) throw new Error(); return r.json(); })
+      .then(function(){
+        note.textContent = '¡Gracias! Recibimos tu mensaje, te contactamos a la brevedad.';
+        form.reset();
+      })
+      .catch(function(){
+        note.textContent = 'Hubo un problema al enviar el mensaje. Probá de nuevo o escribinos por WhatsApp.';
+      })
+      .finally(function(){ submitBtn.disabled = false; });
   });
 </script>
