@@ -396,6 +396,7 @@
   }
   .field input::placeholder, .field textarea::placeholder{ color:rgba(255,255,255,.42); }
   .field input:focus, .field textarea:focus{ border-color:#FFFFFF; }
+  .field input.field-invalid, .field textarea.field-invalid{ border-bottom-color:var(--pink-500); }
   .field textarea{ resize:vertical; min-height:90px; }
 
   .submit-btn{
@@ -412,6 +413,7 @@
     margin-top:14px; font-family:'IBM Plex Mono',monospace; font-size:.76rem; color:#FFFFFF;
     min-height:1em;
   }
+  .form-note.is-error{ color:var(--pink-500); }
 
   .info-list{ list-style:none; margin:0 0 40px; padding:0; display:flex; flex-direction:column; gap:18px; }
   .info-list a{ text-decoration:none; }
@@ -847,6 +849,17 @@
   // contact form
   var form = document.getElementById('contactForm');
   var note = document.getElementById('formNote');
+  var requiredFields = [form.nombre, form.email, form.rubro, form.mensaje];
+
+  requiredFields.forEach(function(field){
+    field.addEventListener('input', function(){ field.classList.remove('field-invalid'); });
+  });
+
+  function setNote(text, isError){
+    note.textContent = text;
+    note.classList.toggle('is-error', !!isError);
+  }
+
   form.addEventListener('submit', function(e){
     e.preventDefault();
     var submitBtn = form.querySelector('.submit-btn');
@@ -856,20 +869,37 @@
       rubro: form.rubro.value.trim(),
       mensaje: form.mensaje.value.trim()
     };
+
+    var firstInvalid = null;
+    requiredFields.forEach(function(field){
+      if (data[field.name]) {
+        field.classList.remove('field-invalid');
+      } else {
+        field.classList.add('field-invalid');
+        firstInvalid = firstInvalid || field;
+      }
+    });
+    if (firstInvalid) {
+      setNote('Completá todos los campos antes de enviar.', true);
+      firstInvalid.focus();
+      return;
+    }
+
     submitBtn.disabled = true;
-    note.textContent = 'Enviando...';
+    setNote('Enviando...', false);
     fetch('/api/contact', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     })
-      .then(function(r){ if (!r.ok) throw new Error(); return r.json(); })
-      .then(function(){
-        note.textContent = '¡Gracias! Recibimos tu mensaje, te contactamos a la brevedad.';
+      .then(function(r){ return r.json().then(function(body){ return { ok: r.ok, body: body }; }); })
+      .then(function(res){
+        if (!res.ok) { setNote(res.body.error || 'Hubo un problema al enviar el mensaje. Probá de nuevo o escribinos por WhatsApp.', true); return; }
+        setNote('¡Gracias! Recibimos tu mensaje, te contactamos a la brevedad.', false);
         form.reset();
       })
       .catch(function(){
-        note.textContent = 'Hubo un problema al enviar el mensaje. Probá de nuevo o escribinos por WhatsApp.';
+        setNote('Hubo un problema al enviar el mensaje. Probá de nuevo o escribinos por WhatsApp.', true);
       })
       .finally(function(){ submitBtn.disabled = false; });
   });
