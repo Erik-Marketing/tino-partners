@@ -110,6 +110,13 @@
     letter-spacing:.05em; text-transform:uppercase; color:var(--ink-soft); border:1px solid var(--line-strong);
     border-radius:999px; padding:6px 14px; margin-top:14px;
   }
+  .live-pill{ margin-left:10px; }
+  .live-dot{ width:7px; height:7px; border-radius:50%; background:#4ADE80; box-shadow:0 0 0 0 rgba(74,222,128,.6); animation:live-pulse 2s infinite; }
+  @keyframes live-pulse{
+    0%{ box-shadow:0 0 0 0 rgba(74,222,128,.55); }
+    70%{ box-shadow:0 0 0 6px rgba(74,222,128,0); }
+    100%{ box-shadow:0 0 0 0 rgba(74,222,128,0); }
+  }
 
   .state-msg{ color:var(--ink-soft); font-size:.92rem; padding:40px 4px; }
 
@@ -188,6 +195,7 @@
           <h2>Consultas</h2>
           <p>Mensajes recibidos desde el formulario de contacto del sitio.</p>
           <span class="stat-pill" id="countPill">— consultas</span>
+          <span class="stat-pill live-pill"><span class="live-dot"></span>En vivo</span>
         </div>
         <div id="content"></div>
       </main>
@@ -226,6 +234,10 @@
     return div.innerHTML;
   }
 
+  var lastSignature = null;
+  var pollTimer = null;
+  var POLL_MS = 12000;
+
   function renderConsultas(items){
     if (!items.length){
       content.innerHTML = '<p class="state-msg">Todavía no hay consultas.</p>';
@@ -247,17 +259,40 @@
     }).join('') + '</div>';
   }
 
-  function loadConsultas(){
-    content.innerHTML = '<p class="state-msg">Cargando...</p>';
+  // showLoading=true for the first load (shows a "Cargando..." placeholder);
+  // background polling passes false so it never flickers the screen when nothing changed.
+  function loadConsultas(showLoading){
+    if (showLoading) content.innerHTML = '<p class="state-msg">Cargando...</p>';
     fetch('/api/consultas')
       .then(function(r){
-        if (r.status === 401) { showLogin(); return null; }
+        if (r.status === 401) { stopPolling(); showLogin(); return null; }
         if (!r.ok) throw new Error('server');
         return r.json();
       })
-      .then(function(data){ if (data) renderConsultas(data.items); })
-      .catch(function(){ content.innerHTML = '<p class="state-msg">Error al cargar las consultas.</p>'; });
+      .then(function(data){
+        if (!data) return;
+        var signature = JSON.stringify(data.items);
+        if (signature === lastSignature) return;
+        lastSignature = signature;
+        renderConsultas(data.items);
+      })
+      .catch(function(){
+        if (showLoading) content.innerHTML = '<p class="state-msg">Error al cargar las consultas.</p>';
+      });
   }
+
+  function startPolling(){
+    stopPolling();
+    pollTimer = setInterval(function(){
+      if (document.visibilityState === 'visible') loadConsultas(false);
+    }, POLL_MS);
+  }
+  function stopPolling(){
+    if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+  }
+  document.addEventListener('visibilitychange', function(){
+    if (document.visibilityState === 'visible' && pollTimer) loadConsultas(false);
+  });
 
   loginForm.addEventListener('submit', function(e){
     e.preventDefault();
@@ -273,13 +308,16 @@
         if (!res.ok) { loginError.textContent = res.data.error || 'No se pudo ingresar.'; return; }
         loginForm.reset();
         showApp();
-        loadConsultas();
+        lastSignature = null;
+        loadConsultas(true);
+        startPolling();
       })
       .catch(function(){ loginError.textContent = 'Error de conexión.'; })
       .finally(function(){ loginBtn.disabled = false; });
   });
 
   document.getElementById('logoutBtn').addEventListener('click', function(){
+    stopPolling();
     fetch('/api/logout', { method: 'POST' }).finally(showLogin);
   });
 
@@ -290,7 +328,12 @@
       return r.json();
     })
     .then(function(data){
-      if (data) { showApp(); renderConsultas(data.items); }
+      if (data) {
+        showApp();
+        lastSignature = JSON.stringify(data.items);
+        renderConsultas(data.items);
+        startPolling();
+      }
     })
     .catch(showLogin);
 </script>
