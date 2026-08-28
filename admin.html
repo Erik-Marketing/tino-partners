@@ -124,11 +124,13 @@
   .consulta-list{ display:flex; flex-direction:column; gap:12px; }
   .consulta-card{
     background:var(--paper-dim); border:1px solid var(--line); border-radius:var(--radius);
-    padding:16px 18px; display:grid; gap:4px 20px;
-    grid-template-columns: 150px 1fr 1fr 140px; grid-template-areas: "fecha nombre email rubro" "mensaje mensaje mensaje mensaje";
+    padding:16px 18px; display:grid; gap:12px 20px;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-areas: "fecha nombre email" "rubro tamano ganancias" "mensaje mensaje mensaje";
   }
   .c-fecha{ grid-area:fecha; } .c-nombre{ grid-area:nombre; } .c-email{ grid-area:email; }
-  .c-rubro{ grid-area:rubro; } .c-mensaje{ grid-area:mensaje; margin-top:8px; padding-top:10px; border-top:1px solid var(--line); }
+  .c-rubro{ grid-area:rubro; } .c-tamano{ grid-area:tamano; } .c-ganancias{ grid-area:ganancias; }
+  .c-mensaje{ grid-area:mensaje; margin-top:4px; padding-top:10px; border-top:1px solid var(--line); }
   .consulta-card .lbl{ display:block; font-family:'IBM Plex Mono',monospace; font-size:.62rem; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:3px; }
   .consulta-card .val{ font-size:.92rem; word-break:break-word; }
   .c-mensaje .val{ color:var(--ink-soft); line-height:1.55; white-space:pre-wrap; }
@@ -141,10 +143,16 @@
     .main{ padding:40px 44px 60px; max-width:1100px; }
   }
   @media (max-width: 720px){
-    .consulta-card{ grid-template-columns:1fr 1fr; grid-template-areas: "fecha rubro" "nombre nombre" "email email" "mensaje mensaje"; }
+    .consulta-card{
+      grid-template-columns:1fr 1fr;
+      grid-template-areas: "fecha rubro" "nombre tamano" "email ganancias" "mensaje mensaje";
+    }
   }
   @media (max-width: 480px){
-    .consulta-card{ grid-template-columns:1fr; grid-template-areas: "fecha" "nombre" "email" "rubro" "mensaje"; }
+    .consulta-card{
+      grid-template-columns:1fr;
+      grid-template-areas: "fecha" "nombre" "email" "rubro" "tamano" "ganancias" "mensaje";
+    }
   }
 </style>
 </head>
@@ -253,6 +261,8 @@
           '<div class="c-nombre"><span class="lbl">Nombre</span><span class="val">' + escapeHtml(item.nombre) + '</span></div>' +
           '<div class="c-email"><span class="lbl">Email</span><span class="val">' + escapeHtml(item.email) + '</span></div>' +
           '<div class="c-rubro"><span class="lbl">Rubro</span><span class="val">' + escapeHtml(item.rubro) + '</span></div>' +
+          '<div class="c-tamano"><span class="lbl">Tamaño de empresa</span><span class="val">' + escapeHtml(item.tamano || '—') + '</span></div>' +
+          '<div class="c-ganancias"><span class="lbl">Ganancias mensuales</span><span class="val">' + escapeHtml(item.ganancias || '—') + '</span></div>' +
           '<div class="c-mensaje"><span class="lbl">Mensaje</span><span class="val">' + escapeHtml(item.mensaje) + '</span></div>' +
         '</div>'
       );

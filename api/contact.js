@@ -6,8 +6,8 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { nombre, email, rubro, mensaje } = req.body || {};
-  if (!nombre || !email || !rubro || !mensaje) {
+  const { nombre, email, rubro, tamano, ganancias, mensaje } = req.body || {};
+  if (!nombre || !email || !rubro || !tamano || !ganancias || !mensaje) {
     return res.status(400).json({ error: 'Faltan campos requeridos' });
   }
 
@@ -15,6 +15,8 @@ module.exports = async function handler(req, res) {
     nombre: String(nombre).slice(0, 200),
     email: String(email).slice(0, 200),
     rubro: String(rubro).slice(0, 200),
+    tamano: String(tamano).slice(0, 200),
+    ganancias: String(ganancias).slice(0, 200),
     mensaje: String(mensaje).slice(0, 4000),
     fecha: new Date().toISOString(),
   };

@@ -389,15 +389,22 @@
     display:block; font-family:'IBM Plex Mono',monospace; font-size:.68rem; letter-spacing:.09em;
     text-transform:uppercase; color:rgba(255,255,255,.68); margin-bottom:8px;
   }
-  .field input, .field textarea{
+  .field input, .field textarea, .field select{
     width:100%; background:transparent; border:none; border-bottom:1px solid rgba(255,255,255,.35);
     color:#FFFFFF; font-family:'Work Sans',sans-serif; font-size:1rem; padding:10px 2px;
     outline:none; transition:border-color .2s ease;
   }
   .field input::placeholder, .field textarea::placeholder{ color:rgba(255,255,255,.42); }
-  .field input:focus, .field textarea:focus{ border-color:#FFFFFF; }
-  .field input.field-invalid, .field textarea.field-invalid{ border-bottom-color:var(--pink-500); }
+  .field input:focus, .field textarea:focus, .field select:focus{ border-color:#FFFFFF; }
+  .field input.field-invalid, .field textarea.field-invalid, .field select.field-invalid{ border-bottom-color:var(--pink-500); }
   .field textarea{ resize:vertical; min-height:90px; }
+  .field select{
+    appearance:none; -webkit-appearance:none; border-radius:0; cursor:pointer;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='white' stroke-width='1.6'%3E%3Cpath d='M5 7.5L10 12.5L15 7.5'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 2px center; background-size:16px;
+  }
+  .field select option{ background:var(--paper-dim, #241340); color:#FFFFFF; }
+  .field select:invalid{ color:rgba(255,255,255,.42); }
 
   .submit-btn{
     display:inline-flex; align-items:center; gap:10px; margin-top:8px;
@@ -710,6 +717,28 @@
             <input id="rubro" name="rubro" type="text" placeholder="Ej: indumentaria, gastronomía, salud" required>
           </div>
           <div class="field">
+            <label for="tamano">Tamaño de la empresa</label>
+            <select id="tamano" name="tamano" required>
+              <option value="" disabled selected>Seleccioná una opción</option>
+              <option value="1 a 5 personas">1 a 5 personas</option>
+              <option value="6 a 20 personas">6 a 20 personas</option>
+              <option value="21 a 50 personas">21 a 50 personas</option>
+              <option value="51 a 200 personas">51 a 200 personas</option>
+              <option value="Más de 200 personas">Más de 200 personas</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="ganancias">Ganancias mensuales</label>
+            <select id="ganancias" name="ganancias" required>
+              <option value="" disabled selected>Seleccioná una opción</option>
+              <option value="0 a 5.000 USD">0 a 5.000 USD</option>
+              <option value="5.001 a 20.000 USD">5.001 a 20.000 USD</option>
+              <option value="20.001 a 50.000 USD">20.001 a 50.000 USD</option>
+              <option value="50.001 a 100.000 USD">50.001 a 100.000 USD</option>
+              <option value="Más de 100.000 USD">Más de 100.000 USD</option>
+            </select>
+          </div>
+          <div class="field">
             <label for="mensaje">Mensaje</label>
             <textarea id="mensaje" name="mensaje" placeholder="Contanos sobre tu marca y qué necesitás" required></textarea>
           </div>
@@ -849,10 +878,12 @@
   // contact form
   var form = document.getElementById('contactForm');
   var note = document.getElementById('formNote');
-  var requiredFields = [form.nombre, form.email, form.rubro, form.mensaje];
+  var requiredFields = [form.nombre, form.email, form.rubro, form.tamano, form.ganancias, form.mensaje];
 
   requiredFields.forEach(function(field){
-    field.addEventListener('input', function(){ field.classList.remove('field-invalid'); });
+    ['input', 'change'].forEach(function(evt){
+      field.addEventListener(evt, function(){ field.classList.remove('field-invalid'); });
+    });
   });
 
   function setNote(text, isError){
@@ -867,6 +898,8 @@
       nombre: form.nombre.value.trim(),
       email: form.email.value.trim(),
       rubro: form.rubro.value.trim(),
+      tamano: form.tamano.value.trim(),
+      ganancias: form.ganancias.value.trim(),
       mensaje: form.mensaje.value.trim()
     };
 
