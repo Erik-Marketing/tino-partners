@@ -4,84 +4,221 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
-<title>Consultas — Tino Partners</title>
+<title>Panel — Tino Partners</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=IBM+Plex+Mono:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root{color-scheme:dark;}
-  body{margin:0;background:#0e0a1a;color:#f2eefb;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:32px;}
-  h1{font-size:20px;margin:0 0 20px;}
-  .bar{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap;}
-  input{background:#1a1430;border:1px solid #3a3060;color:#fff;padding:10px 12px;border-radius:8px;font-size:14px;min-width:260px;}
-  button{background:#7c5cff;border:none;color:#fff;padding:10px 16px;border-radius:8px;font-size:14px;cursor:pointer;}
-  button:hover{background:#6a4bee;}
-  table{width:100%;border-collapse:collapse;font-size:14px;}
-  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid #2a2148;vertical-align:top;}
-  th{color:#a89cd6;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.04em;}
-  #status{color:#a89cd6;font-size:13px;margin-bottom:16px;}
-  .msg{max-width:360px;white-space:pre-wrap;}
+  :root{
+    --ink:#F1E9FB; --ink-soft:#C9B8DE;
+    --paper:#180A2E; --paper-dim:#241340; --paper-flat:#120821;
+    --line: rgba(241,233,251,.14); --line-strong: rgba(241,233,251,.30);
+    --v-900:#3B1A78; --v-500:#9B5DF6; --pink-500:#EE60C6;
+    --gradient-vivid: linear-gradient(135deg, var(--v-900) 0%, var(--v-500) 55%, var(--pink-500) 100%);
+    --glow: 0 20px 50px -14px rgba(155,93,246,.55);
+    --radius:14px; --sidebar-w:248px;
+    color-scheme: dark;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:'Work Sans', ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2{ font-family:'Big Shoulders Display','Arial Narrow',sans-serif; font-weight:800; text-transform:uppercase; letter-spacing:.005em; margin:0; }
+  .mono{ font-family:'IBM Plex Mono',monospace; }
+  button{ font-family:inherit; }
+  a{ color:inherit; }
+
+  /* ---------- Login ---------- */
+  #login-view{
+    min-height:100dvh; display:flex; align-items:center; justify-content:center; padding:24px;
+    background:radial-gradient(1200px 600px at 20% 10%, rgba(155,93,246,.18), transparent 60%), var(--paper);
+  }
+  .login-card{
+    width:100%; max-width:380px; background:var(--paper-dim); border:1px solid var(--line);
+    border-radius:var(--radius); padding:36px 30px; box-shadow:0 24px 60px -28px rgba(0,0,0,.6);
+  }
+  .login-brand{ font-family:'Big Shoulders Display',sans-serif; font-weight:800; font-size:1.3rem; text-transform:uppercase; margin-bottom:4px; }
+  .login-brand span{ display:block; font-family:'IBM Plex Mono',monospace; font-size:.62rem; font-weight:600; letter-spacing:.2em; color:var(--ink-soft); text-transform:uppercase; margin-top:2px; }
+  .login-card h1{ font-size:1.5rem; margin:22px 0 6px; }
+  .login-card p.hint{ color:var(--ink-soft); font-size:.88rem; margin:0 0 22px; line-height:1.5; }
+  .field{ margin-bottom:16px; }
+  .field label{ display:block; font-family:'IBM Plex Mono',monospace; font-size:.7rem; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:8px; }
+  .field input{
+    width:100%; background:var(--paper-flat); border:1px solid var(--line-strong); color:var(--ink);
+    padding:13px 14px; border-radius:10px; font-size:15px; font-family:inherit;
+  }
+  .field input:focus{ outline:2px solid var(--pink-500); outline-offset:1px; }
+  .btn-primary{
+    width:100%; display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    background:var(--gradient-vivid); color:#fff; font-family:'IBM Plex Mono',monospace;
+    font-weight:600; font-size:.82rem; letter-spacing:.06em; text-transform:uppercase;
+    padding:15px; border-radius:999px; border:none; cursor:pointer; box-shadow:var(--glow);
+    transition:transform .15s ease, opacity .15s ease;
+  }
+  .btn-primary:hover{ transform:translateY(-1px); }
+  .btn-primary:disabled{ opacity:.6; cursor:default; transform:none; }
+  .form-error{ color:var(--pink-500); font-size:.85rem; margin-top:14px; min-height:1.2em; }
+
+  /* ---------- App shell ---------- */
+  #app-view{ display:none; min-height:100dvh; }
+  /* .sidebar is position:fixed at every breakpoint, so it never participates
+     in #app-view's flow — #app-view only ever needs to be shown or hidden. */
+  .sidebar{
+    position:fixed; inset:0 auto 0 0; width:var(--sidebar-w); background:var(--paper-dim);
+    border-right:1px solid var(--line); display:flex; flex-direction:column; padding:26px 18px;
+    transform:translateX(-100%); transition:transform .25s ease; z-index:40;
+  }
+  .sidebar.open{ transform:translateX(0); }
+  .sb-brand{ font-family:'Big Shoulders Display',sans-serif; font-weight:800; font-size:1.15rem; text-transform:uppercase; padding:0 8px 22px; border-bottom:1px solid var(--line); margin-bottom:18px; }
+  .sb-brand span{ display:block; font-family:'IBM Plex Mono',monospace; font-size:.6rem; font-weight:600; letter-spacing:.18em; color:var(--ink-soft); margin-top:3px; }
+  .sb-nav{ flex:1; display:flex; flex-direction:column; gap:4px; }
+  .sb-link{
+    display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--ink-soft);
+    font-family:'IBM Plex Mono',monospace; font-size:.78rem; font-weight:600; letter-spacing:.04em; text-transform:uppercase;
+    padding:12px 12px; border-radius:10px; transition:background .15s ease, color .15s ease;
+  }
+  .sb-link svg{ width:16px; height:16px; flex:none; }
+  .sb-link.active{ background:rgba(155,93,246,.16); color:var(--ink); }
+  .sb-logout{
+    display:flex; align-items:center; gap:10px; background:none; border:1px solid var(--line-strong); color:var(--ink-soft);
+    font-family:'IBM Plex Mono',monospace; font-size:.75rem; font-weight:600; letter-spacing:.04em; text-transform:uppercase;
+    padding:12px; border-radius:10px; cursor:pointer; margin-top:8px;
+  }
+  .sb-logout:hover{ color:var(--ink); border-color:var(--ink); }
+  .sidebar-backdrop{ position:fixed; inset:0; background:rgba(8,4,18,.6); z-index:30; display:none; }
+  .sidebar-backdrop.open{ display:block; }
+
+  .topbar{
+    position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:14px;
+    padding:14px 18px; background:var(--paper); border-bottom:1px solid var(--line);
+  }
+  .hamburger{
+    background:none; border:1px solid var(--line-strong); color:var(--ink); width:40px; height:40px;
+    border-radius:10px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex:none;
+  }
+  .topbar-title{ font-size:1.05rem; }
+
+  .main{ padding:24px 20px 60px; }
+  .main-head{ margin-bottom:22px; }
+  .main-head h2{ font-size:clamp(1.6rem,4vw,2.1rem); }
+  .main-head p{ color:var(--ink-soft); font-size:.9rem; margin:6px 0 0; }
+  .stat-pill{
+    display:inline-flex; align-items:center; gap:8px; font-family:'IBM Plex Mono',monospace; font-size:.72rem;
+    letter-spacing:.05em; text-transform:uppercase; color:var(--ink-soft); border:1px solid var(--line-strong);
+    border-radius:999px; padding:6px 14px; margin-top:14px;
+  }
+
+  .state-msg{ color:var(--ink-soft); font-size:.92rem; padding:40px 4px; }
+
+  /* card list — works at every width, reads as cards on narrow screens */
+  .consulta-list{ display:flex; flex-direction:column; gap:12px; }
+  .consulta-card{
+    background:var(--paper-dim); border:1px solid var(--line); border-radius:var(--radius);
+    padding:16px 18px; display:grid; gap:4px 20px;
+    grid-template-columns: 150px 1fr 1fr 140px; grid-template-areas: "fecha nombre email rubro" "mensaje mensaje mensaje mensaje";
+  }
+  .c-fecha{ grid-area:fecha; } .c-nombre{ grid-area:nombre; } .c-email{ grid-area:email; }
+  .c-rubro{ grid-area:rubro; } .c-mensaje{ grid-area:mensaje; margin-top:8px; padding-top:10px; border-top:1px solid var(--line); }
+  .consulta-card .lbl{ display:block; font-family:'IBM Plex Mono',monospace; font-size:.62rem; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:3px; }
+  .consulta-card .val{ font-size:.92rem; word-break:break-word; }
+  .c-mensaje .val{ color:var(--ink-soft); line-height:1.55; white-space:pre-wrap; }
+
+  @media (min-width: 960px){
+    .sidebar{ transform:none; }
+    .sidebar-backdrop{ display:none !important; }
+    .topbar{ display:none; }
+    .main-wrap{ margin-left:var(--sidebar-w); }
+    .main{ padding:40px 44px 60px; max-width:1100px; }
+  }
+  @media (max-width: 720px){
+    .consulta-card{ grid-template-columns:1fr 1fr; grid-template-areas: "fecha rubro" "nombre nombre" "email email" "mensaje mensaje"; }
+  }
+  @media (max-width: 480px){
+    .consulta-card{ grid-template-columns:1fr; grid-template-areas: "fecha" "nombre" "email" "rubro" "mensaje"; }
+  }
 </style>
 </head>
 <body>
-  <h1>Consultas recibidas</h1>
-  <div class="bar">
-    <input id="token" type="password" placeholder="Token de administrador">
-    <button id="load">Ver consultas</button>
+
+  <div id="login-view">
+    <div class="login-card">
+      <div class="login-brand">Tino Partners<span>Panel interno</span></div>
+      <h1>Ingresar</h1>
+      <p class="hint">Acceso restringido al equipo. Ingresá la contraseña para ver las consultas.</p>
+      <form id="loginForm">
+        <div class="field">
+          <label for="password">Contraseña</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required>
+        </div>
+        <button class="btn-primary" type="submit" id="loginBtn">Ingresar →</button>
+        <p class="form-error" id="loginError"></p>
+      </form>
+    </div>
   </div>
-  <p id="status"></p>
-  <table id="table" style="display:none">
-    <thead>
-      <tr><th>Fecha</th><th>Nombre</th><th>Email</th><th>Rubro</th><th>Mensaje</th></tr>
-    </thead>
-    <tbody id="rows"></tbody>
-  </table>
+
+  <div id="app-view">
+    <div class="sidebar-backdrop" id="backdrop"></div>
+    <nav class="sidebar" id="sidebar">
+      <div class="sb-brand">Tino Partners<span>Panel interno</span></div>
+      <div class="sb-nav">
+        <a class="sb-link active" href="#consultas">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Consultas
+        </a>
+      </div>
+      <button class="sb-logout" id="logoutBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Salir
+      </button>
+    </nav>
+
+    <div class="main-wrap">
+      <div class="topbar">
+        <button class="hamburger" id="hamburger" aria-label="Abrir menú">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <span class="topbar-title mono">Consultas</span>
+      </div>
+
+      <main class="main">
+        <div class="main-head">
+          <h2>Consultas</h2>
+          <p>Mensajes recibidos desde el formulario de contacto del sitio.</p>
+          <span class="stat-pill" id="countPill">— consultas</span>
+        </div>
+        <div id="content"></div>
+      </main>
+    </div>
+  </div>
 
 <script>
-  var tokenInput = document.getElementById('token');
-  var status = document.getElementById('status');
-  var table = document.getElementById('table');
-  var rows = document.getElementById('rows');
+  var loginView = document.getElementById('login-view');
+  var appView = document.getElementById('app-view');
+  var loginForm = document.getElementById('loginForm');
+  var loginBtn = document.getElementById('loginBtn');
+  var loginError = document.getElementById('loginError');
+  var sidebar = document.getElementById('sidebar');
+  var backdrop = document.getElementById('backdrop');
+  var content = document.getElementById('content');
+  var countPill = document.getElementById('countPill');
 
-  var saved = localStorage.getItem('tp_admin_token');
-  if (saved) tokenInput.value = saved;
-
-  document.getElementById('load').addEventListener('click', load);
-  tokenInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') load(); });
-
-  function load(){
-    var token = tokenInput.value.trim();
-    if (!token) { status.textContent = 'Ingresá el token.'; return; }
-    localStorage.setItem('tp_admin_token', token);
-    status.textContent = 'Cargando...';
-    table.style.display = 'none';
-
-    fetch('/api/consultas?token=' + encodeURIComponent(token))
-      .then(function(r){
-        if (!r.ok) throw new Error(r.status === 401 ? 'Token incorrecto' : 'Error del servidor');
-        return r.json();
-      })
-      .then(function(data){
-        rows.innerHTML = '';
-        if (!data.items.length) {
-          status.textContent = 'Todavía no hay consultas.';
-          return;
-        }
-        data.items.forEach(function(item){
-          var tr = document.createElement('tr');
-          var fecha = new Date(item.fecha).toLocaleString('es-AR');
-          tr.innerHTML =
-            '<td>' + fecha + '</td>' +
-            '<td>' + escapeHtml(item.nombre) + '</td>' +
-            '<td>' + escapeHtml(item.email) + '</td>' +
-            '<td>' + escapeHtml(item.rubro) + '</td>' +
-            '<td class="msg">' + escapeHtml(item.mensaje) + '</td>';
-          rows.appendChild(tr);
-        });
-        status.textContent = data.items.length + ' consulta(s).';
-        table.style.display = '';
-      })
-      .catch(function(err){
-        status.textContent = err.message;
-      });
+  function showLogin(){
+    loginView.style.display = 'flex';
+    appView.style.display = 'none';
+    closeSidebar();
   }
+  function showApp(){
+    loginView.style.display = 'none';
+    appView.style.display = 'block';
+  }
+
+  function openSidebar(){ sidebar.classList.add('open'); backdrop.classList.add('open'); }
+  function closeSidebar(){ sidebar.classList.remove('open'); backdrop.classList.remove('open'); }
+  document.getElementById('hamburger').addEventListener('click', openSidebar);
+  backdrop.addEventListener('click', closeSidebar);
 
   function escapeHtml(str){
     var div = document.createElement('div');
@@ -89,7 +226,73 @@
     return div.innerHTML;
   }
 
-  if (saved) load();
+  function renderConsultas(items){
+    if (!items.length){
+      content.innerHTML = '<p class="state-msg">Todavía no hay consultas.</p>';
+      countPill.textContent = '0 consultas';
+      return;
+    }
+    countPill.textContent = items.length + (items.length === 1 ? ' consulta' : ' consultas');
+    content.innerHTML = '<div class="consulta-list">' + items.map(function(item){
+      var fecha = new Date(item.fecha).toLocaleString('es-AR', { dateStyle:'medium', timeStyle:'short' });
+      return (
+        '<div class="consulta-card">' +
+          '<div class="c-fecha"><span class="lbl">Fecha</span><span class="val mono">' + fecha + '</span></div>' +
+          '<div class="c-nombre"><span class="lbl">Nombre</span><span class="val">' + escapeHtml(item.nombre) + '</span></div>' +
+          '<div class="c-email"><span class="lbl">Email</span><span class="val">' + escapeHtml(item.email) + '</span></div>' +
+          '<div class="c-rubro"><span class="lbl">Rubro</span><span class="val">' + escapeHtml(item.rubro) + '</span></div>' +
+          '<div class="c-mensaje"><span class="lbl">Mensaje</span><span class="val">' + escapeHtml(item.mensaje) + '</span></div>' +
+        '</div>'
+      );
+    }).join('') + '</div>';
+  }
+
+  function loadConsultas(){
+    content.innerHTML = '<p class="state-msg">Cargando...</p>';
+    fetch('/api/consultas')
+      .then(function(r){
+        if (r.status === 401) { showLogin(); return null; }
+        if (!r.ok) throw new Error('server');
+        return r.json();
+      })
+      .then(function(data){ if (data) renderConsultas(data.items); })
+      .catch(function(){ content.innerHTML = '<p class="state-msg">Error al cargar las consultas.</p>'; });
+  }
+
+  loginForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    loginBtn.disabled = true;
+    loginError.textContent = '';
+    fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: document.getElementById('password').value })
+    })
+      .then(function(r){ return r.json().then(function(data){ return { ok: r.ok, data: data }; }); })
+      .then(function(res){
+        if (!res.ok) { loginError.textContent = res.data.error || 'No se pudo ingresar.'; return; }
+        loginForm.reset();
+        showApp();
+        loadConsultas();
+      })
+      .catch(function(){ loginError.textContent = 'Error de conexión.'; })
+      .finally(function(){ loginBtn.disabled = false; });
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', function(){
+    fetch('/api/logout', { method: 'POST' }).finally(showLogin);
+  });
+
+  // check for an existing session on load
+  fetch('/api/consultas')
+    .then(function(r){
+      if (r.status === 401) { showLogin(); return null; }
+      return r.json();
+    })
+    .then(function(data){
+      if (data) { showApp(); renderConsultas(data.items); }
+    })
+    .catch(showLogin);
 </script>
 </body>
 </html>

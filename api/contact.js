@@ -3,7 +3,7 @@ const { get, put } = require('@vercel/blob');
 const STORE_KEY = 'consultas/consultas.json';
 
 async function readAll() {
-  const result = await get(STORE_KEY, { access: 'private' });
+  const result = await get(STORE_KEY, { access: 'private', useCache: false });
   if (!result || result.statusCode !== 200) return [];
   const text = await new Response(result.stream).text();
   try {
