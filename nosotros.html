@@ -103,15 +103,22 @@
     position:fixed; top:0; left:0; right:0; z-index:40;
     display:flex; align-items:center; justify-content:space-between;
     padding:16px clamp(20px,5vw,64px);
-    background:transparent;
     border-bottom:1px solid transparent;
-    transition:background .3s ease, border-color .3s ease, backdrop-filter .3s ease;
+    transition:border-color .3s ease;
   }
-  .nav.is-scrolled{
+  /* The blur lives on a pseudo-element, not on .nav itself. backdrop-filter (like filter or
+     transform) on an ancestor turns it into the containing block for position:fixed
+     descendants — and the mobile menu below is exactly that. With the filter on .nav directly,
+     the open menu would sometimes render with no background / in the wrong place once the nav
+     had scrolled and picked up the blur. Keeping it on ::before avoids that entirely. */
+  .nav::before{
+    content:""; position:absolute; inset:0; z-index:-1;
     background:color-mix(in srgb, var(--paper) 86%, transparent);
-    backdrop-filter:blur(10px);
-    border-bottom-color:var(--line);
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    opacity:0; transition:opacity .3s ease;
   }
+  .nav.is-scrolled{ border-bottom-color:var(--line); }
+  .nav.is-scrolled::before{ opacity:1; }
   .brand{ display:flex; align-items:center; gap:10px; text-decoration:none; }
   .brand svg{ width:30px; height:30px; flex:none; }
   .brand-word{ font-family:'Big Shoulders Display', sans-serif; font-weight:800; font-size:1.28rem; letter-spacing:.01em; text-transform:uppercase; }
