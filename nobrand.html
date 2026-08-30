@@ -184,7 +184,7 @@
     padding:calc(96px + 4vh) clamp(20px,5vw,64px) clamp(48px,7vh,80px);
   }
   .brand-hero h1{
-    font-size:clamp(3.2rem, 9vw, 7rem); margin:18px 0 20px; letter-spacing:.01em;
+    font-size:clamp(4.5rem, 15vw, 12rem); margin:14px 0 24px; letter-spacing:.005em;
   }
   .brand-hero .lede{ max-width:60ch; font-size:1.06rem; line-height:1.6; color:var(--ink-soft); }
   .brand-meta{ display:flex; flex-wrap:wrap; gap:10px; margin-top:26px; }
@@ -195,17 +195,21 @@
   .hero-blob{ width:320px; height:320px; top:-40px; right:clamp(0px,4vw,40px); opacity:.28; z-index:-1; }
   .blob-shape{ position:absolute; border-radius:63% 37% 54% 46% / 41% 51% 49% 59%; pointer-events:none; }
   .blob-fill{ background:var(--gradient-vivid); }
+  .hero-sparkle{ position:absolute; color:var(--coral-fill); z-index:-1; }
+  .hero-sparkle svg{ width:100%; height:100%; }
+  .sparkle-1{ width:26px; height:26px; top:8px; right:14%; }
+  .sparkle-2{ width:15px; height:15px; top:46px; right:calc(14% + 34px); opacity:.7; }
 
   /* ---- feature video (trailer) ---- */
   .feature{ padding-bottom:clamp(56px,7vh,88px); }
-  .feature-frame{ max-width:760px; margin:0 auto; }
+  .feature-frame{ max-width:1040px; margin:0 auto; }
 
   /* ---- video gallery ---- */
   .gallery{ background:var(--paper-dim); padding:clamp(24px,4vh,48px) 0 clamp(64px,8vh,96px); }
   .section-head{ max-width:64ch; margin-bottom:clamp(36px,5vw,56px); }
   .section-head .eyebrow{ margin-bottom:14px; }
   .section-head h2{ font-size:clamp(1.9rem,4vw,2.8rem); }
-  .video-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:clamp(16px,2.2vw,24px); }
+  .video-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(20px,2.6vw,32px); }
   .video-card .video-label{ margin-top:12px; }
   .video-card .video-label .lbl-title{ font-family:'Big Shoulders Display',sans-serif; font-weight:800; font-size:1.1rem; text-transform:uppercase; display:block; }
   .video-card .video-label .lbl-sub{ font-family:'IBM Plex Mono',monospace; font-size:.7rem; color:var(--ink-soft); }
@@ -384,6 +388,8 @@
 <main>
   <section class="brand-hero">
     <span class="blob-shape blob-fill hero-blob" aria-hidden="true"></span>
+    <span class="hero-sparkle sparkle-1" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0 L14.5 9.5 L24 12 L14.5 14.5 L12 24 L9.5 14.5 L0 12 L9.5 9.5 Z"/></svg></span>
+    <span class="hero-sparkle sparkle-2" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0 L14.5 9.5 L24 12 L14.5 14.5 L12 24 L9.5 14.5 L0 12 L9.5 9.5 Z"/></svg></span>
     <a class="back-link reveal" href="portfolio.html">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
       Volver al portfolio
