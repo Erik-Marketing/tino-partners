@@ -277,6 +277,18 @@
   .v-btn .icon-off{ display:none; }
   .video-frame.is-muted .v-mute .icon-on{ display:none; }
   .video-frame.is-muted .v-mute .icon-off{ display:block; }
+  .v-play{
+    position:absolute; inset:0; z-index:2; display:flex; align-items:center; justify-content:center;
+    background:rgba(10,4,20,.3); border:none; cursor:pointer; padding:0;
+    transition:opacity .2s ease, background .2s ease;
+  }
+  .v-play:hover{ background:rgba(10,4,20,.45); }
+  .v-play .play-circle{
+    width:60px; height:60px; border-radius:50%; background:var(--gradient-vivid);
+    display:flex; align-items:center; justify-content:center; box-shadow:var(--glow);
+  }
+  .v-play svg{ width:20px; height:20px; margin-left:3px; color:#fff; }
+  .video-frame.is-playing .v-play{ opacity:0; pointer-events:none; }
 
   /* ---- capacidades (reuses the equipo/founder-card visual language) ---- */
   .capabilities{
@@ -368,6 +380,20 @@
     font-family:'IBM Plex Mono',monospace; font-size:.68rem; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-soft);
   }
 
+  /* ---- video section (real clips, vertical 9:16 — matches the source footage) ---- */
+  .video-section{ background:var(--paper-dim); padding:clamp(64px,8vh,96px) 0; }
+  .video-showcase-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(20px,3vw,28px); }
+  .video-tile{ display:block; text-decoration:none; color:inherit; }
+  .video-showcase-grid .video-frame{ aspect-ratio:9/16; }
+  .video-frame--empty{
+    display:flex; align-items:flex-start; justify-content:flex-start; padding:14px;
+    background: repeating-linear-gradient(135deg, var(--line) 0 1px, transparent 1px 14px);
+  }
+  .video-tile-label{ margin-top:12px; }
+  .video-tile-label .lbl-title{ font-family:'Big Shoulders Display',sans-serif; font-weight:800; font-size:1.1rem; text-transform:uppercase; display:block; }
+  .video-tile-label .lbl-sub{ font-family:'IBM Plex Mono',monospace; font-size:.7rem; color:var(--ink-soft); }
+  .video-tile.is-empty .lbl-sub{ color:var(--ink-soft); opacity:.7; }
+
   /* ---- cta band ---- */
   .cta-band{
     position:relative; overflow:hidden; text-align:center;
@@ -455,6 +481,7 @@
     .cap-card:last-child{ border-bottom:1px solid var(--line); }
     .story-grid{ grid-template-columns:1fr; }
     .gallery-grid{ grid-template-columns:repeat(2,1fr); }
+    .video-showcase-grid{ grid-template-columns:repeat(2,1fr); }
     .hero-blob{ width:150px; height:150px; top:-20px; right:-30px; opacity:.22; }
     .story-blob{ width:90px; height:90px; top:-18px; left:-18px; }
   }
@@ -725,18 +752,61 @@
   <section class="gallery-section">
     <div class="section-inner">
       <div class="section-head reveal">
-        <p class="eyebrow-badge">Producción</p>
-        <h2>Así se va a ver el trabajo visual.</h2>
+        <p class="eyebrow-badge">Fotografía</p>
+        <h2>Así se va a ver la producción fotográfica.</h2>
       </div>
       <div class="gallery-grid">
         <div class="gallery-tile reveal"><span>Fotografía de producto</span></div>
         <div class="gallery-tile reveal"><span>Contenido para redes</span></div>
         <div class="gallery-tile reveal"><span>Antes / Después</span></div>
-        <div class="gallery-tile reveal"><span>Video vertical</span></div>
+        <div class="gallery-tile reveal"><span>Making of</span></div>
         <div class="gallery-tile reveal"><span>Cobertura de eventos</span></div>
         <div class="gallery-tile reveal"><span>Dirección de arte</span></div>
         <div class="gallery-tile reveal"><span>Identidad de marca</span></div>
         <div class="gallery-tile reveal"><span>Piezas para pauta</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="wave-divider" aria-hidden="true">
+    <svg viewBox="0 0 1440 80" preserveAspectRatio="none"><path d="M0,40 C240,-10 480,90 720,40 C960,-10 1200,90 1440,40 L1440,80 L0,80 Z" fill="var(--paper-dim)"/></svg>
+  </div>
+
+  <section class="video-section">
+    <div class="section-inner">
+      <div class="section-head reveal">
+        <p class="eyebrow-badge hue-c">Video</p>
+        <h2>Piezas en video, marca por marca.</h2>
+      </div>
+      <div class="video-showcase-grid">
+        <a class="video-tile has-video reveal" href="nobrand.html">
+          <div class="video-frame" data-video>
+            <video src="https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/margen-camp-001.mp4" muted loop playsinline preload="metadata"></video>
+            <button class="v-play" type="button" aria-label="Reproducir video">
+              <span class="play-circle"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
+            </button>
+            <div class="video-controls">
+              <button class="v-btn v-mute" type="button" aria-label="Activar sonido">
+                <svg class="icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                <svg class="icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+              </button>
+              <button class="v-btn v-expand" type="button" aria-label="Ampliar video">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="video-tile-label"><span class="lbl-title">NOBRAND</span><span class="lbl-sub">Campaña Margen — Ver caso →</span></div>
+        </a>
+
+        <div class="video-tile is-empty reveal">
+          <div class="video-frame video-frame--empty"><span class="wt-status">Próximamente</span></div>
+          <div class="video-tile-label"><span class="lbl-title">Próximo cliente</span><span class="lbl-sub">Espacio libre</span></div>
+        </div>
+
+        <div class="video-tile is-empty reveal">
+          <div class="video-frame video-frame--empty"><span class="wt-status">Próximamente</span></div>
+          <div class="video-tile-label"><span class="lbl-title">Próximo cliente</span><span class="lbl-sub">Espacio libre</span></div>
+        </div>
       </div>
     </div>
   </section>
@@ -816,6 +886,7 @@
     var video = frame.querySelector('video');
     var muteBtn = frame.querySelector('.v-mute');
     var expandBtn = frame.querySelector('.v-expand');
+    var playBtn = frame.querySelector('.v-play');
 
     frame.classList.toggle('is-muted', video.muted);
 
@@ -832,6 +903,14 @@
         if (frame.requestFullscreen) frame.requestFullscreen();
         else if (video.webkitEnterFullscreen) video.webkitEnterFullscreen();
       });
+    }
+    if (playBtn) {
+      playBtn.addEventListener('click', function(e){
+        e.preventDefault(); e.stopPropagation();
+        video.play();
+      });
+      video.addEventListener('play', function(){ frame.classList.add('is-playing'); });
+      video.addEventListener('pause', function(){ frame.classList.remove('is-playing'); });
     }
     if (frame.hasAttribute('data-autoplay')) {
       // the native `autoplay` attribute on the <video> handles this in practice;
