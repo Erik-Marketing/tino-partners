@@ -85,6 +85,29 @@
     text-transform:uppercase;
     color:var(--ink-soft);
   }
+  /* solid-color pill badge for a section label — a bolder, more graphic alternative
+     to the plain mono eyebrow text, used where a section wants more visual weight */
+  .eyebrow-badge{
+    display:inline-block; font-family:'IBM Plex Mono', ui-monospace, monospace;
+    font-size:.72rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--v-900); background:var(--coral-fill); margin-bottom:16px;
+    padding:8px 18px; border-radius:var(--radius-pill); transform:rotate(-2deg);
+  }
+  .eyebrow-badge.hue-b{ background:var(--lime-fill); }
+  .eyebrow-badge.hue-c{ background:var(--pink-300); }
+
+  /* organic blob shapes — decorative accents, same palette as everything else */
+  .blob-shape{
+    position:absolute; z-index:0; pointer-events:none;
+    border-radius:63% 37% 54% 46% / 41% 51% 49% 59%;
+  }
+  .blob-fill{ background:var(--gradient-vivid); opacity:.9; }
+  .blob-outline{ border:1.5px solid var(--line-strong); }
+
+  /* wavy section divider — sits between two bands, filled with the colour of
+     whichever section it's introducing so that band reads as flowing upward */
+  .wave-divider{ display:block; line-height:0; position:relative; z-index:1; }
+  .wave-divider svg{ display:block; width:100%; height:clamp(36px,6vw,72px); }
   .section-inner{ position:relative; z-index:1; max-width:var(--maxw); margin:0 auto; padding-inline:clamp(20px,5vw,64px); }
   img{ max-width:100%; display:block; }
 
@@ -160,8 +183,10 @@
 
   /* ---- page intro ---- */
   .page-hero{
-    max-width:var(--maxw); margin:0 auto; padding:calc(96px + 6vh) clamp(20px,5vw,64px) clamp(40px,6vh,64px);
+    position:relative; max-width:var(--maxw); margin:0 auto;
+    padding:calc(96px + 6vh) clamp(20px,5vw,64px) clamp(40px,6vh,64px);
   }
+  .hero-blob{ width:300px; height:300px; top:-30px; right:clamp(0px,4vw,60px); opacity:.28; z-index:-1; }
   .page-hero .eyebrow{ margin-bottom:18px; }
   .page-hero h1{ font-size:clamp(2.4rem, 5.4vw, 4rem); max-width:18ch; }
   .page-hero .lede{
@@ -203,12 +228,19 @@
 
   /* ---- highlight tiles (same visual language as the Trabajos preview tiles) ---- */
   .highlights{ padding-bottom:clamp(56px,7vh,88px); }
-  .work-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(14px,2vw,20px); }
+  .work-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(20px,3vw,28px); }
   .work-tile{
-    aspect-ratio:4/5; border:1px solid var(--line-strong); border-radius:var(--radius);
+    aspect-ratio:4/5; border:1px solid var(--line-strong); border-radius:26px 8px 26px 8px;
     position:relative; overflow:hidden; display:flex; flex-direction:column; justify-content:space-between;
     padding:20px; background: repeating-linear-gradient(135deg, var(--line) 0 1px, transparent 1px 14px);
+    transition:transform .25s ease, box-shadow .25s ease;
   }
+  /* Rotation only applies once .reveal has finished its own translateY animation and
+     added .is-visible — both rules would otherwise fight over the transform property. */
+  .work-grid .work-tile.is-visible:nth-child(1){ transform:rotate(-2deg); }
+  .work-grid .work-tile.is-visible:nth-child(2){ transform:rotate(1.5deg); border-radius:8px 26px 8px 26px; }
+  .work-grid .work-tile.is-visible:nth-child(3){ transform:rotate(-1.2deg); }
+  .work-grid .work-tile.is-visible:hover{ transform:rotate(0deg) translateY(-4px); box-shadow:0 16px 34px -16px rgba(20,8,40,.5); }
   .work-tile .eyebrow{ color:var(--ink-soft); }
   .work-tile .wt-title{ font-family:'Big Shoulders Display',sans-serif; font-weight:800; font-size:1.4rem; text-transform:uppercase; }
   .work-tile .wt-meta{ font-family:'IBM Plex Mono',monospace; font-size:.7rem; color:var(--ink-soft); margin-top:4px; }
@@ -284,6 +316,7 @@
     padding:clamp(32px,4vw,44px); text-align:center;
   }
   .story-stat .case-flag{ position:absolute; top:0; right:0; }
+  .story-blob{ width:150px; height:150px; top:-32px; left:-32px; opacity:.9; z-index:-1; }
   .story-stat .num{
     font-family:'Big Shoulders Display',sans-serif; font-weight:800; font-size:clamp(2.8rem,6vw,4.2rem);
     line-height:.9; background:var(--gradient-vivid); -webkit-background-clip:text; background-clip:text; color:transparent;
@@ -294,10 +327,15 @@
   .gallery-section{ padding:clamp(64px,8vh,96px) 0; }
   .gallery-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:clamp(12px,1.6vw,18px); }
   .gallery-tile{
-    aspect-ratio:1/1; border:1px solid var(--line-strong); border-radius:var(--radius);
+    aspect-ratio:1/1; border:1px solid var(--line-strong); border-radius:22px 6px 22px 6px;
     position:relative; overflow:hidden; display:flex; align-items:flex-end; padding:14px;
     background: repeating-linear-gradient(135deg, var(--line) 0 1px, transparent 1px 14px);
+    transition:transform .2s ease;
   }
+  /* editorial-grid stagger — a plain margin offset so it never fights the .reveal
+     translateY transform that also lives on this element */
+  .gallery-grid .gallery-tile:nth-child(even){ margin-top:clamp(16px,2.4vw,26px); border-radius:6px 22px 6px 22px; }
+  .gallery-tile.is-visible:hover{ transform:translateY(-4px); }
   .gallery-tile span{
     font-family:'IBM Plex Mono',monospace; font-size:.68rem; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-soft);
   }
@@ -389,6 +427,8 @@
     .cap-card:last-child{ border-bottom:1px solid var(--line); }
     .story-grid{ grid-template-columns:1fr; }
     .gallery-grid{ grid-template-columns:repeat(2,1fr); }
+    .hero-blob{ width:150px; height:150px; top:-20px; right:-30px; opacity:.22; }
+    .story-blob{ width:90px; height:90px; top:-18px; left:-18px; }
   }
 </style>
 
@@ -434,6 +474,7 @@
 
 <main>
   <section class="page-hero">
+    <span class="blob-shape blob-fill hero-blob" aria-hidden="true"></span>
     <p class="eyebrow reveal">Portfolio</p>
     <h1 class="reveal">El formato del portfolio, antes que los primeros casos.</h1>
     <p class="lede reveal">Todavía no tenemos proyectos reales para mostrar acá — pero ya estamos trabajando con las primeras marcas. Así vamos a presentar cada caso apenas cerremos una entrega: qué hicimos, con qué estrategia, y qué resultado dejó.</p>
@@ -474,10 +515,14 @@
     </div>
   </section>
 
+  <div class="wave-divider" aria-hidden="true">
+    <svg viewBox="0 0 1440 80" preserveAspectRatio="none"><path d="M0,40 C240,90 480,-10 720,40 C960,90 1200,-10 1440,40 L1440,80 L0,80 Z" fill="var(--paper-dim)"/></svg>
+  </div>
+
   <section class="capabilities">
     <div class="section-inner">
       <div class="section-head reveal">
-        <p class="eyebrow">Con qué trabajamos</p>
+        <p class="eyebrow-badge">Con qué trabajamos</p>
         <h2>Las mismas herramientas,<br>en cada proyecto.</h2>
       </div>
       <div class="cap-grid">
@@ -506,10 +551,14 @@
     </div>
   </section>
 
+  <div class="wave-divider" aria-hidden="true">
+    <svg viewBox="0 0 1440 80" preserveAspectRatio="none"><path d="M0,40 C240,-10 480,90 720,40 C960,-10 1200,90 1440,40 L1440,80 L0,80 Z" fill="var(--paper)"/></svg>
+  </div>
+
   <section class="case">
     <div class="section-inner">
       <div class="section-head reveal">
-        <p class="eyebrow">Casos en profundidad</p>
+        <p class="eyebrow-badge hue-b">Casos en profundidad</p>
         <h2>Así se va a ver cada proyecto real.</h2>
       </div>
       <div class="case-list-wrap">
@@ -604,16 +653,21 @@
     </div>
   </section>
 
+  <div class="wave-divider" aria-hidden="true">
+    <svg viewBox="0 0 1440 80" preserveAspectRatio="none"><path d="M0,40 C240,90 480,-10 720,40 C960,90 1200,-10 1440,40 L1440,80 L0,80 Z" fill="var(--paper-dim)"/></svg>
+  </div>
+
   <section class="story">
     <div class="section-inner">
       <div class="story-grid">
         <div class="story-copy reveal">
-          <p class="eyebrow" style="margin-bottom:16px;">Historia destacada</p>
+          <p class="eyebrow-badge hue-c">Historia destacada</p>
           <h2 style="margin-bottom:18px;">Así vamos a contar el caso que se hizo viral.</h2>
           <p><b>[Marca Ejemplo]</b> necesitaba [un objetivo puntual — más ventas, más reservas, más consultas]. Diseñamos [una idea concreta] y la ejecutamos con producción propia, sin depender de pauta para que despegara.</p>
           <p>En [X semanas], el contenido superó las expectativas: se viralizó de forma orgánica, generó conversación real en redes, y el negocio lo sintió directamente en el mostrador — no solo en las métricas.</p>
         </div>
         <div class="story-stat reveal">
+          <span class="blob-shape blob-fill story-blob" aria-hidden="true"></span>
           <span class="case-flag">Ejemplo</span>
           <div class="num">+X.XM</div>
           <p class="cap">reproducciones orgánicas — el número real reemplaza a este apenas cerremos el primer caso</p>
@@ -622,10 +676,14 @@
     </div>
   </section>
 
+  <div class="wave-divider" aria-hidden="true">
+    <svg viewBox="0 0 1440 80" preserveAspectRatio="none"><path d="M0,40 C240,-10 480,90 720,40 C960,-10 1200,90 1440,40 L1440,80 L0,80 Z" fill="var(--paper)"/></svg>
+  </div>
+
   <section class="gallery-section">
     <div class="section-inner">
       <div class="section-head reveal">
-        <p class="eyebrow">Producción</p>
+        <p class="eyebrow-badge">Producción</p>
         <h2>Así se va a ver el trabajo visual.</h2>
       </div>
       <div class="gallery-grid">
