@@ -218,8 +218,30 @@
     background:var(--paper-flat); border:1px solid var(--line-strong); color:var(--ink-soft);
   }
 
+  /* ---- capacidades (reuses the equipo/founder-card visual language) ---- */
+  .capabilities{
+    position:relative; overflow:hidden;
+    background:var(--paper-dim); padding:clamp(64px,8vh,96px) 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+  }
+  .cap-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(28px,4vw,40px); }
+  .cap-card{ display:flex; flex-direction:column; align-items:flex-start; gap:4px; padding-top:clamp(24px,3vw,30px); border-top:1px solid var(--line); }
+  .cap-mark{
+    width:16px; height:16px; border-radius:50%; margin-bottom:14px; flex:none;
+    box-shadow:0 4px 10px -3px rgba(74,49,112,.5);
+  }
+  .cap-card[data-pillar="produccion"] .cap-mark{ background:radial-gradient(circle at 32% 28%, #fff, var(--coral-fill) 55%, var(--coral) 100%); }
+  .cap-card[data-pillar="estrategia"] .cap-mark{ background:radial-gradient(circle at 32% 28%, #fff, var(--lime-fill) 55%, var(--lime) 100%); }
+  .cap-card[data-pillar="tecnologia"] .cap-mark{ background:radial-gradient(circle at 32% 28%, #fff, var(--steel) 55%, var(--ink-soft) 100%); }
+  .cap-card h3{ font-size:clamp(1.3rem,2.2vw,1.6rem); margin-bottom:12px; }
+  .cap-tags{ display:flex; flex-wrap:wrap; gap:8px 10px; }
+  .cap-tags span{
+    font-family:'IBM Plex Mono',monospace; font-size:.68rem; letter-spacing:.05em; text-transform:uppercase;
+    padding:6px 12px; border:1px solid var(--line-strong); border-radius:var(--radius-pill); color:var(--ink-soft);
+  }
+
   /* ---- detailed case block ---- */
-  .case{ background:var(--paper-dim); border-top:1px solid var(--line); border-bottom:1px solid var(--line); padding:clamp(64px,8vh,96px) 0; }
+  .case{ padding:clamp(64px,8vh,96px) 0; }
+  .case-list-wrap{ display:flex; flex-direction:column; gap:clamp(28px,4vw,36px); }
   .case-card{
     border:1px solid var(--line-strong); border-radius:var(--radius); background:var(--paper-flat);
     padding:clamp(28px,4vw,44px); position:relative; overflow:hidden;
@@ -250,6 +272,35 @@
   .case-result .icon{ font-size:1.2rem; line-height:1; flex:none; margin-top:2px; }
   .case-result .txt{ font-size:.95rem; line-height:1.5; color:var(--ink-soft); }
   .case-result b{ color:var(--ink); font-weight:600; }
+
+  /* ---- historia destacada (narrative flagship case) ---- */
+  .story{ background:var(--paper-dim); border-top:1px solid var(--line); border-bottom:1px solid var(--line); padding:clamp(64px,8vh,96px) 0; }
+  .story-grid{ display:grid; grid-template-columns:1.3fr 1fr; gap:clamp(32px,5vw,64px); align-items:center; }
+  .story-copy p{ font-size:1.05rem; line-height:1.65; color:var(--ink-soft); }
+  .story-copy p + p{ margin-top:16px; }
+  .story-copy b{ color:var(--ink); font-weight:600; }
+  .story-stat{
+    position:relative; border:1px solid var(--line-strong); border-radius:var(--radius); background:var(--paper-flat);
+    padding:clamp(32px,4vw,44px); text-align:center;
+  }
+  .story-stat .case-flag{ position:absolute; top:0; right:0; }
+  .story-stat .num{
+    font-family:'Big Shoulders Display',sans-serif; font-weight:800; font-size:clamp(2.8rem,6vw,4.2rem);
+    line-height:.9; background:var(--gradient-vivid); -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .story-stat .cap{ margin-top:10px; font-family:'IBM Plex Mono',monospace; font-size:.76rem; color:var(--ink-soft); letter-spacing:.03em; }
+
+  /* ---- galería (placeholder visual grid) ---- */
+  .gallery-section{ padding:clamp(64px,8vh,96px) 0; }
+  .gallery-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:clamp(12px,1.6vw,18px); }
+  .gallery-tile{
+    aspect-ratio:1/1; border:1px solid var(--line-strong); border-radius:var(--radius);
+    position:relative; overflow:hidden; display:flex; align-items:flex-end; padding:14px;
+    background: repeating-linear-gradient(135deg, var(--line) 0 1px, transparent 1px 14px);
+  }
+  .gallery-tile span{
+    font-family:'IBM Plex Mono',monospace; font-size:.68rem; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-soft);
+  }
 
   /* ---- cta band ---- */
   .cta-band{
@@ -333,6 +384,11 @@
     .nav-toggle.is-open span:nth-child(3){ transform:translateY(-7px) rotate(-45deg); }
     .work-grid{ grid-template-columns:1fr; }
     .case-grid{ grid-template-columns:1fr; gap:32px; }
+    .cap-grid{ grid-template-columns:1fr; gap:0; }
+    .cap-card{ padding-bottom:clamp(24px,3vw,30px); }
+    .cap-card:last-child{ border-bottom:1px solid var(--line); }
+    .story-grid{ grid-template-columns:1fr; }
+    .gallery-grid{ grid-template-columns:repeat(2,1fr); }
   }
 </style>
 
@@ -418,41 +474,170 @@
     </div>
   </section>
 
+  <section class="capabilities">
+    <div class="section-inner">
+      <div class="section-head reveal">
+        <p class="eyebrow">Con qué trabajamos</p>
+        <h2>Las mismas herramientas,<br>en cada proyecto.</h2>
+      </div>
+      <div class="cap-grid">
+        <div class="cap-card reveal" data-pillar="produccion">
+          <span class="cap-mark"></span>
+          <h3>Producción &amp; Contenido</h3>
+          <div class="cap-tags">
+            <span>Fotografía</span><span>Video</span><span>Redes sociales</span><span>Dirección de arte</span>
+          </div>
+        </div>
+        <div class="cap-card reveal" data-pillar="estrategia">
+          <span class="cap-mark"></span>
+          <h3>Estrategia &amp; Medios</h3>
+          <div class="cap-tags">
+            <span>Planificación de medios</span><span>Campañas</span><span>Estrategia de marca</span><span>Acciones comerciales</span>
+          </div>
+        </div>
+        <div class="cap-card reveal" data-pillar="tecnologia">
+          <span class="cap-mark"></span>
+          <h3>Tecnología &amp; Automatización</h3>
+          <div class="cap-tags">
+            <span>Automatización</span><span>IA aplicada</span><span>GTM &amp; Analytics</span><span>Desarrollo web &amp; apps</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="case">
     <div class="section-inner">
       <div class="section-head reveal">
-        <p class="eyebrow">Caso en profundidad</p>
+        <p class="eyebrow">Casos en profundidad</p>
         <h2>Así se va a ver cada proyecto real.</h2>
       </div>
-      <div class="case-card reveal">
-        <span class="case-flag">Ejemplo</span>
-        <div class="case-head">
-          <h3>Marca Ejemplo</h3>
-          <span class="case-meta">Rubro: gastronomía · 2026</span>
-        </div>
-        <div class="case-tags">
-          <span>Social Media</span><span>Fotografía</span><span>Estrategia de marca</span>
-        </div>
-        <div class="case-grid">
-          <div>
-            <h4>Qué hicimos</h4>
-            <ul class="case-list">
-              <li>[Plan de contenido mensual con producción propia de fotografía y video]</li>
-              <li>[Cobertura de una fecha clave del negocio con campaña dedicada]</li>
-              <li>[Pauta segmentada para generar consultas medibles, no solo alcance]</li>
-            </ul>
+      <div class="case-list-wrap">
+        <div class="case-card reveal">
+          <span class="case-flag">Ejemplo</span>
+          <div class="case-head">
+            <h3>Marca Ejemplo 01</h3>
+            <span class="case-meta">Rubro: gastronomía · 2026</span>
           </div>
-          <div>
-            <h4>Resultados</h4>
-            <div class="case-results">
-              <div class="case-result"><span class="icon">🚀</span><span class="txt"><b>[+XX%]</b> en consultas por WhatsApp durante la campaña</span></div>
-              <div class="case-result"><span class="icon">📈</span><span class="txt"><b>[+X.XXX]</b> seguidores nuevos en [X] meses de gestión</span></div>
-              <div class="case-result"><span class="icon">🎥</span><span class="txt"><b>[+X millones]</b> de reproducciones en el contenido de la campaña</span></div>
+          <div class="case-tags">
+            <span>Social Media</span><span>Fotografía</span><span>Estrategia de marca</span>
+          </div>
+          <div class="case-grid">
+            <div>
+              <h4>Qué hicimos</h4>
+              <ul class="case-list">
+                <li>[Plan de contenido mensual con producción propia de fotografía y video]</li>
+                <li>[Cobertura de una fecha clave del negocio con campaña dedicada]</li>
+                <li>[Pauta segmentada para generar consultas medibles, no solo alcance]</li>
+              </ul>
+            </div>
+            <div>
+              <h4>Resultados</h4>
+              <div class="case-results">
+                <div class="case-result"><span class="icon">🚀</span><span class="txt"><b>[+XX%]</b> en consultas por WhatsApp durante la campaña</span></div>
+                <div class="case-result"><span class="icon">📈</span><span class="txt"><b>[+X.XXX]</b> seguidores nuevos en [X] meses de gestión</span></div>
+                <div class="case-result"><span class="icon">🎥</span><span class="txt"><b>[+X millones]</b> de reproducciones en el contenido de la campaña</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="case-card reveal">
+          <span class="case-flag">Ejemplo</span>
+          <div class="case-head">
+            <h3>Marca Ejemplo 02</h3>
+            <span class="case-meta">Rubro: indumentaria · 2026</span>
+          </div>
+          <div class="case-tags">
+            <span>Campaña de lanzamiento</span><span>Fotografía de producto</span><span>Influencers</span>
+          </div>
+          <div class="case-grid">
+            <div>
+              <h4>Qué hicimos</h4>
+              <ul class="case-list">
+                <li>[Plan de contenido estacional con producción propia de indumentaria]</li>
+                <li>[Campaña de lanzamiento de colección con colaboración de influencers]</li>
+                <li>[Fotografía de producto y lookbook digital para e-commerce]</li>
+              </ul>
+            </div>
+            <div>
+              <h4>Resultados</h4>
+              <div class="case-results">
+                <div class="case-result"><span class="icon">🛍️</span><span class="txt"><b>[+XX%]</b> en ventas online durante el lanzamiento</span></div>
+                <div class="case-result"><span class="icon">📸</span><span class="txt"><b>[+XX]</b> piezas de contenido producidas en la temporada</span></div>
+                <div class="case-result"><span class="icon">📈</span><span class="txt"><b>[+X.XXX]</b> seguidores nuevos con la campaña</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="case-card reveal">
+          <span class="case-flag">Ejemplo</span>
+          <div class="case-head">
+            <h3>Marca Ejemplo 03</h3>
+            <span class="case-meta">Rubro: salud &amp; servicios · 2026</span>
+          </div>
+          <div class="case-tags">
+            <span>Automatización</span><span>GTM &amp; Analytics</span><span>Pauta segmentada</span>
+          </div>
+          <div class="case-grid">
+            <div>
+              <h4>Qué hicimos</h4>
+              <ul class="case-list">
+                <li>[Automatización de turnos y seguimiento de consultas entrantes]</li>
+                <li>[Campaña de captación segmentada por zona e intención]</li>
+                <li>[Medición end-to-end con Google Tag Manager y Analytics]</li>
+              </ul>
+            </div>
+            <div>
+              <h4>Resultados</h4>
+              <div class="case-results">
+                <div class="case-result"><span class="icon">⚙️</span><span class="txt"><b>[-XX%]</b> de tiempo administrativo gracias a la automatización</span></div>
+                <div class="case-result"><span class="icon">🎯</span><span class="txt"><b>[+XX%]</b> de consultas calificadas vía formulario</span></div>
+                <div class="case-result"><span class="icon">📊</span><span class="txt">Reporte de resultados <b>automatizado</b> mes a mes</span></div>
+              </div>
             </div>
           </div>
         </div>
       </div>
       <p class="eyebrow reveal" style="display:block; margin-top:24px; color:var(--ink-soft);">Los corchetes [ ] se reemplazan por los números y acciones reales de cada cliente.</p>
+    </div>
+  </section>
+
+  <section class="story">
+    <div class="section-inner">
+      <div class="story-grid">
+        <div class="story-copy reveal">
+          <p class="eyebrow" style="margin-bottom:16px;">Historia destacada</p>
+          <h2 style="margin-bottom:18px;">Así vamos a contar el caso que se hizo viral.</h2>
+          <p><b>[Marca Ejemplo]</b> necesitaba [un objetivo puntual — más ventas, más reservas, más consultas]. Diseñamos [una idea concreta] y la ejecutamos con producción propia, sin depender de pauta para que despegara.</p>
+          <p>En [X semanas], el contenido superó las expectativas: se viralizó de forma orgánica, generó conversación real en redes, y el negocio lo sintió directamente en el mostrador — no solo en las métricas.</p>
+        </div>
+        <div class="story-stat reveal">
+          <span class="case-flag">Ejemplo</span>
+          <div class="num">+X.XM</div>
+          <p class="cap">reproducciones orgánicas — el número real reemplaza a este apenas cerremos el primer caso</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="gallery-section">
+    <div class="section-inner">
+      <div class="section-head reveal">
+        <p class="eyebrow">Producción</p>
+        <h2>Así se va a ver el trabajo visual.</h2>
+      </div>
+      <div class="gallery-grid">
+        <div class="gallery-tile reveal"><span>Fotografía de producto</span></div>
+        <div class="gallery-tile reveal"><span>Contenido para redes</span></div>
+        <div class="gallery-tile reveal"><span>Antes / Después</span></div>
+        <div class="gallery-tile reveal"><span>Video vertical</span></div>
+        <div class="gallery-tile reveal"><span>Cobertura de eventos</span></div>
+        <div class="gallery-tile reveal"><span>Dirección de arte</span></div>
+        <div class="gallery-tile reveal"><span>Identidad de marca</span></div>
+        <div class="gallery-tile reveal"><span>Piezas para pauta</span></div>
+      </div>
     </div>
   </section>
 
