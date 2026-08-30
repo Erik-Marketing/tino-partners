@@ -1,4 +1,4 @@
-<title>Nosotros — Tino Partners</title>
+<title>Portfolio — Tino Partners</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#180A2E">
 <script>
@@ -11,8 +11,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 
 <style>
-  /* Dark is the forced default — independent of the device's system theme.
-     Light only applies when the visitor flips the toggle (data-theme="light"), saved in localStorage. */
   :root{
     --ink:#F1E9FB;
     --ink-soft:#C9B8DE;
@@ -90,7 +88,6 @@
   .section-inner{ position:relative; z-index:1; max-width:var(--maxw); margin:0 auto; padding-inline:clamp(20px,5vw,64px); }
   img{ max-width:100%; display:block; }
 
-  /* grain overlay */
   .grain{
     position:fixed; inset:0; pointer-events:none; z-index:2;
     opacity:.08; mix-blend-mode:overlay;
@@ -106,11 +103,6 @@
     border-bottom:1px solid transparent;
     transition:border-color .3s ease;
   }
-  /* The blur lives on a pseudo-element, not on .nav itself. backdrop-filter (like filter or
-     transform) on an ancestor turns it into the containing block for position:fixed
-     descendants — and the mobile menu below is exactly that. With the filter on .nav directly,
-     the open menu would sometimes render with no background / in the wrong place once the nav
-     had scrolled and picked up the blur. Keeping it on ::before avoids that entirely. */
   .nav::before{
     content:""; position:absolute; inset:0; z-index:-1;
     background:color-mix(in srgb, var(--paper) 86%, transparent);
@@ -125,20 +117,12 @@
   .brand-word span{ display:block; font-family:'IBM Plex Mono', monospace; font-size:.55rem; font-weight:600; letter-spacing:.22em; color:var(--ink-soft); text-transform:uppercase; margin-top:-2px; }
 
   .menu{ display:flex; align-items:center; gap:clamp(18px,2.6vw,34px); }
-
-  /* Shared type for every menu entry. Deliberately a class (.menu-link) rather than a
-     descendant selector (.menu a): `.menu a` out-specifies `.menu-cta`, so a padding-bottom
-     declared there silently overrode the pill's own shorthand and left it vertically lopsided. */
   .menu-link, .menu-cta{
     text-decoration:none;
     font-family:'IBM Plex Mono', monospace;
     font-size:.76rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase;
     line-height:1;
   }
-
-  /* No vertical padding here, so the plain links' text centre lands exactly on the flex row's
-     centre — the same place the pill's text centre lands. That is what keeps every menu label
-     sitting on one line. The hover underline is offset instead of being made of padding. */
   .menu-link{ color:var(--ink); position:relative; padding:0; }
   .menu-link[aria-current="page"]{ color:var(--coral-fill); }
   .menu-link::after{
@@ -149,8 +133,6 @@
 
   .menu-cta{
     display:inline-flex; align-items:center; justify-content:center; white-space:nowrap;
-    /* symmetric vertical padding; horizontally the right side is trimmed by half a letter-space
-       because letter-spacing also adds a trailing gap after the final character */
     padding:10px calc(18px - 0.04em) 10px calc(18px + 0.04em);
     background:var(--gradient-vivid); color:#fff; border-radius:var(--radius-pill);
     box-shadow:0 10px 24px -12px rgba(155,93,246,.6);
@@ -159,7 +141,6 @@
   .menu-cta:hover{ transform:translateY(-1px); box-shadow:0 14px 28px -12px rgba(155,93,246,.75); }
   .nav-toggle{ display:none; }
 
-  /* ---- theme toggle ---- */
   .theme-toggle{
     display:flex; align-items:center; gap:9px; background:none; border:none; cursor:pointer;
     font-family:'IBM Plex Mono', monospace; font-size:.72rem; font-weight:600; letter-spacing:.06em;
@@ -179,13 +160,19 @@
 
   /* ---- page intro ---- */
   .page-hero{
-    max-width:var(--maxw); margin:0 auto; padding:calc(96px + 6vh) clamp(20px,5vw,64px) clamp(48px,7vh,80px);
+    max-width:var(--maxw); margin:0 auto; padding:calc(96px + 6vh) clamp(20px,5vw,64px) clamp(40px,6vh,64px);
   }
   .page-hero .eyebrow{ margin-bottom:18px; }
-  .page-hero h1{ font-size:clamp(2.4rem, 5.4vw, 4rem); max-width:16ch; }
+  .page-hero h1{ font-size:clamp(2.4rem, 5.4vw, 4rem); max-width:18ch; }
   .page-hero .lede{
-    margin-top:22px; max-width:58ch; font-size:1.06rem; line-height:1.6; color:var(--ink-soft);
+    margin-top:22px; max-width:60ch; font-size:1.06rem; line-height:1.6; color:var(--ink-soft);
   }
+  .preview-flag{
+    display:inline-flex; align-items:center; gap:8px; margin-top:24px;
+    font-family:'IBM Plex Mono',monospace; font-size:.68rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--coral-fill); border:1px solid var(--coral-fill); border-radius:var(--radius-pill); padding:7px 16px;
+  }
+  .preview-flag svg{ width:13px; height:13px; flex:none; }
 
   .btn-primary{
     display:inline-flex; align-items:center; justify-content:center; gap:10px; text-decoration:none;
@@ -196,63 +183,73 @@
     transition:transform .2s ease, box-shadow .2s ease;
   }
   .btn-primary:hover{ transform:translateY(-2px); box-shadow:0 26px 54px -16px rgba(155,93,246,.65); }
+  .btn-ghost{
+    text-decoration:none; font-family:'IBM Plex Mono',monospace; font-size:.82rem; font-weight:600;
+    letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft);
+    border-bottom:1px solid var(--line-strong); padding-bottom:3px; transition:color .2s ease, border-color .2s ease;
+  }
+  .btn-ghost:hover{ color:var(--ink); border-color:var(--ink); }
 
-  /* ambient background motion */
   .ambient-orb{
     position:absolute; border-radius:50%; filter:blur(46px); opacity:.32; pointer-events:none; z-index:0;
     animation:ambientFloat 19s ease-in-out infinite alternate;
   }
   @keyframes ambientFloat{ to{ transform:translate(26px,-20px) scale(1.08); } }
 
-  /* ---- section shell ---- */
   section{ position:relative; z-index:1; }
-  .section-head{ max-width:64ch; margin-bottom:clamp(40px,6vw,72px); }
+  .section-head{ max-width:64ch; margin-bottom:clamp(36px,5vw,56px); }
   .section-head .eyebrow{ margin-bottom:14px; }
-  .section-head h2{ font-size:clamp(2rem,4.4vw,3.2rem); }
+  .section-head h2{ font-size:clamp(1.9rem,4vw,2.8rem); }
 
-  /* ---- equipo (reuses the servicios band styling) ---- */
-  .services{
-    position:relative; overflow:hidden;
-    background:var(--paper-dim); padding:clamp(72px,10vh,120px) 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+  /* ---- highlight tiles (same visual language as the Trabajos preview tiles) ---- */
+  .highlights{ padding-bottom:clamp(56px,7vh,88px); }
+  .work-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(14px,2vw,20px); }
+  .work-tile{
+    aspect-ratio:4/5; border:1px solid var(--line-strong); border-radius:var(--radius);
+    position:relative; overflow:hidden; display:flex; flex-direction:column; justify-content:space-between;
+    padding:20px; background: repeating-linear-gradient(135deg, var(--line) 0 1px, transparent 1px 14px);
   }
-  .services .ambient-1{ width:280px; height:280px; top:-90px; left:-70px; background:radial-gradient(circle, var(--v-500), transparent 70%); }
-  .services .ambient-2{
-    width:220px; height:220px; bottom:-80px; right:-50px; background:radial-gradient(circle, var(--pink-300), transparent 70%);
-    animation-duration:23s; animation-delay:-6s;
+  .work-tile .eyebrow{ color:var(--ink-soft); }
+  .work-tile .wt-title{ font-family:'Big Shoulders Display',sans-serif; font-weight:800; font-size:1.4rem; text-transform:uppercase; }
+  .work-tile .wt-meta{ font-family:'IBM Plex Mono',monospace; font-size:.7rem; color:var(--ink-soft); margin-top:4px; }
+  .work-tile .wt-status{
+    align-self:flex-start; font-family:'IBM Plex Mono',monospace; font-size:.66rem; letter-spacing:.08em;
+    text-transform:uppercase; padding:5px 10px; border-radius:var(--radius-pill);
+    background:var(--paper-flat); border:1px solid var(--line-strong); color:var(--ink-soft);
   }
-  .team-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(28px,4vw,40px); }
-  .founder-card{
-    display:flex; flex-direction:column; align-items:flex-start; gap:4px;
-    padding-top:clamp(28px,4vw,36px); border-top:1px solid var(--line);
-  }
-  .founder-photo{
-    width:88px; height:88px; border-radius:50%; flex:none; margin-bottom:14px;
-    display:flex; align-items:center; justify-content:center;
-    border:1.5px dashed var(--line-strong);
-    font-family:'Big Shoulders Display',sans-serif; font-weight:800; font-size:2rem; color:var(--paper-flat);
-    box-shadow:0 4px 14px -4px rgba(74,49,112,.4), 0 0 0 0 rgba(155,93,246,.35);
-    animation:pillarPulse 3.2s ease-in-out infinite;
-  }
-  @keyframes pillarPulse{
-    0%,100%{ box-shadow:0 4px 14px -4px rgba(74,49,112,.4), 0 0 0 0 rgba(155,93,246,.35); }
-    50%{ box-shadow:0 4px 14px -4px rgba(74,49,112,.4), 0 0 0 7px rgba(155,93,246,0); }
-  }
-  .founder-card[data-pillar="produccion"] .founder-photo{ background:radial-gradient(circle at 32% 28%, var(--coral-fill), var(--coral) 100%); }
-  .founder-card[data-pillar="estrategia"] .founder-photo{ background:radial-gradient(circle at 32% 28%, var(--lime-fill), var(--lime) 100%); }
-  .founder-card[data-pillar="tecnologia"] .founder-photo{ background:radial-gradient(circle at 32% 28%, var(--steel), var(--ink-soft) 100%); }
-  .founder-card h3{ font-size:clamp(1.5rem,2.6vw,1.9rem); }
-  .founder-role{
-    font-family:'IBM Plex Mono',monospace; font-size:.7rem; letter-spacing:.1em; text-transform:uppercase;
-    color:var(--ink-soft); margin-top:2px; margin-bottom:14px;
-  }
-  .founder-bio{ font-size:.96rem; line-height:1.6; color:var(--ink-soft); }
 
-  /* ---- por qué tino ---- */
-  .concept{ padding:clamp(72px,10vh,120px) 0; }
-  .concept .section-inner{ max-width:74ch; }
-  .concept h2{ font-size:clamp(2rem,4.4vw,3rem); margin-bottom:22px; }
-  .concept p{ font-size:1.06rem; line-height:1.65; color:var(--ink-soft); }
-  .concept p + p{ margin-top:16px; }
+  /* ---- detailed case block ---- */
+  .case{ background:var(--paper-dim); border-top:1px solid var(--line); border-bottom:1px solid var(--line); padding:clamp(64px,8vh,96px) 0; }
+  .case-card{
+    border:1px solid var(--line-strong); border-radius:var(--radius); background:var(--paper-flat);
+    padding:clamp(28px,4vw,44px); position:relative; overflow:hidden;
+  }
+  .case-flag{
+    position:absolute; top:0; right:0; font-family:'IBM Plex Mono',monospace; font-size:.64rem; font-weight:700;
+    letter-spacing:.1em; text-transform:uppercase; color:var(--v-900); background:var(--coral-fill);
+    padding:6px 14px; border-bottom-left-radius:10px;
+  }
+  .case-head{ display:flex; flex-wrap:wrap; align-items:baseline; gap:10px 16px; margin-bottom:6px; }
+  .case-head h3{ font-size:clamp(1.5rem,3vw,2.1rem); }
+  .case-meta{ font-family:'IBM Plex Mono',monospace; font-size:.74rem; color:var(--ink-soft); }
+  .case-tags{ display:flex; flex-wrap:wrap; gap:8px; margin:16px 0 28px; }
+  .case-tags span{
+    font-family:'IBM Plex Mono',monospace; font-size:.66rem; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--ink-soft); border:1px solid var(--line-strong); border-radius:var(--radius-pill); padding:5px 12px;
+  }
+  .case-grid{ display:grid; grid-template-columns:1.1fr 1fr; gap:clamp(28px,4vw,48px); }
+  .case-grid h4{
+    font-family:'IBM Plex Mono',monospace; text-transform:uppercase; letter-spacing:.08em; font-size:.76rem;
+    color:var(--ink-soft); margin-bottom:14px; font-weight:600;
+  }
+  .case-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:12px; }
+  .case-list li{ font-size:.95rem; line-height:1.55; color:var(--ink); padding-left:20px; position:relative; }
+  .case-list li::before{ content:"—"; position:absolute; left:0; color:var(--coral-fill); }
+  .case-results{ display:flex; flex-direction:column; gap:14px; }
+  .case-result{ display:flex; align-items:flex-start; gap:12px; }
+  .case-result .icon{ font-size:1.2rem; line-height:1; flex:none; margin-top:2px; }
+  .case-result .txt{ font-size:.95rem; line-height:1.5; color:var(--ink-soft); }
+  .case-result b{ color:var(--ink); font-weight:600; }
 
   /* ---- cta band ---- */
   .cta-band{
@@ -282,10 +279,9 @@
   .footer a{ text-decoration:none; color:inherit; }
   .footer a:hover{ color:var(--pink-300); }
 
-  /* reveal on scroll */
   .reveal{ opacity:0; transform:translateY(18px); transition:opacity .7s ease, transform .7s ease; }
   .reveal.is-visible{ opacity:1; transform:none; }
-  @media (prefers-reduced-motion: reduce){ .reveal{ opacity:1; transform:none; transition:none; } .founder-photo, .ambient-orb{ animation:none; } }
+  @media (prefers-reduced-motion: reduce){ .reveal{ opacity:1; transform:none; transition:none; } .ambient-orb{ animation:none; } }
 
   /* ---- WhatsApp floating button ---- */
   .wa-float{
@@ -335,9 +331,8 @@
     .nav-toggle.is-open span:nth-child(1){ transform:translateY(7px) rotate(45deg); }
     .nav-toggle.is-open span:nth-child(2){ opacity:0; }
     .nav-toggle.is-open span:nth-child(3){ transform:translateY(-7px) rotate(-45deg); }
-    .team-grid{ grid-template-columns:1fr; gap:0; }
-    .founder-card{ padding-bottom:clamp(28px,4vw,36px); }
-    .founder-card:last-child{ border-bottom:1px solid var(--line); }
+    .work-grid{ grid-template-columns:1fr; }
+    .case-grid{ grid-template-columns:1fr; gap:32px; }
   }
 </style>
 
@@ -367,10 +362,9 @@
   </a>
   <nav class="menu" id="siteMenu">
     <a class="menu-link" href="index.html#home">Home</a>
-    <a class="menu-link" href="nosotros.html" aria-current="page">Nosotros</a>
+    <a class="menu-link" href="nosotros.html">Nosotros</a>
     <a class="menu-link" href="index.html#servicios">Servicios</a>
-    <a class="menu-link" href="index.html#trabajos">Trabajos</a>
-    <a class="menu-link" href="portfolio.html">Portfolio</a>
+    <a class="menu-link" href="portfolio.html" aria-current="page">Portfolio</a>
     <a class="menu-cta" href="index.html#contacto">Contactanos</a>
     <button class="theme-toggle" id="themeToggle" type="button" aria-pressed="false" aria-label="Cambiar a modo claro">
       <span class="theme-toggle-track"><span class="theme-toggle-thumb"></span></span>
@@ -384,59 +378,89 @@
 
 <main>
   <section class="page-hero">
-    <p class="eyebrow reveal">Nosotros</p>
-    <h1 class="reveal">No somos una agencia. Somos tu partner de negocio.</h1>
-    <p class="lede reveal">Tino Partners une producción de contenido, estrategia de medios y tecnología aplicada bajo un mismo equipo de liderazgo, para que tengas un solo interlocutor pensando tu negocio de punta a punta — no un proveedor más en la lista.</p>
+    <p class="eyebrow reveal">Portfolio</p>
+    <h1 class="reveal">El formato del portfolio, antes que los primeros casos.</h1>
+    <p class="lede reveal">Todavía no tenemos proyectos reales para mostrar acá — pero ya estamos trabajando con las primeras marcas. Así vamos a presentar cada caso apenas cerremos una entrega: qué hicimos, con qué estrategia, y qué resultado dejó.</p>
+    <span class="preview-flag reveal">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>
+      Vista previa del formato — contenido de ejemplo
+    </span>
   </section>
 
-  <section id="equipo" class="services">
-    <span class="ambient-orb ambient-1" aria-hidden="true"></span>
-    <span class="ambient-orb ambient-2" aria-hidden="true"></span>
+  <section class="highlights">
     <div class="section-inner">
-      <div class="section-head reveal">
-        <p class="eyebrow">Directivos</p>
-        <h2>Un mismo partner.<br>Distintas especialidades.</h2>
-      </div>
-
-      <div class="team-grid">
-        <div class="founder-card reveal" data-pillar="produccion">
-          <div class="founder-photo"><span>J</span></div>
-          <h3>Juan</h3>
-          <p class="founder-role">Producción &amp; Contenido</p>
-          <p class="founder-bio">Pasó años detrás de cámara produciendo para marcas que necesitaban contenido consistente, no solo lindo. Hoy dirige la producción audiovisual y la presencia en redes de cada cliente, de principio a fin.</p>
+      <div class="work-grid">
+        <div class="work-tile reveal">
+          <span class="wt-status">Ejemplo</span>
+          <div>
+            <span class="eyebrow">Producción</span>
+            <div class="wt-title">Marca Ejemplo 01</div>
+            <div class="wt-meta">Fotografía &amp; contenido — 2026</div>
+          </div>
         </div>
-
-        <div class="founder-card reveal" data-pillar="estrategia">
-          <div class="founder-photo"><span>F</span></div>
-          <h3>Fran</h3>
-          <p class="founder-role">Estrategia &amp; Medios</p>
-          <p class="founder-bio">Viene del lado de medios y estrategia comercial, armando planes que se miden en resultados de negocio, no en likes. Lidera las campañas y las decisiones de marca de cada cuenta.</p>
+        <div class="work-tile reveal">
+          <span class="wt-status">Ejemplo</span>
+          <div>
+            <span class="eyebrow">Estrategia</span>
+            <div class="wt-title">Marca Ejemplo 02</div>
+            <div class="wt-meta">Campaña de lanzamiento — 2026</div>
+          </div>
         </div>
-
-        <div class="founder-card reveal" data-pillar="tecnologia">
-          <div class="founder-photo"><span>E</span></div>
-          <h3>Erik</h3>
-          <p class="founder-role">Tecnología &amp; IA</p>
-          <p class="founder-bio">Se especializa en llevar procesos manuales a sistemas automáticos, IA aplicada y medición real. Es quien construye la infraestructura técnica detrás de cada campaña — incluida esta misma web.</p>
+        <div class="work-tile reveal">
+          <span class="wt-status">Ejemplo</span>
+          <div>
+            <span class="eyebrow">Tecnología</span>
+            <div class="wt-title">Marca Ejemplo 03</div>
+            <div class="wt-meta">Automatización &amp; medición — 2026</div>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="concept">
-    <div class="section-inner reveal">
-      <p class="eyebrow" style="margin-bottom:16px;">El nombre</p>
-      <h2>¿Por qué Tino?</h2>
-      <p>"Tener tino" es tener buen ojo, medida justa, saber hasta dónde llegar. Elegimos ese nombre porque es justo lo que buscamos en cada decisión de marca.</p>
-      <p>Ni de más, ni de menos — la medida exacta entre creatividad, estrategia y tecnología. Ese es el filtro que aplicamos antes de proponerte cualquier cosa.</p>
+  <section class="case">
+    <div class="section-inner">
+      <div class="section-head reveal">
+        <p class="eyebrow">Caso en profundidad</p>
+        <h2>Así se va a ver cada proyecto real.</h2>
+      </div>
+      <div class="case-card reveal">
+        <span class="case-flag">Ejemplo</span>
+        <div class="case-head">
+          <h3>Marca Ejemplo</h3>
+          <span class="case-meta">Rubro: gastronomía · 2026</span>
+        </div>
+        <div class="case-tags">
+          <span>Social Media</span><span>Fotografía</span><span>Estrategia de marca</span>
+        </div>
+        <div class="case-grid">
+          <div>
+            <h4>Qué hicimos</h4>
+            <ul class="case-list">
+              <li>[Plan de contenido mensual con producción propia de fotografía y video]</li>
+              <li>[Cobertura de una fecha clave del negocio con campaña dedicada]</li>
+              <li>[Pauta segmentada para generar consultas medibles, no solo alcance]</li>
+            </ul>
+          </div>
+          <div>
+            <h4>Resultados</h4>
+            <div class="case-results">
+              <div class="case-result"><span class="icon">🚀</span><span class="txt"><b>[+XX%]</b> en consultas por WhatsApp durante la campaña</span></div>
+              <div class="case-result"><span class="icon">📈</span><span class="txt"><b>[+X.XXX]</b> seguidores nuevos en [X] meses de gestión</span></div>
+              <div class="case-result"><span class="icon">🎥</span><span class="txt"><b>[+X millones]</b> de reproducciones en el contenido de la campaña</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="eyebrow reveal" style="display:block; margin-top:24px; color:var(--ink-soft);">Los corchetes [ ] se reemplazan por los números y acciones reales de cada cliente.</p>
     </div>
   </section>
 
   <section class="cta-band">
     <div class="section-inner">
       <p class="eyebrow reveal">¿Hablamos?</p>
-      <h2 class="reveal">Contános en qué estás pensando.</h2>
-      <p class="reveal">Una primera charla no tiene costo ni compromiso. Si hay fit de los dos lados, seguimos adelante juntos.</p>
+      <h2 class="reveal">Sé parte del primer caso real acá.</h2>
+      <p class="reveal">Una primera charla no tiene costo ni compromiso. Si hay fit de los dos lados, tu proyecto puede ser el primero en reemplazar estos ejemplos.</p>
       <a href="index.html#contacto" class="btn-primary reveal">Contactanos →</a>
     </div>
   </section>
@@ -444,11 +468,10 @@
 
 <footer class="footer">
   <span>© 2026 Tino Partners</span>
-  <span><a href="index.html#home">Home</a> · <a href="nosotros.html">Nosotros</a> · <a href="index.html#servicios">Servicios</a> · <a href="index.html#trabajos">Trabajos</a> · <a href="portfolio.html">Portfolio</a> · <a href="index.html#contacto">Contacto</a></span>
+  <span><a href="index.html#home">Home</a> · <a href="nosotros.html">Nosotros</a> · <a href="index.html#servicios">Servicios</a> · <a href="portfolio.html">Portfolio</a> · <a href="index.html#contacto">Contacto</a></span>
 </footer>
 
 <script>
-  // nav scroll state
   var nav = document.getElementById('siteNav');
   var onScroll = function(){
     if(window.scrollY > 12){ nav.classList.add('is-scrolled'); }
@@ -457,7 +480,6 @@
   document.addEventListener('scroll', onScroll, { passive:true });
   onScroll();
 
-  // mobile menu toggle
   var toggle = document.getElementById('navToggle');
   var menu = document.getElementById('siteMenu');
   toggle.addEventListener('click', function(){
@@ -473,7 +495,6 @@
     });
   });
 
-  // scroll reveal
   var io = new IntersectionObserver(function(entries){
     entries.forEach(function(entry){
       if(entry.isIntersecting){
@@ -484,7 +505,6 @@
   }, { threshold: .18 });
   document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
 
-  // light/dark toggle (dark is the forced default, regardless of system theme)
   (function(){
     var root = document.documentElement;
     var themeToggle = document.getElementById('themeToggle');
