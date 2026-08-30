@@ -250,6 +250,34 @@
     background:var(--paper-flat); border:1px solid var(--line-strong); color:var(--ink-soft);
   }
 
+  /* ---- work-tile variant that shows a real video instead of the hatch pattern ---- */
+  .work-tile.has-video{ padding:0; background:#000; text-decoration:none; color:inherit; display:block; }
+  .work-tile.has-video .video-frame{ position:absolute; inset:0; border-radius:0; border:none; aspect-ratio:auto; }
+  .work-tile.has-video .tile-overlay{
+    position:absolute; inset:0; z-index:2; display:flex; flex-direction:column; justify-content:space-between;
+    padding:20px; pointer-events:none;
+    background:linear-gradient(180deg, rgba(10,4,20,.1) 0%, rgba(10,4,20,0) 32%, rgba(10,4,20,.65) 100%);
+  }
+
+  /* ---- video-frame component (also used standalone on marca pages) ---- */
+  .video-frame{
+    position:relative; width:100%; aspect-ratio:16/9; overflow:hidden; border-radius:var(--radius);
+    background:#000; border:1px solid var(--line-strong);
+  }
+  .video-frame video{ width:100%; height:100%; object-fit:cover; display:block; }
+  .video-controls{ position:absolute; right:10px; bottom:10px; display:flex; gap:8px; z-index:3; }
+  .v-btn{
+    width:34px; height:34px; border-radius:50%; border:1px solid rgba(255,255,255,.35);
+    background:rgba(10,4,20,.55); -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); color:#fff;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0;
+    transition:background .2s ease, transform .2s ease;
+  }
+  .v-btn:hover{ background:rgba(10,4,20,.85); transform:translateY(-1px); }
+  .v-btn svg{ width:16px; height:16px; }
+  .v-btn .icon-off{ display:none; }
+  .video-frame.is-muted .v-mute .icon-on{ display:none; }
+  .video-frame.is-muted .v-mute .icon-off{ display:block; }
+
   /* ---- capacidades (reuses the equipo/founder-card visual language) ---- */
   .capabilities{
     position:relative; overflow:hidden;
@@ -487,14 +515,28 @@
   <section class="highlights">
     <div class="section-inner">
       <div class="work-grid">
-        <div class="work-tile reveal">
-          <span class="wt-status">Ejemplo</span>
-          <div>
-            <span class="eyebrow">Producción</span>
-            <div class="wt-title">Marca Ejemplo 01</div>
-            <div class="wt-meta">Fotografía &amp; contenido — 2026</div>
+        <a class="work-tile has-video reveal" href="nobrand.html">
+          <div class="video-frame" data-video data-autoplay>
+            <video src="https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/trailer-vertical.mp4" muted loop playsinline autoplay preload="auto"></video>
+            <div class="video-controls">
+              <button class="v-btn v-mute" type="button" aria-label="Activar sonido">
+                <svg class="icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                <svg class="icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+              </button>
+              <button class="v-btn v-expand" type="button" aria-label="Ampliar video">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+              </button>
+            </div>
           </div>
-        </div>
+          <div class="tile-overlay">
+            <span class="wt-status">Cliente</span>
+            <div>
+              <span class="eyebrow">Producción</span>
+              <div class="wt-title">NOBRAND</div>
+              <div class="wt-meta">Campaña Margen — 2026</div>
+            </div>
+          </div>
+        </a>
         <div class="work-tile reveal">
           <span class="wt-status">Ejemplo</span>
           <div>
@@ -766,4 +808,36 @@
       try{ localStorage.setItem('tino-theme', nowLight ? 'light' : 'dark'); }catch(e){}
     });
   })();
+
+  // video-frame controls: mute toggle + fullscreen. The NOBRAND tile autoplays
+  // (it's the only video on this page); a click-to-play version of this same
+  // markup is what the brand pages use for their full video galleries.
+  document.querySelectorAll('[data-video]').forEach(function(frame){
+    var video = frame.querySelector('video');
+    var muteBtn = frame.querySelector('.v-mute');
+    var expandBtn = frame.querySelector('.v-expand');
+
+    frame.classList.toggle('is-muted', video.muted);
+
+    if (muteBtn) {
+      muteBtn.addEventListener('click', function(e){
+        e.preventDefault(); e.stopPropagation();
+        video.muted = !video.muted;
+        frame.classList.toggle('is-muted', video.muted);
+      });
+    }
+    if (expandBtn) {
+      expandBtn.addEventListener('click', function(e){
+        e.preventDefault(); e.stopPropagation();
+        if (frame.requestFullscreen) frame.requestFullscreen();
+        else if (video.webkitEnterFullscreen) video.webkitEnterFullscreen();
+      });
+    }
+    if (frame.hasAttribute('data-autoplay')) {
+      // the native `autoplay` attribute on the <video> handles this in practice;
+      // this is just a fallback for whenever it doesn't fire on its own.
+      video.play().catch(function(){});
+      video.addEventListener('canplay', function(){ if (video.paused) video.play().catch(function(){}); });
+    }
+  });
 </script>
