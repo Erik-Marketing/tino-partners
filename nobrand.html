@@ -198,7 +198,7 @@
 
   /* ---- feature video (trailer) ---- */
   .feature{ padding-bottom:clamp(56px,7vh,88px); }
-  .feature-frame{ max-width:420px; margin:0 auto; }
+  .feature-frame{ max-width:760px; margin:0 auto; }
 
   /* ---- video gallery ---- */
   .gallery{ background:var(--paper-dim); padding:clamp(24px,4vh,48px) 0 clamp(64px,8vh,96px); }
@@ -217,7 +217,7 @@
     position:relative; width:100%; aspect-ratio:9/16; overflow:hidden; border-radius:var(--radius);
     background:#000; border:1px solid var(--line-strong);
   }
-  .feature-frame .video-frame{ max-width:340px; }
+  .feature-frame .video-frame{ aspect-ratio:16/9; }
   .video-frame video{ width:100%; height:100%; object-fit:cover; display:block; }
   .video-controls{ position:absolute; right:10px; bottom:10px; display:flex; gap:8px; z-index:3; }
   .v-btn{
@@ -399,8 +399,8 @@
 
   <section class="feature">
     <div class="section-inner feature-frame">
-      <div class="video-frame reveal" data-video data-autoplay>
-        <video src="https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/trailer-vertical.mp4" muted loop playsinline autoplay preload="auto"></video>
+      <div class="video-frame reveal" data-video>
+        <video src="https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/hot-horizontal-a2.mp4" muted loop playsinline preload="metadata"></video>
         <div class="video-controls">
           <button class="v-btn v-mute" type="button" aria-label="Activar sonido">
             <svg class="icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
@@ -428,9 +428,6 @@
         <div class="video-card reveal">
           <div class="video-frame" data-video>
             <video src="https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/margen-camp-001.mp4" muted loop playsinline preload="metadata"></video>
-            <button class="v-play" type="button" aria-label="Reproducir video">
-              <span class="play-circle"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
-            </button>
             <div class="video-controls">
               <button class="v-btn v-mute" type="button" aria-label="Activar sonido">
                 <svg class="icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
@@ -447,9 +444,6 @@
         <div class="video-card reveal">
           <div class="video-frame" data-video>
             <video src="https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/margen-camp-002.mp4" muted loop playsinline preload="metadata"></video>
-            <button class="v-play" type="button" aria-label="Reproducir video">
-              <span class="play-circle"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
-            </button>
             <div class="video-controls">
               <button class="v-btn v-mute" type="button" aria-label="Activar sonido">
                 <svg class="icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
@@ -466,9 +460,6 @@
         <div class="video-card reveal">
           <div class="video-frame" data-video>
             <video src="https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/margen-camp-003-adaptacion.mp4" muted loop playsinline preload="metadata"></video>
-            <button class="v-play" type="button" aria-label="Reproducir video">
-              <span class="play-circle"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
-            </button>
             <div class="video-controls">
               <button class="v-btn v-mute" type="button" aria-label="Activar sonido">
                 <svg class="icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
@@ -485,9 +476,6 @@
         <div class="video-card reveal">
           <div class="video-frame" data-video>
             <video src="https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/backstage-margen.mp4" muted loop playsinline preload="metadata"></video>
-            <button class="v-play" type="button" aria-label="Reproducir video">
-              <span class="play-circle"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
-            </button>
             <div class="video-controls">
               <button class="v-btn v-mute" type="button" aria-label="Activar sonido">
                 <svg class="icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
@@ -572,15 +560,21 @@
     });
   })();
 
-  // video-frame controls: mute toggle, fullscreen, and click-to-play for
-  // frames that don't autoplay (the [data-autoplay] hero trailer is the
-  // only one that starts playing on its own, everything else is click-to-play
-  // so a page with several videos doesn't try to download all of them at once)
+  // video-frame controls: mute toggle, fullscreen, and play/pause driven by
+  // visibility — a video starts as soon as it scrolls into view and stops
+  // once it scrolls back out, instead of needing a click or all loading at once.
+  var videoVisibility = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      var video = entry.target.querySelector('video');
+      if (entry.isIntersecting) video.play().catch(function(){});
+      else video.pause();
+    });
+  }, { threshold: .4 });
+
   document.querySelectorAll('[data-video]').forEach(function(frame){
     var video = frame.querySelector('video');
     var muteBtn = frame.querySelector('.v-mute');
     var expandBtn = frame.querySelector('.v-expand');
-    var playBtn = frame.querySelector('.v-play');
 
     frame.classList.toggle('is-muted', video.muted);
 
@@ -598,19 +592,6 @@
         else if (video.webkitEnterFullscreen) video.webkitEnterFullscreen();
       });
     }
-    if (playBtn) {
-      playBtn.addEventListener('click', function(e){
-        e.preventDefault(); e.stopPropagation();
-        video.play();
-      });
-      video.addEventListener('play', function(){ frame.classList.add('is-playing'); });
-      video.addEventListener('pause', function(){ frame.classList.remove('is-playing'); });
-    }
-    if (frame.hasAttribute('data-autoplay')) {
-      // the native `autoplay` attribute on the <video> handles this in practice;
-      // this is just a fallback for whenever it doesn't fire on its own.
-      video.play().catch(function(){});
-      video.addEventListener('canplay', function(){ if (video.paused) video.play().catch(function(){}); });
-    }
+    videoVisibility.observe(frame);
   });
 </script>
