@@ -210,6 +210,11 @@
   .collage-1{ width:clamp(110px,12vw,160px); height:clamp(140px,15vw,205px); top:2%; right:9%; transform:rotate(5deg); }
   .collage-2{ width:clamp(105px,11vw,150px); height:clamp(135px,14vw,195px); top:40%; left:3%; transform:rotate(-6deg); }
   .collage-3{ width:clamp(120px,13vw,175px); height:clamp(100px,10vw,140px); bottom:2%; right:3%; transform:rotate(3deg); object-position:50% 65%; }
+  /* plain, unpositioned wrapper on desktop — the images above still position
+     themselves absolutely against .brand-hero. On mobile this becomes the
+     actual layout (see media query), so it needs to exist even though it
+     does nothing at this width. */
+  .hero-collage{ display:contents; }
 
   /* ---- feature video (trailer) ---- */
   .feature{ padding-bottom:clamp(56px,7vh,88px); }
@@ -363,7 +368,18 @@
     .video-grid{ grid-template-columns:1fr; max-width:340px; margin:0 auto; }
     .backstage-grid{ grid-template-columns:1fr; text-align:center; }
     .backstage-copy{ order:2; }
-    .hero-collage-img{ display:none; }
+    /* the collage becomes a plain photo strip instead of scattered absolute
+       tiles — there isn't enough width on mobile to overlap them with the
+       centered text without covering it. */
+    .brand-hero{ display:flex; flex-direction:column; }
+    .back-link{ order:1; }
+    .hero-copy{ order:2; }
+    .hero-collage{
+      order:3; display:flex; gap:10px; justify-content:center; margin-top:32px;
+    }
+    .hero-collage-img, .collage-1, .collage-2, .collage-3{
+      position:static; width:31%; height:120px; margin:0; transform:none; object-position:center 30%;
+    }
     .sparkle-br, .sparkle-br-2{ display:none; }
   }
 </style>
@@ -415,9 +431,11 @@
     <span class="hero-sparkle sparkle-br" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0 L14.5 9.5 L24 12 L14.5 14.5 L12 24 L9.5 14.5 L0 12 L9.5 9.5 Z"/></svg></span>
     <span class="hero-sparkle sparkle-br-2" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0 L14.5 9.5 L24 12 L14.5 14.5 L12 24 L9.5 14.5 L0 12 L9.5 9.5 Z"/></svg></span>
 
-    <img class="hero-collage-img collage-1" src="https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/collage-01.jpg" alt="" aria-hidden="true" loading="lazy">
-    <img class="hero-collage-img collage-2" src="https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/collage-02.jpg" alt="" aria-hidden="true" loading="lazy">
-    <img class="hero-collage-img collage-3" src="https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/collage-03.jpg" alt="" aria-hidden="true" loading="lazy">
+    <div class="hero-collage" aria-hidden="true">
+      <img class="hero-collage-img collage-1" src="https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/collage-01.jpg" alt="" loading="lazy">
+      <img class="hero-collage-img collage-2" src="https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/collage-02.jpg" alt="" loading="lazy">
+      <img class="hero-collage-img collage-3" src="https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/collage-03.jpg" alt="" loading="lazy">
+    </div>
 
     <a class="back-link reveal" href="portfolio.html">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
