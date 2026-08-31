@@ -188,8 +188,12 @@
   .hero-copy{ position:relative; z-index:2; max-width:70ch; margin:36px auto 0; text-align:center; }
   .hero-copy h1{
     font-size:clamp(4.5rem, 13vw, 10.5rem); margin:0 0 24px; letter-spacing:.005em;
+    text-shadow:0 4px 24px var(--paper), 0 1px 3px var(--paper);
   }
-  .hero-copy .lede{ max-width:56ch; margin:0 auto; font-size:1.06rem; line-height:1.6; color:var(--ink-soft); }
+  .hero-copy .lede{
+    max-width:56ch; margin:0 auto; font-size:1.06rem; line-height:1.6; color:var(--ink-soft);
+    text-shadow:0 2px 14px var(--paper), 0 1px 2px var(--paper);
+  }
   .brand-meta{ display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-top:26px; }
   .brand-meta span{
     font-family:'IBM Plex Mono',monospace; font-size:.7rem; letter-spacing:.05em; text-transform:uppercase;
@@ -368,18 +372,12 @@
     .video-grid{ grid-template-columns:1fr; max-width:340px; margin:0 auto; }
     .backstage-grid{ grid-template-columns:1fr; text-align:center; }
     .backstage-copy{ order:2; }
-    /* the collage becomes a plain photo strip instead of scattered absolute
-       tiles — there isn't enough width on mobile to overlap them with the
-       centered text without covering it. */
-    .brand-hero{ display:flex; flex-direction:column; }
-    .back-link{ order:1; }
-    .hero-copy{ order:2; }
-    .hero-collage{
-      order:3; display:flex; gap:10px; justify-content:center; margin-top:32px;
-    }
-    .hero-collage-img, .collage-1, .collage-2, .collage-3{
-      position:static; width:31%; height:120px; margin:0; transform:none; object-position:center 30%;
-    }
+    /* same scattered-behind-the-text collage as desktop, just smaller and
+       repositioned so it fits a narrow screen without blocking the copy —
+       not a separate strip underneath it. */
+    .collage-1{ width:78px; height:98px; top:-6px; right:2%; left:auto; transform:rotate(6deg); }
+    .collage-2{ width:74px; height:92px; top:auto; bottom:38%; left:-4%; transform:rotate(-7deg); }
+    .collage-3{ width:88px; height:70px; bottom:auto; top:56%; right:-4%; transform:rotate(4deg); }
     .sparkle-br, .sparkle-br-2{ display:none; }
   }
 </style>
