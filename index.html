@@ -367,6 +367,32 @@
   }
   .work-note{ margin-top:28px; max-width:58ch; color:var(--ink-soft); line-height:1.6; }
 
+  /* ---- work-tile variant that shows a real video instead of the hatch pattern ---- */
+  .work-tile.has-video{ padding:0; background:#000; text-decoration:none; color:inherit; display:block; }
+  .work-tile.has-video .video-frame{ position:absolute; inset:0; border-radius:0; border:none; aspect-ratio:auto; }
+  .work-tile.has-video .tile-overlay{
+    position:absolute; inset:0; z-index:2; display:flex; flex-direction:column; justify-content:space-between;
+    padding:20px; pointer-events:none;
+    background:linear-gradient(180deg, rgba(10,4,20,.1) 0%, rgba(10,4,20,0) 32%, rgba(10,4,20,.65) 100%);
+  }
+  .video-frame{
+    position:relative; width:100%; aspect-ratio:9/16; overflow:hidden; border-radius:var(--radius);
+    background:#000; border:1px solid var(--line-strong);
+  }
+  .video-frame video{ width:100%; height:100%; object-fit:cover; display:block; }
+  .video-controls{ position:absolute; right:10px; bottom:10px; display:flex; gap:8px; z-index:3; }
+  .v-btn{
+    width:34px; height:34px; border-radius:50%; border:1px solid rgba(255,255,255,.35);
+    background:rgba(10,4,20,.55); -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); color:#fff;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0;
+    transition:background .2s ease, transform .2s ease;
+  }
+  .v-btn:hover{ background:rgba(10,4,20,.85); transform:translateY(-1px); }
+  .v-btn svg{ width:16px; height:16px; }
+  .v-btn .icon-off{ display:none; }
+  .video-frame.is-muted .v-mute .icon-on{ display:none; }
+  .video-frame.is-muted .v-mute .icon-off{ display:block; }
+
   /* ---- contacto ---- */
   .contact{
     position:relative; overflow:hidden;
@@ -677,11 +703,27 @@
         </div>
       </div>
       <div class="work-grid">
-        <div class="work-tile reveal">
-          <span class="eyebrow">Producción</span>
-          <span class="wt-status">Próximamente</span>
-          <span class="wt-title">Proyecto en curso</span>
-        </div>
+        <a class="work-tile has-video reveal" href="nobrand.html">
+          <div class="video-frame" data-video>
+            <video src="https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/trailer-vertical.mp4" muted loop playsinline preload="metadata"></video>
+            <div class="video-controls">
+              <button class="v-btn v-mute" type="button" aria-label="Activar sonido">
+                <svg class="icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                <svg class="icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+              </button>
+              <button class="v-btn v-expand" type="button" aria-label="Ampliar video">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="tile-overlay">
+            <span class="wt-status">Cliente</span>
+            <div>
+              <span class="eyebrow">Producción</span>
+              <div class="wt-title">NOBRAND</div>
+            </div>
+          </div>
+        </a>
         <div class="work-tile reveal">
           <span class="eyebrow">Estrategia</span>
           <span class="wt-status">Próximamente</span>
@@ -693,7 +735,7 @@
           <span class="wt-title">Desarrollo en curso</span>
         </div>
       </div>
-      <p class="work-note reveal">Ya estamos trabajando con las primeras marcas — todavía no subimos ese trabajo a la web. Preferimos mostrar resultados reales antes que casos de ejemplo, así que esta sección se va a ir llenando a medida que cerremos cada entrega. Si querés sumarte, hablemos.</p>
+      <p class="work-note reveal">Venimos haciendo esto hace años y ya pasaron muchas marcas por nuestras manos — lo que está en construcción es la web, no la experiencia. Arrancamos a subir ese trabajo acá, empezando por NOBRAND, y esta sección se va a ir llenando con cada proyecto que sumamos.</p>
     </div>
   </section>
 
@@ -936,5 +978,39 @@
         setNote('Hubo un problema al enviar el mensaje. Probá de nuevo o escribinos por WhatsApp.', true);
       })
       .finally(function(){ submitBtn.disabled = false; });
+  });
+
+  // video-frame controls: mute toggle, fullscreen, and play/pause driven by
+  // visibility — plays as soon as it scrolls into view, pauses when it leaves.
+  var videoVisibility = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      var video = entry.target.querySelector('video');
+      if (entry.isIntersecting) video.play().catch(function(){});
+      else video.pause();
+    });
+  }, { threshold: .4 });
+
+  document.querySelectorAll('[data-video]').forEach(function(frame){
+    var video = frame.querySelector('video');
+    var muteBtn = frame.querySelector('.v-mute');
+    var expandBtn = frame.querySelector('.v-expand');
+
+    frame.classList.toggle('is-muted', video.muted);
+
+    if (muteBtn) {
+      muteBtn.addEventListener('click', function(e){
+        e.preventDefault(); e.stopPropagation();
+        video.muted = !video.muted;
+        frame.classList.toggle('is-muted', video.muted);
+      });
+    }
+    if (expandBtn) {
+      expandBtn.addEventListener('click', function(e){
+        e.preventDefault(); e.stopPropagation();
+        if (frame.requestFullscreen) frame.requestFullscreen();
+        else if (video.webkitEnterFullscreen) video.webkitEnterFullscreen();
+      });
+    }
+    videoVisibility.observe(frame);
   });
 </script>
