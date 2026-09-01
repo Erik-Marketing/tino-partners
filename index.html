@@ -1,32 +1,25 @@
 <title>Tino Partners</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#180A2E">
-<script>
-  (function(){
-    try{ if(localStorage.getItem('tino-theme') === 'light'){ document.documentElement.setAttribute('data-theme','light'); } }catch(e){}
-  })();
-</script>
+<meta name="theme-color" content="#FFFFFF">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 
 <style>
-  /* Dark is the forced default — independent of the device's system theme.
-     Light only applies when the visitor flips the toggle (data-theme="light"), saved in localStorage. */
   :root{
-    --ink:#F1E9FB;
-    --ink-soft:#C9B8DE;
-    --paper:#180A2E;
-    --paper-dim:#241340;
-    --paper-flat:#120821;
-    --line: rgba(241,233,251,.14);
-    --line-strong: rgba(241,233,251,.30);
-    --lime:#C4B5FD;
+    --ink:#171221;
+    --ink-soft:#6B6478;
+    --paper:#FFFFFF;
+    --paper-dim:#F6F3FB;
+    --paper-flat:#FFFFFF;
+    --line: rgba(23,18,33,.10);
+    --line-strong: rgba(23,18,33,.20);
+    --lime:#9B5DF6;
     --lime-fill:#C4B5FD;
-    --coral:#F0ABFC;
-    --coral-fill:#F0ABFC;
-    --steel:#C9BEDD;
-    --shadow: 0 24px 60px -28px rgba(0,0,0,.6);
+    --coral:#9B5DF6;
+    --coral-fill:#C4B5FD;
+    --steel:#B7AFC9;
+    --shadow: 0 24px 60px -28px rgba(74,49,112,.18);
     --radius: 14px;
     --radius-pill: 999px;
     --maxw: 1180px;
@@ -35,25 +28,8 @@
     --v-500:#9B5DF6;
     --pink-500:#EE60C6;
     --pink-300:#F9AEE0;
-    --gradient-vivid: linear-gradient(135deg, var(--v-900) 0%, var(--v-500) 55%, var(--pink-500) 100%);
-    --glow: 0 20px 50px -14px rgba(155,93,246,.55);
-    color-scheme: dark;
-  }
-
-  :root[data-theme="light"]{
-    --ink:#4A3170;
-    --ink-soft:#8779A0;
-    --paper:#F8F3FC;
-    --paper-dim:#ECE1F7;
-    --paper-flat:#FFFFFF;
-    --line: rgba(74,49,112,.14);
-    --line-strong: rgba(74,49,112,.26);
-    --lime:#9061F9;
-    --lime-fill:#C4AAFB;
-    --coral:#A855D1;
-    --coral-fill:#E3B8F0;
-    --steel:#B3A8CC;
-    --shadow: 0 24px 60px -32px rgba(74,49,112,.4);
+    --gradient-vivid: linear-gradient(135deg, var(--v-500) 0%, var(--pink-500) 100%);
+    --glow: 0 20px 50px -14px rgba(155,93,246,.35);
     color-scheme: light;
   }
 
@@ -70,13 +46,13 @@
   h1,h2,h3{
     font-family:'Big Shoulders Display', 'Arial Narrow', sans-serif;
     font-weight:800;
-    line-height:.92;
+    line-height:.94;
     text-transform:uppercase;
     letter-spacing:.005em;
     text-wrap:balance;
     margin:0;
   }
-  em{ font-style:normal; color:var(--coral); }
+  em{ font-style:normal; color:var(--v-500); }
   p{ margin:0; }
   a{ color:inherit; }
   .eyebrow{
@@ -87,18 +63,22 @@
     text-transform:uppercase;
     color:var(--ink-soft);
   }
+  .example-flag{
+    display:inline-flex; align-items:center; gap:6px; margin-top:14px;
+    font-family:'IBM Plex Mono',monospace; font-size:.68rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--v-500); border:1px solid var(--lime-fill); border-radius:var(--radius-pill); padding:6px 14px;
+  }
   .section-inner{ position:relative; z-index:1; max-width:var(--maxw); margin:0 auto; padding-inline:clamp(20px,5vw,64px); }
   img{ max-width:100%; display:block; }
 
-  /* grain overlay */
+  /* grain overlay — light values only now, there's a single theme */
   .grain{
     position:fixed; inset:0; pointer-events:none; z-index:2;
-    opacity:.08; mix-blend-mode:overlay;
+    opacity:.05; mix-blend-mode:multiply;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
-  :root[data-theme="light"] .grain{ opacity:.05; mix-blend-mode:multiply; }
 
-  /* ---- nav ---- */
+  /* ---- nav: logo + hamburger only, at every width — opens a full link panel ---- */
   .nav{
     position:fixed; top:0; left:0; right:0; z-index:40;
     display:flex; align-items:center; justify-content:space-between;
@@ -106,11 +86,6 @@
     border-bottom:1px solid transparent;
     transition:border-color .3s ease;
   }
-  /* The blur lives on a pseudo-element, not on .nav itself. backdrop-filter (like filter or
-     transform) on an ancestor turns it into the containing block for position:fixed
-     descendants — and the mobile menu below is exactly that. With the filter on .nav directly,
-     the open menu would sometimes render with no background / in the wrong place once the nav
-     had scrolled and picked up the blur. Keeping it on ::before avoids that entirely. */
   .nav::before{
     content:""; position:absolute; inset:0; z-index:-1;
     background:color-mix(in srgb, var(--paper) 86%, transparent);
@@ -119,77 +94,42 @@
   }
   .nav.is-scrolled{ border-bottom-color:var(--line); }
   .nav.is-scrolled::before{ opacity:1; }
-  .brand{ display:flex; align-items:center; gap:10px; text-decoration:none; }
+  .brand{ display:flex; align-items:center; gap:10px; text-decoration:none; position:relative; z-index:2; }
   .brand svg{ width:30px; height:30px; flex:none; }
   .brand-word{ font-family:'Big Shoulders Display', sans-serif; font-weight:800; font-size:1.28rem; letter-spacing:.01em; text-transform:uppercase; }
   .brand-word span{ display:block; font-family:'IBM Plex Mono', monospace; font-size:.55rem; font-weight:600; letter-spacing:.22em; color:var(--ink-soft); text-transform:uppercase; margin-top:-2px; }
 
-  .menu{ display:flex; align-items:center; gap:clamp(18px,2.6vw,34px); }
+  .nav-toggle{
+    display:flex; flex-direction:column; gap:5px; background:none; border:none; cursor:pointer; padding:8px;
+    position:relative; z-index:42;
+  }
+  .nav-toggle span{ width:24px; height:2px; background:var(--ink); transition:transform .2s ease, opacity .2s ease; }
+  .nav-toggle.is-open span:nth-child(1){ transform:translateY(7px) rotate(45deg); }
+  .nav-toggle.is-open span:nth-child(2){ opacity:0; }
+  .nav-toggle.is-open span:nth-child(3){ transform:translateY(-7px) rotate(-45deg); }
 
-  /* Shared type for every menu entry. Deliberately a class (.menu-link) rather than a
-     descendant selector (.menu a): `.menu a` out-specifies `.menu-cta`, so a padding-bottom
-     declared there silently overrode the pill's own shorthand and left it vertically lopsided. */
-  .menu-link, .menu-cta{
-    text-decoration:none;
-    font-family:'IBM Plex Mono', monospace;
-    font-size:.76rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase;
-    line-height:1;
+  .menu-panel{
+    position:fixed; inset:0; z-index:41; background:var(--paper);
+    display:flex; flex-direction:column; justify-content:center; gap:clamp(16px,3vw,28px);
+    padding:96px clamp(24px,6vw,96px) 64px;
+    opacity:0; visibility:hidden; transform:translateY(-16px);
+    transition:opacity .3s ease, transform .3s ease, visibility 0s linear .3s;
+  }
+  .menu-panel.is-open{ opacity:1; visibility:visible; transform:none; transition:opacity .3s ease, transform .3s ease; }
+  .menu-panel .menu-link{
+    text-decoration:none; color:var(--ink); font-family:'Big Shoulders Display',sans-serif;
+    font-weight:800; text-transform:uppercase; font-size:clamp(2.2rem,7vw,4rem); line-height:1;
+  }
+  .menu-panel .menu-link[aria-current="page"]{ color:var(--v-500); }
+  .menu-panel .menu-cta{
+    margin-top:12px; display:inline-flex; align-self:flex-start; align-items:center; gap:10px; text-decoration:none;
+    background:var(--gradient-vivid); color:#fff; font-family:'IBM Plex Mono',monospace;
+    font-weight:600; font-size:.82rem; letter-spacing:.06em; text-transform:uppercase;
+    padding:16px calc(28px - 0.03em) 16px calc(28px + 0.03em); border-radius:var(--radius-pill);
+    box-shadow:var(--glow);
   }
 
-  /* No vertical padding here, so the plain links' text centre lands exactly on the flex row's
-     centre — the same place the pill's text centre lands. That is what keeps every menu label
-     sitting on one line. The hover underline is offset instead of being made of padding. */
-  .menu-link{ color:var(--ink); position:relative; padding:0; }
-  .menu-link::after{
-    content:""; position:absolute; left:0; right:100%; bottom:-4px; height:1px;
-    background:var(--coral-fill); transition:right .25s ease;
-  }
-  .menu-link:hover::after{ right:0; }
-
-  .menu-cta{
-    display:inline-flex; align-items:center; justify-content:center; white-space:nowrap;
-    /* symmetric vertical padding; horizontally the right side is trimmed by half a letter-space
-       because letter-spacing also adds a trailing gap after the final character */
-    padding:10px calc(18px - 0.04em) 10px calc(18px + 0.04em);
-    background:var(--gradient-vivid); color:#fff; border-radius:var(--radius-pill);
-    box-shadow:0 10px 24px -12px rgba(155,93,246,.6);
-    transition:transform .2s ease, box-shadow .2s ease;
-  }
-  .menu-cta:hover{ transform:translateY(-1px); box-shadow:0 14px 28px -12px rgba(155,93,246,.75); }
-  .nav-toggle{ display:none; }
-
-  /* ---- theme toggle ---- */
-  .theme-toggle{
-    display:flex; align-items:center; gap:9px; background:none; border:none; cursor:pointer;
-    font-family:'IBM Plex Mono', monospace; font-size:.72rem; font-weight:600; letter-spacing:.06em;
-    text-transform:uppercase; color:var(--ink-soft); padding:0;
-  }
-  .theme-toggle-track{
-    position:relative; width:38px; height:22px; border-radius:var(--radius-pill);
-    background:var(--paper-dim); border:1px solid var(--line-strong); flex:none;
-    transition:background .2s ease;
-  }
-  .theme-toggle-thumb{
-    position:absolute; top:2px; left:2px; width:16px; height:16px; border-radius:50%;
-    background:var(--gradient-vivid); transition:transform .25s ease;
-  }
-  .theme-toggle[aria-pressed="true"] .theme-toggle-thumb{ transform:translateX(16px); }
-  .theme-toggle:hover .theme-toggle-track{ border-color:var(--coral-fill); }
-
-  /* ---- hero ---- */
-  .hero{
-    position:relative; z-index:1;
-    display:grid; grid-template-columns:1.05fr .95fr; align-items:center; gap:clamp(24px,4vw,48px);
-    max-width:var(--maxw); margin:0 auto; padding:calc(96px + 4vh) clamp(20px,5vw,64px) clamp(56px,8vh,96px);
-    min-height:92vh; min-height:92dvh;
-  }
-  .hero-copy .eyebrow{ margin-bottom:18px; }
-  .hero h1{ font-size:clamp(2.6rem, 6vw, 4.6rem); }
-  .hero .lede{
-    margin-top:22px; max-width:46ch; font-size:1.06rem; line-height:1.55; color:var(--ink-soft);
-  }
-  .hero-actions{ display:flex; align-items:center; gap:20px; margin-top:36px; flex-wrap:wrap; }
-  .work-actions{ margin-top:24px; }
+  /* ---- buttons ---- */
   .btn-primary{
     display:inline-flex; align-items:center; justify-content:center; gap:10px; text-decoration:none;
     background:var(--gradient-vivid); color:#fff; font-family:'IBM Plex Mono',monospace;
@@ -198,168 +138,70 @@
     box-shadow:var(--glow);
     transition:transform .2s ease, box-shadow .2s ease;
   }
-  .btn-primary:hover{ transform:translateY(-2px); box-shadow:0 26px 54px -16px rgba(155,93,246,.65); }
+  .btn-primary:hover{ transform:translateY(-2px); box-shadow:0 26px 54px -16px rgba(155,93,246,.45); }
   .btn-ghost{
     text-decoration:none; font-family:'IBM Plex Mono',monospace; font-size:.82rem; font-weight:600;
     letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft);
     border-bottom:1px solid var(--line-strong); padding-bottom:3px; transition:color .2s ease, border-color .2s ease;
   }
   .btn-ghost:hover{ color:var(--ink); border-color:var(--ink); }
+  .arrow-link{ display:inline-flex; align-items:center; gap:8px; text-decoration:none; color:var(--ink); font-weight:600; }
+  .arrow-link svg{ width:18px; height:18px; transition:transform .2s ease; }
+  .arrow-link:hover svg{ transform:translate(3px,-3px); }
 
-  .hero-graphic-frame{
-    position:relative; width:100%; max-width:460px; margin-inline:auto;
-    height:0; padding-bottom:100%; /* intrinsic-ratio trick: guarantees a perfect square in every browser, unlike aspect-ratio which Safari sometimes fails to resolve here */
+  /* ---- hero: split 50/50, real photo on the right ---- */
+  .hero-split{
+    position:relative; z-index:1; display:grid; grid-template-columns:1fr 1fr; align-items:stretch;
+    min-height:92vh; min-height:92dvh; padding-top:0;
   }
-  .hero-graphic{
-    position:absolute; inset:0; z-index:1;
-    border-radius:46% 54% 58% 42% / 42% 46% 54% 58%; /* static organic blob — not animated, to avoid the Safari border-radius-animation repaint glitch */
-    background:var(--gradient-vivid);
-    box-shadow:var(--glow);
-    overflow:hidden;
-    isolation:isolate;
-    transition:transform .3s ease-out;
+  .hero-copy{
+    display:flex; flex-direction:column; justify-content:center; gap:22px;
+    padding:calc(96px + 4vh) clamp(24px,5vw,72px) clamp(48px,6vh,72px);
   }
-  .hero-graphic::before{
-    content:""; position:absolute; inset:0; z-index:0;
-    background-image:
-      radial-gradient(1.6px 1.6px at 18% 26%, rgba(255,255,255,.95), transparent),
-      radial-gradient(1.6px 1.6px at 74% 14%, rgba(255,255,255,.8), transparent),
-      radial-gradient(1.3px 1.3px at 42% 66%, rgba(255,255,255,.9), transparent),
-      radial-gradient(1.3px 1.3px at 86% 58%, rgba(255,255,255,.6), transparent),
-      radial-gradient(1.6px 1.6px at 58% 40%, rgba(255,255,255,.55), transparent),
-      radial-gradient(1.3px 1.3px at 12% 78%, rgba(255,255,255,.7), transparent),
-      radial-gradient(1.3px 1.3px at 92% 84%, rgba(255,255,255,.6), transparent);
+  .hero-copy h1{ font-size:clamp(2.6rem, 4.6vw, 4.4rem); }
+  .hero-copy .lede{ max-width:46ch; font-size:1.06rem; line-height:1.6; color:var(--ink-soft); }
+  .hero-media{
+    position:relative; overflow:hidden; background:var(--paper-dim); min-height:340px;
   }
-  /* Orbs live outside the clipped .hero-graphic on purpose, so the "peeking past the edge" glow
-     is identical on every browser instead of depending on how precisely each engine clips
-     overflow:hidden against the organic border-radius. */
-  .hero-graphic-frame .orb{
-    position:absolute; border-radius:50%; z-index:2; pointer-events:none;
-    background:radial-gradient(circle at 32% 28%, #fff, var(--pink-300) 42%, transparent 72%);
+  .hero-media img{ width:100%; height:100%; object-fit:cover; position:absolute; inset:0; }
+  .hero-media::after{
+    content:""; position:absolute; inset:0;
+    background:linear-gradient(200deg, color-mix(in srgb, var(--v-500) 30%, transparent) 0%, transparent 45%, color-mix(in srgb, var(--pink-500) 22%, transparent) 100%);
+    mix-blend-mode:multiply;
   }
-  .hero-graphic-frame .orb-a{ width:88px; height:88px; top:-3%; right:-2%; opacity:.95; }
-  .hero-graphic-frame .orb-b{
-    width:46px; height:46px; bottom:9%; left:-3%; opacity:.9;
-    background:radial-gradient(circle at 32% 28%, #fff, var(--v-500) 55%, transparent 75%);
-  }
-  .hero-graphic svg{ position:relative; z-index:1; width:82%; height:82%; margin:9%; overflow:visible; }
-
-  /* Orbiting client logos: plain HTML/CSS, deliberately NOT inside the SVG — animating an SVG
-     <g>'s transform via CSS is unreliable on iOS Safari (it can silently not run at all).
-     Each .logo-orbit is a square centered on the frame; the badge sits on its top edge and the
-     orbit box spins around its own center. The inner wrap spins the opposite way at the same
-     speed to cancel that rotation, so the badge itself always stays upright. */
-  .logo-orbit{
-    position:absolute; z-index:3; pointer-events:none;
-    animation:spin 46s linear infinite;
-  }
-  .logo-orbit.rev{ animation-name:spinRev; animation-duration:64s; }
-  .logo-orbit.slow{ animation-duration:90s; }
-  .logo-orbit-1{ inset:10.95%; }
-  .logo-orbit-2{ inset:20.71%; }
-  .logo-orbit-3{ inset:31.45%; }
-  @keyframes spin{ to{ rotate:360deg; } }
-  @keyframes spinRev{ to{ rotate:-360deg; } }
-
-  .logo-badge-wrap{
-    position:absolute; top:0; left:50%; translate:-50% -50%;
-    pointer-events:auto;
-    animation:spinRev 46s linear infinite;
-  }
-  .logo-orbit.rev .logo-badge-wrap{ animation-name:spin; animation-duration:64s; }
-  .logo-orbit.slow .logo-badge-wrap{ animation-duration:90s; }
-  .logo-orbit-1 .logo-badge-wrap{ width:8.59%; height:8.59%; }
-  .logo-orbit-2 .logo-badge-wrap{ width:7.03%; height:7.03%; }
-  .logo-orbit-3 .logo-badge-wrap{ width:5.86%; height:5.86%; }
-  .logo-badge{
-    width:100%; height:100%; border-radius:50%; box-sizing:border-box;
-    background:#fff; display:flex; align-items:center; justify-content:center;
-    border:1px solid rgba(74,49,112,.16);
-    box-shadow:0 8px 18px -8px rgba(20,8,40,.4);
-    color:var(--v-500); font-family:'Work Sans',sans-serif; font-weight:300;
-  }
-  .logo-badge svg{ width:54%; height:54%; }
-
-  .hero-visual{ display:flex; flex-direction:column; align-items:center; gap:14px; width:100%; max-width:460px; margin-inline:auto; }
-  .visual-caption{
-    font-family:'IBM Plex Mono',monospace; font-size:.64rem; letter-spacing:.06em;
-    color:var(--ink-soft); text-align:center; max-width:32ch;
-  }
+  .hero-blob{ width:220px; height:220px; top:8%; left:-60px; opacity:.5; z-index:0; }
+  .blob-shape{ position:absolute; border-radius:63% 37% 54% 46% / 41% 51% 49% 59%; pointer-events:none; }
+  .blob-fill{ background:var(--gradient-vivid); }
 
   /* ambient background motion */
   .ambient-orb{
-    position:absolute; border-radius:50%; filter:blur(46px); opacity:.32; pointer-events:none; z-index:0;
+    position:absolute; border-radius:50%; filter:blur(46px); opacity:.28; pointer-events:none; z-index:0;
     animation:ambientFloat 19s ease-in-out infinite alternate;
   }
   @keyframes ambientFloat{ to{ transform:translate(26px,-20px) scale(1.08); } }
-
-  @media (prefers-reduced-motion: reduce){
-    .logo-orbit, .logo-badge-wrap, .hero-graphic, .ambient-orb, .pillar-mark{ animation:none; }
-    .hero-graphic{ transition:none; }
-  }
+  @media (prefers-reduced-motion: reduce){ .ambient-orb{ animation:none; } }
 
   /* ---- section shell ---- */
   section{ position:relative; z-index:1; }
-  .section-head{ max-width:64ch; margin-bottom:clamp(40px,6vw,72px); }
+  .section-head{ max-width:64ch; margin-bottom:clamp(36px,5vw,64px); }
   .section-head .eyebrow{ margin-bottom:14px; }
   .section-head h2{ font-size:clamp(2rem,4.4vw,3.2rem); }
 
-  /* ---- servicios ---- */
-  .services{
-    position:relative; overflow:hidden;
-    background:var(--paper-dim); padding:clamp(72px,10vh,120px) 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line);
-  }
-  .services .ambient-1{ width:280px; height:280px; top:-90px; left:-70px; background:radial-gradient(circle, var(--v-500), transparent 70%); }
-  .services .ambient-2{
-    width:220px; height:220px; bottom:-80px; right:-50px; background:radial-gradient(circle, var(--pink-300), transparent 70%);
-    animation-duration:23s; animation-delay:-6s;
-  }
-  .pillar{
-    display:grid; grid-template-columns:.9fr 1.5fr; gap:clamp(20px,4vw,56px);
-    padding:clamp(32px,4vw,44px) 0; border-top:1px solid var(--line); align-items:start;
-  }
-  .pillar:last-child{ border-bottom:1px solid var(--line); }
-  .pillar-head{ display:flex; align-items:flex-start; gap:16px; }
-  .pillar-mark{
-    width:16px; height:16px; border-radius:50%; margin-top:8px; flex:none;
-    box-shadow:0 4px 10px -3px rgba(74,49,112,.5), 0 0 0 0 rgba(155,93,246,.35);
-    animation:pillarPulse 3.2s ease-in-out infinite;
-  }
-  @keyframes pillarPulse{
-    0%,100%{ box-shadow:0 4px 10px -3px rgba(74,49,112,.5), 0 0 0 0 rgba(155,93,246,.35); }
-    50%{ box-shadow:0 4px 10px -3px rgba(74,49,112,.5), 0 0 0 7px rgba(155,93,246,0); }
-  }
-  .pillar[data-pillar="produccion"] .pillar-mark{ background:radial-gradient(circle at 32% 28%, #fff, var(--coral-fill) 55%, var(--coral) 100%); }
-  .pillar[data-pillar="estrategia"] .pillar-mark{ background:radial-gradient(circle at 32% 28%, #fff, var(--lime-fill) 55%, var(--lime) 100%); }
-  .pillar[data-pillar="tecnologia"] .pillar-mark{ background:radial-gradient(circle at 32% 28%, #fff, var(--steel) 55%, var(--ink-soft) 100%); }
-  .pillar h3{ font-size:clamp(1.7rem,3.2vw,2.5rem); }
-  .pillar-body p{ font-size:1rem; line-height:1.6; color:var(--ink-soft); max-width:56ch; }
-  .pillar-tags{ display:flex; flex-wrap:wrap; gap:8px 10px; margin-top:18px; }
-  .pillar-tags span{
-    font-family:'IBM Plex Mono',monospace; font-size:.68rem; letter-spacing:.05em; text-transform:uppercase;
-    padding:6px 12px; border:1px solid var(--line-strong); border-radius:var(--radius-pill); color:var(--ink-soft);
-    background:color-mix(in srgb, var(--v-500) 8%, transparent);
-  }
-
-  /* ---- trabajos ---- */
+  /* ---- proyectos ---- */
   .work{ position:relative; overflow:hidden; padding:clamp(72px,10vh,120px) 0; }
-  .work .ambient-1{ width:230px; height:230px; top:8%; right:-70px; background:radial-gradient(circle, var(--pink-300), transparent 70%); }
+  .work .ambient-1{ width:230px; height:230px; top:8%; right:-70px; background:radial-gradient(circle, var(--lime-fill), transparent 70%); }
   .work .ambient-2{
-    width:190px; height:190px; bottom:-60px; left:-50px; background:radial-gradient(circle, var(--v-500), transparent 70%);
+    width:190px; height:190px; bottom:-60px; left:-50px; background:radial-gradient(circle, var(--pink-300), transparent 70%);
     animation-duration:21s; animation-delay:-8s;
   }
   .work-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(14px,2vw,20px); margin-top:44px; }
-  .work-grid .work-tile:nth-child(1){ transition-delay:0s; }
-  .work-grid .work-tile:nth-child(2){ transition-delay:.12s; }
-  .work-grid .work-tile:nth-child(3){ transition-delay:.24s; }
   .work-tile{
     aspect-ratio:4/5; border:1px solid var(--line-strong); border-radius:var(--radius);
     position:relative; overflow:hidden; display:flex; flex-direction:column; justify-content:space-between;
-    padding:20px; background:
-      repeating-linear-gradient(135deg, var(--line) 0 1px, transparent 1px 14px);
+    padding:20px; background: repeating-linear-gradient(135deg, var(--line) 0 1px, transparent 1px 14px);
   }
   .work-tile .eyebrow{ color:var(--ink-soft); }
-  .work-tile .wt-title{ font-family:'Big Shoulders Display',sans-serif; font-weight:800; font-size:1.5rem; text-transform:uppercase; }
+  .work-tile .wt-title{ font-family:'Big Shoulders Display',sans-serif; font-weight:800; font-size:1.5rem; text-transform:uppercase; color:var(--ink); }
   .work-tile .wt-status{
     align-self:flex-start; font-family:'IBM Plex Mono',monospace; font-size:.66rem; letter-spacing:.08em;
     text-transform:uppercase; padding:5px 10px; border-radius:var(--radius-pill);
@@ -367,8 +209,8 @@
   }
   .work-note{ margin-top:28px; max-width:58ch; color:var(--ink-soft); line-height:1.6; }
 
-  /* ---- work-tile variant that shows a real video instead of the hatch pattern ---- */
-  .work-tile.has-video{ padding:0; background:#000; text-decoration:none; color:inherit; display:block; }
+  .work-tile.has-video{ padding:0; background:#000; text-decoration:none; color:#fff; display:block; }
+  .work-tile.has-video .wt-title{ color:#fff; }
   .work-tile.has-video .video-frame{ position:absolute; inset:0; border-radius:0; border:none; aspect-ratio:auto; }
   .work-tile.has-video .tile-overlay{
     position:absolute; inset:0; z-index:2; display:flex; flex-direction:column; justify-content:space-between;
@@ -392,6 +234,79 @@
   .v-btn .icon-off{ display:none; }
   .video-frame.is-muted .v-mute .icon-on{ display:none; }
   .video-frame.is-muted .v-mute .icon-off{ display:block; }
+
+  /* ---- lo que nos hace diferentes ---- */
+  .different{ background:var(--paper-dim); padding:clamp(72px,10vh,120px) 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+  .different-grid{ display:grid; grid-template-columns:1fr .8fr; gap:clamp(32px,5vw,56px); align-items:center; }
+  .different-copy h2{ font-size:clamp(2rem,4.2vw,3rem); margin-bottom:18px; }
+  .different-copy p{ font-size:1.05rem; line-height:1.65; color:var(--ink-soft); max-width:52ch; }
+  .different-video .video-frame{ aspect-ratio:9/16; max-width:300px; margin:28px 0 0; box-shadow:var(--shadow); }
+
+  /* ---- stats ---- */
+  .stats{ padding:clamp(56px,8vh,88px) 0 clamp(72px,9vh,104px); text-align:center; }
+  .stats-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:clamp(20px,3vw,32px); }
+  .stat-blob{ display:inline-block; width:52px; height:52px; margin:0 auto 14px; opacity:.9; }
+  .stat-num{ font-family:'Big Shoulders Display',sans-serif; font-weight:800; font-size:clamp(2.2rem,4.4vw,3.2rem); }
+  .stat-label{ margin-top:4px; font-size:.86rem; color:var(--ink-soft); }
+  .stats .example-flag{ margin-top:32px; }
+
+  /* ---- qué hacemos (acordeón) ---- */
+  .what{ background:var(--paper-dim); padding:clamp(72px,10vh,120px) 0; }
+  .what h2{ color:var(--v-500); font-size:clamp(2.2rem,5vw,3.6rem); margin-bottom:clamp(28px,4vw,44px); text-align:center; }
+  .accordion-item{ border-top:1px solid var(--line-strong); }
+  .accordion-item:last-child{ border-bottom:1px solid var(--line-strong); }
+  .accordion-item summary{
+    list-style:none; cursor:pointer; padding:22px 4px; display:flex; align-items:center; justify-content:space-between; gap:16px;
+  }
+  .accordion-item summary::-webkit-details-marker{ display:none; }
+  .accordion-item summary h3{
+    font-family:'Big Shoulders Display',sans-serif; font-weight:800; text-transform:none; font-size:clamp(1.2rem,2.4vw,1.7rem); letter-spacing:0;
+  }
+  .acc-icon{
+    position:relative; width:22px; height:22px; flex:none; transition:transform .25s ease;
+  }
+  .acc-icon::before, .acc-icon::after{
+    content:""; position:absolute; background:var(--ink); border-radius:2px;
+  }
+  .acc-icon::before{ top:50%; left:0; width:100%; height:2px; margin-top:-1px; }
+  .acc-icon::after{ left:50%; top:0; height:100%; width:2px; margin-left:-1px; }
+  .accordion-item[open] .acc-icon{ transform:rotate(45deg); }
+  .accordion-body{ padding:0 4px 26px; max-width:70ch; }
+  .accordion-body p{ color:var(--ink-soft); line-height:1.65; margin-bottom:14px; }
+  .accordion-tags{ display:flex; flex-wrap:wrap; gap:8px 10px; }
+  .accordion-tags span{
+    font-family:'IBM Plex Mono',monospace; font-size:.68rem; letter-spacing:.05em; text-transform:uppercase;
+    padding:6px 12px; border:1px solid var(--line-strong); border-radius:var(--radius-pill); color:var(--ink-soft);
+  }
+
+  /* ---- banner de marcas ---- */
+  .brands-band{ padding:clamp(28px,4vw,40px) 0; background:var(--gradient-vivid); }
+  .brands-row{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-around; gap:clamp(20px,4vw,40px); }
+  .brands-row span{
+    font-family:'Big Shoulders Display',sans-serif; font-weight:800; font-size:clamp(1.1rem,2.4vw,1.6rem);
+    color:#fff; text-transform:uppercase; text-shadow:0 2px 10px rgba(59,26,120,.35);
+  }
+
+  /* ---- testimonios ---- */
+  .testimonials{ padding:clamp(72px,10vh,120px) 0; }
+  .testimonial-grid{ display:grid; grid-template-columns:.7fr 1.3fr; gap:clamp(32px,5vw,56px); align-items:center; }
+  .testi-avatar{
+    width:76px; height:76px; border-radius:50%; background:var(--gradient-vivid);
+    display:flex; align-items:center; justify-content:center; color:#fff; font-family:'Big Shoulders Display',sans-serif; font-weight:800; font-size:1.6rem;
+    margin-bottom:14px;
+  }
+  .testi-name{ font-weight:600; }
+  .testi-role{ color:var(--ink-soft); font-size:.9rem; }
+  .testi-quote{ font-family:'Big Shoulders Display',sans-serif; font-weight:700; text-transform:none; letter-spacing:0; line-height:1.2; font-size:clamp(1.5rem,3.2vw,2.3rem); }
+
+  /* ---- blog teaser ---- */
+  .blog-teaser{ background:var(--paper-dim); padding:clamp(64px,8vh,96px) 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+  .blog-teaser .section-head{ display:flex; align-items:flex-end; justify-content:space-between; gap:24px; margin-bottom:clamp(28px,4vw,40px); flex-wrap:wrap; }
+  .blog-teaser .section-head h2{ font-size:clamp(1.8rem,4vw,2.6rem); }
+  .blog-empty{
+    border:1px dashed var(--line-strong); border-radius:var(--radius); padding:clamp(36px,6vw,56px);
+    text-align:center; color:var(--ink-soft);
+  }
 
   /* ---- contacto ---- */
   .contact{
@@ -422,14 +337,14 @@
   }
   .field input::placeholder, .field textarea::placeholder{ color:rgba(255,255,255,.42); }
   .field input:focus, .field textarea:focus, .field select:focus{ border-color:#FFFFFF; }
-  .field input.field-invalid, .field textarea.field-invalid, .field select.field-invalid{ border-bottom-color:var(--pink-500); }
+  .field input.field-invalid, .field textarea.field-invalid, .field select.field-invalid{ border-bottom-color:#3B1A78; }
   .field textarea{ resize:vertical; min-height:90px; }
   .field select{
     appearance:none; -webkit-appearance:none; border-radius:0; cursor:pointer;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='white' stroke-width='1.6'%3E%3Cpath d='M5 7.5L10 12.5L15 7.5'/%3E%3C/svg%3E");
     background-repeat:no-repeat; background-position:right 2px center; background-size:16px;
   }
-  .field select option{ background:var(--paper-dim, #241340); color:#FFFFFF; }
+  .field select option{ background:var(--v-900); color:#FFFFFF; }
   .field select:invalid{ color:rgba(255,255,255,.42); }
 
   .submit-btn{
@@ -437,16 +352,16 @@
     background:#FFFFFF; color:var(--v-900); border:none; font-family:'IBM Plex Mono',monospace;
     font-weight:600; font-size:.82rem; letter-spacing:.06em; text-transform:uppercase;
     padding:15px calc(26px - 0.03em) 15px calc(26px + 0.03em); border-radius:var(--radius-pill); cursor:pointer;
-    box-shadow:0 16px 34px -14px rgba(20,8,40,.5);
+    box-shadow:0 16px 34px -14px rgba(20,8,40,.3);
     transition:transform .2s ease, box-shadow .2s ease;
   }
-  .submit-btn:hover{ transform:translateY(-2px); box-shadow:0 20px 40px -14px rgba(20,8,40,.6); }
-  .submit-btn:focus-visible, a:focus-visible{ outline:2px solid var(--coral-fill); outline-offset:3px; }
+  .submit-btn:hover{ transform:translateY(-2px); box-shadow:0 20px 40px -14px rgba(20,8,40,.4); }
+  .submit-btn:focus-visible, a:focus-visible{ outline:2px solid #fff; outline-offset:3px; }
   .form-note{
     margin-top:14px; font-family:'IBM Plex Mono',monospace; font-size:.76rem; color:#FFFFFF;
     min-height:1em;
   }
-  .form-note.is-error{ color:var(--pink-500); }
+  .form-note.is-error{ color:#3B1A78; font-weight:600; }
 
   .info-list{ list-style:none; margin:0 0 40px; padding:0; display:flex; flex-direction:column; gap:18px; }
   .info-list a{ text-decoration:none; }
@@ -479,16 +394,16 @@
     width:58px; height:58px; border-radius:50%;
     background:#25D366; color:#fff;
     display:flex; align-items:center; justify-content:center;
-    box-shadow:0 14px 30px -10px rgba(0,0,0,.5);
+    box-shadow:0 14px 30px -10px rgba(20,8,40,.35);
     text-decoration:none;
     transition:transform .2s ease, box-shadow .2s ease;
   }
-  .wa-float:hover{ transform:translateY(-2px) scale(1.04); box-shadow:0 18px 36px -10px rgba(0,0,0,.55); }
+  .wa-float:hover{ transform:translateY(-2px) scale(1.04); box-shadow:0 18px 36px -10px rgba(20,8,40,.4); }
   .wa-float svg{ width:29px; height:29px; position:relative; z-index:2; }
   .wa-badge{
     position:absolute; top:-3px; right:-3px; z-index:3;
     min-width:19px; height:19px; padding:0 4px; border-radius:999px;
-    background:var(--coral-fill); color:#3a0a2e;
+    background:var(--v-500); color:#fff;
     font-family:'IBM Plex Mono', monospace; font-size:.66rem; font-weight:700;
     display:flex; align-items:center; justify-content:center;
     box-shadow:0 0 0 3px var(--paper);
@@ -508,24 +423,16 @@
   @media (max-width: 900px){ .wa-float{ right:16px; bottom:16px; width:52px; height:52px; } .wa-float svg{ width:26px; height:26px; } }
 
   @media (max-width: 900px){
-    .menu{ position:fixed; inset:64px 0 0 0; background:var(--paper); flex-direction:column; align-items:flex-start;
-      padding:28px clamp(20px,5vw,64px); gap:26px; transform:translateY(-12px); opacity:0; pointer-events:none;
-      transition:opacity .25s ease, transform .25s ease; border-top:1px solid var(--line); }
-    .menu.is-open{ opacity:1; transform:none; pointer-events:auto; }
-    .menu-link, .menu-cta{ font-size:1rem; }
-    .theme-toggle{ margin-top:6px; padding-top:22px; border-top:1px solid var(--line); width:100%; font-size:.8rem; }
-    .nav-toggle{
-      display:flex; flex-direction:column; gap:5px; background:none; border:none; cursor:pointer; padding:8px; z-index:41;
-    }
-    .nav-toggle span{ width:22px; height:2px; background:var(--ink); transition:transform .2s ease, opacity .2s ease; }
-    .nav-toggle.is-open span:nth-child(1){ transform:translateY(7px) rotate(45deg); }
-    .nav-toggle.is-open span:nth-child(2){ opacity:0; }
-    .nav-toggle.is-open span:nth-child(3){ transform:translateY(-7px) rotate(-45deg); }
-    .hero{ grid-template-columns:1fr; padding-top:120px; }
-    .hero-visual{ order:-1; max-width:280px; }
-    .pillar{ grid-template-columns:1fr; }
+    .hero-split{ grid-template-columns:1fr; min-height:auto; }
+    .hero-copy{ padding-top:112px; order:1; }
+    .hero-media{ order:2; min-height:340px; }
     .work-grid{ grid-template-columns:1fr; }
+    .different-grid{ grid-template-columns:1fr; }
+    .different-video .video-frame{ margin-inline:auto; }
+    .stats-grid{ grid-template-columns:repeat(2,1fr); row-gap:32px; }
+    .testimonial-grid{ grid-template-columns:1fr; }
     .contact-grid{ grid-template-columns:1fr; }
+    .brands-row{ justify-content:center; }
   }
 </style>
 
@@ -545,7 +452,7 @@
     <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
       <circle cx="20" cy="20" r="18.5" stroke="currentColor" stroke-width="1.4"/>
       <circle cx="20" cy="20" r="10" stroke="currentColor" stroke-width="1.4"/>
-      <circle cx="20" cy="20" r="3.2" fill="var(--coral-fill)"/>
+      <circle cx="20" cy="20" r="3.2" fill="var(--v-500)"/>
       <line x1="20" y1="0" x2="20" y2="7" stroke="currentColor" stroke-width="1.4"/>
       <line x1="20" y1="33" x2="20" y2="40" stroke="currentColor" stroke-width="1.4"/>
       <line x1="0" y1="20" x2="7" y2="20" stroke="currentColor" stroke-width="1.4"/>
@@ -553,141 +460,33 @@
     </svg>
     <span class="brand-word">Tino<span>Partners</span></span>
   </a>
-  <nav class="menu" id="siteMenu">
-    <a class="menu-link" href="#home">Home</a>
-    <a class="menu-link" href="nosotros.html">Nosotros</a>
-    <a class="menu-link" href="#servicios">Servicios</a>
-    <a class="menu-link" href="#trabajos">Trabajos</a>
-    <a class="menu-link" href="portfolio.html">Portfolio</a>
-    <a class="menu-cta" href="#contacto">Contactanos</a>
-    <button class="theme-toggle" id="themeToggle" type="button" aria-pressed="false" aria-label="Cambiar a modo claro">
-      <span class="theme-toggle-track"><span class="theme-toggle-thumb"></span></span>
-      <span class="theme-toggle-text">Modo claro</span>
-    </button>
-  </nav>
   <button class="nav-toggle" id="navToggle" aria-label="Abrir menú" aria-expanded="false">
     <span></span><span></span><span></span>
   </button>
 </header>
 
+<nav class="menu-panel" id="siteMenu">
+  <a class="menu-link" href="#home" aria-current="page">Home</a>
+  <a class="menu-link" href="nosotros.html">Nosotros</a>
+  <a class="menu-link" href="#servicios">Qué hacemos</a>
+  <a class="menu-link" href="#trabajos">Trabajos</a>
+  <a class="menu-link" href="portfolio.html">Portfolio</a>
+  <a class="menu-cta" href="#contacto">Contactanos →</a>
+</nav>
+
 <main>
-  <section id="home" class="hero">
+  <section id="home" class="hero-split">
     <div class="hero-copy reveal">
+      <span class="blob-shape blob-fill hero-blob" aria-hidden="true"></span>
       <p class="eyebrow">Partner de negocio — Buenos Aires</p>
-      <h1>Entendemos tu negocio <em>antes de empezar</em>. Y queremos ser parte de las decisiones.</h1>
+      <h1>Somos Tino, <em>tu partner</em> de negocio.</h1>
       <p class="lede">Tino Partners une producción de contenido, planificación de medios y tecnología aplicada en un mismo equipo, para que cada decisión de marca esté tan bien apuntada como se ve.</p>
-      <div class="hero-actions">
+      <div>
         <a href="#contacto" class="btn-primary">Contactanos →</a>
-        <a href="#servicios" class="btn-ghost">Ver servicios</a>
       </div>
     </div>
-    <div class="hero-visual reveal">
-      <div class="hero-graphic-frame">
-      <span class="orb orb-a"></span>
-      <span class="orb orb-b"></span>
-      <div class="hero-graphic">
-        <svg viewBox="0 0 420 420">
-          <circle cx="210" cy="210" r="200" stroke="rgba(255,255,255,.32)" stroke-width="1"/>
-          <circle cx="210" cy="210" r="150" stroke="rgba(255,255,255,.22)" stroke-width="1"/>
-          <circle cx="210" cy="210" r="95" stroke="rgba(255,255,255,.22)" stroke-width="1"/>
-          <line x1="210" y1="4" x2="210" y2="416" stroke="rgba(255,255,255,.2)" stroke-width="1"/>
-          <line x1="4" y1="210" x2="416" y2="210" stroke="rgba(255,255,255,.2)" stroke-width="1"/>
-          <g id="ticks"></g>
-
-          <circle cx="210" cy="210" r="6" fill="#FFFFFF"/>
-        </svg>
-      </div>
-
-      <div class="logo-orbit logo-orbit-1">
-        <div class="logo-badge-wrap">
-          <div class="logo-badge" title="Logo de ejemplo (ficticio) — Aura">
-            <svg viewBox="0 0 24 24">
-              <defs><linearGradient id="auraGrad" x1="0" y1="0" x2="24" y2="24"><stop offset="0" stop-color="#9B5DF6"/><stop offset="1" stop-color="#EE60C6"/></linearGradient></defs>
-              <path d="M12 2c1 3 2 4 5 5-3 1-4 2-5 5-1-3-2-4-5-5 3-1 4-2 5-5z" fill="url(#auraGrad)"/>
-              <path d="M12 12c.6 1.8 1.2 2.4 3 3-1.8.6-2.4 1.2-3 3-.6-1.8-1.2-2.4-3-3 1.8-.6 2.4-1.2 3-3z" fill="url(#auraGrad)" opacity=".7"/>
-            </svg>
-          </div>
-        </div>
-      </div>
-      <div class="logo-orbit logo-orbit-2 rev">
-        <div class="logo-badge-wrap">
-          <div class="logo-badge" title="Logo de ejemplo (ficticio) — Solden">
-            <svg viewBox="0 0 24 24">
-              <defs><linearGradient id="soldenGrad" x1="0" y1="0" x2="24" y2="24"><stop offset="0" stop-color="#F6C453"/><stop offset="1" stop-color="#B9812E"/></linearGradient></defs>
-              <path d="M12 2c4 4 7 8 7 12a7 7 0 1 1-14 0c0-4 3-8 7-12z" fill="url(#soldenGrad)"/>
-            </svg>
-          </div>
-        </div>
-      </div>
-      <div class="logo-orbit logo-orbit-3 slow">
-        <div class="logo-badge-wrap">
-          <div class="logo-badge" title="Logo de ejemplo (ficticio) — Nimbus">
-            <svg viewBox="0 0 24 24" fill="none">
-              <defs><linearGradient id="nimbusGrad" x1="0" y1="0" x2="24" y2="24"><stop offset="0" stop-color="#3FD6C6"/><stop offset="1" stop-color="#3E6FE0"/></linearGradient></defs>
-              <path d="M3 15c3-4 6-4 9 0s6 4 9 0" stroke="url(#nimbusGrad)" stroke-width="2.2" stroke-linecap="round"/>
-              <path d="M3 9c3-4 6-4 9 0s6 4 9 0" stroke="url(#nimbusGrad)" stroke-width="2.2" stroke-linecap="round" opacity=".55"/>
-            </svg>
-          </div>
-        </div>
-      </div>
-      </div>
-      <p class="visual-caption">Logos de ejemplo (ficticios) — se reemplazan fácil por los de tus clientes reales</p>
-    </div>
-  </section>
-
-  <section id="servicios" class="services">
-    <span class="ambient-orb ambient-1" aria-hidden="true"></span>
-    <span class="ambient-orb ambient-2" aria-hidden="true"></span>
-    <div class="section-inner">
-      <div class="section-head reveal">
-        <p class="eyebrow">Servicios</p>
-        <h2>Tres disciplinas.<br>Un mismo objetivo.</h2>
-      </div>
-
-      <div class="pillar reveal" data-pillar="produccion">
-        <div class="pillar-head">
-          <span class="pillar-mark"></span>
-          <div>
-            <h3>Producción &amp; Contenido</h3>
-          </div>
-        </div>
-        <div class="pillar-body">
-          <p>Fotografía y video con mirada de marca, dirección de arte y gestión integral de redes sociales — contenido pensado para cada plataforma, no adaptado después.</p>
-          <div class="pillar-tags">
-            <span>Fotografía</span><span>Video</span><span>Redes sociales</span><span>Dirección de arte</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="pillar reveal" data-pillar="estrategia">
-        <div class="pillar-head">
-          <span class="pillar-mark"></span>
-          <div>
-            <h3>Estrategia &amp; Medios</h3>
-          </div>
-        </div>
-        <div class="pillar-body">
-          <p>Planes de medios, campañas publicitarias y acciones comerciales diseñadas para mover un número de negocio concreto, no solo métricas de vanidad.</p>
-          <div class="pillar-tags">
-            <span>Planificación de medios</span><span>Campañas</span><span>Estrategia de marca</span><span>Acciones comerciales</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="pillar reveal" data-pillar="tecnologia">
-        <div class="pillar-head">
-          <span class="pillar-mark"></span>
-          <div>
-            <h3>Tecnología &amp; Automatización</h3>
-          </div>
-        </div>
-        <div class="pillar-body">
-          <p>Automatización de procesos, inteligencia artificial aplicada a imagen, contenido y reportes, medición con Google Tag Manager y Analytics, y desarrollo web y de apps a medida.</p>
-          <div class="pillar-tags">
-            <span>Automatización</span><span>IA aplicada</span><span>GTM &amp; Analytics</span><span>Desarrollo web &amp; apps</span>
-          </div>
-        </div>
-      </div>
+    <div class="hero-media reveal">
+      <img src="https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/collage-02.jpg" alt="Producción real para la campaña Margen de NOBRAND">
     </div>
   </section>
 
@@ -696,9 +495,9 @@
     <span class="ambient-orb ambient-2" aria-hidden="true"></span>
     <div class="section-inner">
       <div class="section-head reveal">
-        <p class="eyebrow">Trabajos</p>
-        <h2>Estamos armando<br>el portfolio, en vivo.</h2>
-        <div class="work-actions">
+        <p class="eyebrow">Nuestros proyectos</p>
+        <h2>Marcas con las que<br>estamos trabajando.</h2>
+        <div class="work-actions" style="margin-top:24px;">
           <a href="portfolio.html" class="btn-ghost">Ver portfolio</a>
         </div>
       </div>
@@ -719,7 +518,7 @@
           <div class="tile-overlay">
             <span class="wt-status">Cliente</span>
             <div>
-              <span class="eyebrow">Producción</span>
+              <span class="eyebrow" style="color:rgba(255,255,255,.7)">Producción</span>
               <div class="wt-title">NOBRAND</div>
             </div>
           </div>
@@ -736,6 +535,140 @@
         </div>
       </div>
       <p class="work-note reveal">Venimos haciendo esto hace años y ya pasaron muchas marcas por nuestras manos — lo que está en construcción es la web, no la experiencia. Arrancamos a subir ese trabajo acá, empezando por NOBRAND, y esta sección se va a ir llenando con cada proyecto que sumamos.</p>
+    </div>
+  </section>
+
+  <section class="different">
+    <div class="section-inner different-grid">
+      <div class="different-copy reveal">
+        <p class="eyebrow" style="margin-bottom:16px;">Lo que nos hace diferentes</p>
+        <h2>Un mismo equipo, de punta a punta.</h2>
+        <p>No coordinamos entre tres proveedores distintos: producimos el contenido, armamos la estrategia de medios y construimos la tecnología de medición bajo un mismo techo. Eso significa menos idas y vueltas, y decisiones que consideran el negocio completo, no solo la pieza que le toca a cada uno.</p>
+        <a href="nosotros.html" class="arrow-link" style="margin-top:22px;">
+          Conocé al equipo
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg>
+        </a>
+      </div>
+      <div class="different-video reveal">
+        <div class="video-frame" data-video>
+          <video src="https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/margen-camp-002.mp4" muted loop playsinline preload="metadata"></video>
+          <div class="video-controls">
+            <button class="v-btn v-mute" type="button" aria-label="Activar sonido">
+              <svg class="icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+              <svg class="icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+            </button>
+            <button class="v-btn v-expand" type="button" aria-label="Ampliar video">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="stats">
+    <div class="section-inner">
+      <div class="stats-grid">
+        <div class="reveal">
+          <span class="stat-blob blob-shape blob-fill" style="position:relative;"></span>
+          <div class="stat-num">3+</div>
+          <div class="stat-label">Socios especialistas</div>
+        </div>
+        <div class="reveal">
+          <span class="stat-blob blob-shape blob-fill" style="position:relative;"></span>
+          <div class="stat-num">3</div>
+          <div class="stat-label">Disciplinas bajo un mismo equipo</div>
+        </div>
+        <div class="reveal">
+          <span class="stat-blob blob-shape blob-fill" style="position:relative;"></span>
+          <div class="stat-num">1+</div>
+          <div class="stat-label">Marcas trabajando con nosotros</div>
+        </div>
+        <div class="reveal">
+          <span class="stat-blob blob-shape blob-fill" style="position:relative;"></span>
+          <div class="stat-num">100%</div>
+          <div class="stat-label">Foco en resultados reales</div>
+        </div>
+      </div>
+      <div style="text-align:center;">
+        <span class="example-flag">Cifras de referencia — se actualizan a medida que crecemos</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="servicios" class="what">
+    <div class="section-inner">
+      <h2>Qué hacemos</h2>
+
+      <details class="accordion-item reveal" open>
+        <summary><h3>Producción &amp; contenido</h3><span class="acc-icon"></span></summary>
+        <div class="accordion-body">
+          <p>Fotografía y video con mirada de marca, dirección de arte y gestión integral de redes sociales — contenido pensado para cada plataforma, no adaptado después.</p>
+          <div class="accordion-tags">
+            <span>Fotografía</span><span>Video</span><span>Redes sociales</span><span>Dirección de arte</span>
+          </div>
+        </div>
+      </details>
+
+      <details class="accordion-item reveal">
+        <summary><h3>Estrategia &amp; medios</h3><span class="acc-icon"></span></summary>
+        <div class="accordion-body">
+          <p>Planes de medios, campañas publicitarias y acciones comerciales diseñadas para mover un número de negocio concreto, no solo métricas de vanidad.</p>
+          <div class="accordion-tags">
+            <span>Planificación de medios</span><span>Campañas</span><span>Estrategia de marca</span><span>Acciones comerciales</span>
+          </div>
+        </div>
+      </details>
+
+      <details class="accordion-item reveal">
+        <summary><h3>Tecnología &amp; automatización</h3><span class="acc-icon"></span></summary>
+        <div class="accordion-body">
+          <p>Automatización de procesos, inteligencia artificial aplicada a imagen, contenido y reportes, medición con Google Tag Manager y Analytics, y desarrollo web y de apps a medida.</p>
+          <div class="accordion-tags">
+            <span>Automatización</span><span>IA aplicada</span><span>GTM &amp; Analytics</span><span>Desarrollo web &amp; apps</span>
+          </div>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <section class="brands-band">
+    <div class="section-inner">
+      <div class="brands-row">
+        <span>Aura</span><span>Solden</span><span>Nimbus</span><span>Marca Ejemplo</span><span>Próximo cliente</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="testimonials">
+    <div class="section-inner">
+      <div class="section-head reveal">
+        <p class="eyebrow">Clientes</p>
+        <h2>Qué dicen de nosotros.</h2>
+      </div>
+      <div class="testimonial-grid reveal">
+        <div>
+          <div class="testi-avatar">MF</div>
+          <div class="testi-name">María Fernández</div>
+          <div class="testi-role">Marketing Manager, Marca Ejemplo</div>
+          <span class="example-flag">Ejemplo</span>
+        </div>
+        <p class="testi-quote">"Tener producción, medios y tecnología en un mismo equipo nos ahorró meses de coordinación. Se nota que entienden el negocio, no solo la campaña."</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="blog-teaser">
+    <div class="section-inner">
+      <div class="section-head reveal">
+        <div>
+          <p class="eyebrow">Contenido interesante</p>
+          <h2>Lo que estamos pensando.</h2>
+        </div>
+      </div>
+      <div class="blog-empty reveal">
+        <p>Estamos armando el blog de Tino Partners. Cuando esté listo, vas a encontrar acá notas sobre estrategia, producción y tecnología aplicada a marcas — por ahora, seguinos en Instagram para lo último.</p>
+      </div>
     </div>
   </section>
 
@@ -817,30 +750,10 @@
 
 <footer class="footer">
   <span>© 2026 Tino Partners</span>
-  <span><a href="#home">Home</a> · <a href="nosotros.html">Nosotros</a> · <a href="#servicios">Servicios</a> · <a href="#trabajos">Trabajos</a> · <a href="portfolio.html">Portfolio</a> · <a href="#contacto">Contacto</a></span>
+  <span><a href="#home">Home</a> · <a href="nosotros.html">Nosotros</a> · <a href="#servicios">Qué hacemos</a> · <a href="#trabajos">Trabajos</a> · <a href="portfolio.html">Portfolio</a> · <a href="#contacto">Contacto</a></span>
 </footer>
 
 <script>
-  // tick marks around hero reticle
-  (function(){
-    var ticksGroup = document.getElementById('ticks');
-    if(!ticksGroup) return;
-    var cx = 210, cy = 210, r1 = 200, r2 = 192;
-    var frag = document.createDocumentFragment();
-    for(var i = 0; i < 24; i++){
-      var a = (i / 24) * Math.PI * 2;
-      var x1 = cx + r1 * Math.cos(a), y1 = cy + r1 * Math.sin(a);
-      var x2 = cx + r2 * Math.cos(a), y2 = cy + r2 * Math.sin(a);
-      var line = document.createElementNS('http://www.w3.org/2000/svg','line');
-      line.setAttribute('x1', x1.toFixed(2)); line.setAttribute('y1', y1.toFixed(2));
-      line.setAttribute('x2', x2.toFixed(2)); line.setAttribute('y2', y2.toFixed(2));
-      line.setAttribute('stroke', 'rgba(255,255,255,.28)');
-      line.setAttribute('stroke-width', '1');
-      frag.appendChild(line);
-    }
-    ticksGroup.appendChild(frag);
-  })();
-
   // nav scroll state
   var nav = document.getElementById('siteNav');
   var onScroll = function(){
@@ -850,7 +763,7 @@
   document.addEventListener('scroll', onScroll, { passive:true });
   onScroll();
 
-  // mobile menu toggle
+  // nav panel toggle (hamburger opens a full link panel at every width now)
   var toggle = document.getElementById('navToggle');
   var menu = document.getElementById('siteMenu');
   toggle.addEventListener('click', function(){
@@ -877,46 +790,15 @@
   }, { threshold: .18 });
   document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
 
-  // subtle pointer-follow tilt on the hero blob
-  (function(){
-    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var coarsePointer = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
-    if(reduceMotion || coarsePointer) return;
-    var heroSection = document.getElementById('home');
-    var graphic = document.querySelector('.hero-graphic');
-    if(!heroSection || !graphic) return;
-    heroSection.addEventListener('mousemove', function(e){
-      var rect = graphic.getBoundingClientRect();
-      var dx = (e.clientX - (rect.left + rect.width / 2)) / (rect.width / 2);
-      var dy = (e.clientY - (rect.top + rect.height / 2)) / (rect.height / 2);
-      dx = Math.max(-1, Math.min(1, dx));
-      dy = Math.max(-1, Math.min(1, dy));
-      graphic.style.transform = 'perspective(900px) rotateX(' + (-dy * 6).toFixed(2) + 'deg) rotateY(' + (dx * 8).toFixed(2) + 'deg)';
+  // accordion: keep at most one item open at a time
+  document.querySelectorAll('.accordion-item').forEach(function(item){
+    item.addEventListener('toggle', function(){
+      if (!item.open) return;
+      document.querySelectorAll('.accordion-item').forEach(function(other){
+        if (other !== item) other.open = false;
+      });
     });
-    heroSection.addEventListener('mouseleave', function(){
-      graphic.style.transform = '';
-    });
-  })();
-
-  // light/dark toggle (dark is the forced default, regardless of system theme)
-  (function(){
-    var root = document.documentElement;
-    var toggle = document.getElementById('themeToggle');
-    if(!toggle) return;
-    var label = toggle.querySelector('.theme-toggle-text');
-    var setLabel = function(isLight){ if(label) label.textContent = isLight ? 'Modo oscuro' : 'Modo claro'; };
-    var isLight = root.getAttribute('data-theme') === 'light';
-    toggle.setAttribute('aria-pressed', isLight ? 'true' : 'false');
-    setLabel(isLight);
-    toggle.addEventListener('click', function(){
-      var nowLight = root.getAttribute('data-theme') !== 'light';
-      if(nowLight){ root.setAttribute('data-theme', 'light'); }
-      else{ root.removeAttribute('data-theme'); }
-      toggle.setAttribute('aria-pressed', nowLight ? 'true' : 'false');
-      setLabel(nowLight);
-      try{ localStorage.setItem('tino-theme', nowLight ? 'light' : 'dark'); }catch(e){}
-    });
-  })();
+  });
 
   // contact form
   var form = document.getElementById('contactForm');
