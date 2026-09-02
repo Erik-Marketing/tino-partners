@@ -1,30 +1,25 @@
 <title>NOBRAND — Portfolio — Tino Partners</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#180A2E">
-<script>
-  (function(){
-    try{ if(localStorage.getItem('tino-theme') === 'light'){ document.documentElement.setAttribute('data-theme','light'); } }catch(e){}
-  })();
-</script>
+<meta name="theme-color" content="#FFFFFF">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 
 <style>
   :root{
-    --ink:#F1E9FB;
-    --ink-soft:#C9B8DE;
-    --paper:#180A2E;
-    --paper-dim:#241340;
-    --paper-flat:#120821;
-    --line: rgba(241,233,251,.14);
-    --line-strong: rgba(241,233,251,.30);
-    --lime:#C4B5FD;
+    --ink:#171221;
+    --ink-soft:#6B6478;
+    --paper:#FFFFFF;
+    --paper-dim:#F6F3FB;
+    --paper-flat:#FFFFFF;
+    --line: rgba(23,18,33,.10);
+    --line-strong: rgba(23,18,33,.20);
+    --lime:#9B5DF6;
     --lime-fill:#C4B5FD;
-    --coral:#F0ABFC;
-    --coral-fill:#F0ABFC;
-    --steel:#C9BEDD;
-    --shadow: 0 24px 60px -28px rgba(0,0,0,.6);
+    --coral:#9B5DF6;
+    --coral-fill:#C4B5FD;
+    --steel:#B7AFC9;
+    --shadow: 0 24px 60px -28px rgba(74,49,112,.18);
     --radius: 14px;
     --radius-pill: 999px;
     --maxw: 1180px;
@@ -33,25 +28,8 @@
     --v-500:#9B5DF6;
     --pink-500:#EE60C6;
     --pink-300:#F9AEE0;
-    --gradient-vivid: linear-gradient(135deg, var(--v-900) 0%, var(--v-500) 55%, var(--pink-500) 100%);
-    --glow: 0 20px 50px -14px rgba(155,93,246,.55);
-    color-scheme: dark;
-  }
-
-  :root[data-theme="light"]{
-    --ink:#4A3170;
-    --ink-soft:#8779A0;
-    --paper:#F8F3FC;
-    --paper-dim:#ECE1F7;
-    --paper-flat:#FFFFFF;
-    --line: rgba(74,49,112,.14);
-    --line-strong: rgba(74,49,112,.26);
-    --lime:#9061F9;
-    --lime-fill:#C4AAFB;
-    --coral:#A855D1;
-    --coral-fill:#E3B8F0;
-    --steel:#B3A8CC;
-    --shadow: 0 24px 60px -32px rgba(74,49,112,.4);
+    --gradient-vivid: linear-gradient(135deg, var(--v-500) 0%, var(--pink-500) 100%);
+    --glow: 0 20px 50px -14px rgba(155,93,246,.35);
     color-scheme: light;
   }
 
@@ -104,7 +82,6 @@
     opacity:.08; mix-blend-mode:overlay;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
-  :root[data-theme="light"] .grain{ opacity:.05; mix-blend-mode:multiply; }
 
   /* ---- nav ---- */
   .nav{
@@ -151,23 +128,6 @@
   }
   .menu-cta:hover{ transform:translateY(-1px); box-shadow:0 14px 28px -12px rgba(155,93,246,.75); }
   .nav-toggle{ display:none; }
-
-  .theme-toggle{
-    display:flex; align-items:center; gap:9px; background:none; border:none; cursor:pointer;
-    font-family:'IBM Plex Mono', monospace; font-size:.72rem; font-weight:600; letter-spacing:.06em;
-    text-transform:uppercase; color:var(--ink-soft); padding:0;
-  }
-  .theme-toggle-track{
-    position:relative; width:38px; height:22px; border-radius:var(--radius-pill);
-    background:var(--paper-dim); border:1px solid var(--line-strong); flex:none;
-    transition:background .2s ease;
-  }
-  .theme-toggle-thumb{
-    position:absolute; top:2px; left:2px; width:16px; height:16px; border-radius:50%;
-    background:var(--gradient-vivid); transition:transform .25s ease;
-  }
-  .theme-toggle[aria-pressed="true"] .theme-toggle-thumb{ transform:translateX(16px); }
-  .theme-toggle:hover .theme-toggle-track{ border-color:var(--coral-fill); }
 
   /* ---- back link ---- */
   .back-link{
@@ -361,7 +321,6 @@
       transition:opacity .25s ease, transform .25s ease; border-top:1px solid var(--line); }
     .menu.is-open{ opacity:1; transform:none; pointer-events:auto; }
     .menu-link, .menu-cta{ font-size:1rem; }
-    .theme-toggle{ margin-top:6px; padding-top:22px; border-top:1px solid var(--line); width:100%; font-size:.8rem; }
     .nav-toggle{
       display:flex; flex-direction:column; gap:5px; background:none; border:none; cursor:pointer; padding:8px; z-index:41;
     }
@@ -412,10 +371,6 @@
     <a class="menu-link" href="index.html#servicios">Servicios</a>
     <a class="menu-link" href="portfolio.html" aria-current="page">Portfolio</a>
     <a class="menu-cta" href="index.html#contacto">Contactanos</a>
-    <button class="theme-toggle" id="themeToggle" type="button" aria-pressed="false" aria-label="Cambiar a modo claro">
-      <span class="theme-toggle-track"><span class="theme-toggle-thumb"></span></span>
-      <span class="theme-toggle-text">Modo claro</span>
-    </button>
   </nav>
   <button class="nav-toggle" id="navToggle" aria-label="Abrir menú" aria-expanded="false">
     <span></span><span></span><span></span>
@@ -606,25 +561,6 @@
     });
   }, { threshold: .18 });
   document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
-
-  (function(){
-    var root = document.documentElement;
-    var themeToggle = document.getElementById('themeToggle');
-    if(!themeToggle) return;
-    var label = themeToggle.querySelector('.theme-toggle-text');
-    var setLabel = function(isLight){ if(label) label.textContent = isLight ? 'Modo oscuro' : 'Modo claro'; };
-    var isLight = root.getAttribute('data-theme') === 'light';
-    themeToggle.setAttribute('aria-pressed', isLight ? 'true' : 'false');
-    setLabel(isLight);
-    themeToggle.addEventListener('click', function(){
-      var nowLight = root.getAttribute('data-theme') !== 'light';
-      if(nowLight){ root.setAttribute('data-theme', 'light'); }
-      else{ root.removeAttribute('data-theme'); }
-      themeToggle.setAttribute('aria-pressed', nowLight ? 'true' : 'false');
-      setLabel(nowLight);
-      try{ localStorage.setItem('tino-theme', nowLight ? 'light' : 'dark'); }catch(e){}
-    });
-  })();
 
   // video-frame controls: mute toggle, fullscreen, and play/pause driven by
   // visibility — a video starts as soon as it scrolls into view and stops
