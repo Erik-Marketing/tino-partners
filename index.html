@@ -754,6 +754,12 @@
 </footer>
 
 <script>
+  // don't let the browser restore a previous scroll offset on reload — the
+  // hero's height can change between loads, so a stale offset lands mid-hero
+  // instead of at the top (only intentional #hash links should scroll down).
+  if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
+  if (!location.hash) { window.scrollTo(0, 0); }
+
   // nav scroll state — stays transparent through the whole hero (text + photo)
   // so the fixed nav never overlaps/hides part of the hero photo; only turns
   // solid once the hero has fully scrolled past.
