@@ -211,22 +211,18 @@
   .section-head h2{ font-size:clamp(2rem,4.4vw,3.2rem); }
 
   /* ---- cinta de palabras (marquee) ---- */
-  .ticker-band{
-    background:var(--paper-dim); padding:clamp(20px,3vh,32px) 0; display:flex; flex-direction:column; gap:14px;
-    border-top:1px solid var(--line); border-bottom:1px solid var(--line);
-  }
+  .ticker-band{ background:var(--paper-dim); padding:clamp(20px,3vh,32px) 0; display:flex; flex-direction:column; gap:14px; }
   .ticker-band.is-off{ display:none; }
   .ticker-row{ overflow:hidden; }
   .ticker-track{
-    display:flex; width:max-content; gap:40px;
+    display:flex; width:max-content; gap:56px;
     animation:tickerScroll var(--ticker-duration, 28s) linear infinite;
   }
   .ticker-row.is-reverse .ticker-track{ animation-direction:reverse; }
   .ticker-track span{
     font-family:'Big Shoulders Display',sans-serif; font-weight:800; font-size:clamp(1.15rem,2.4vw,1.9rem);
-    text-transform:uppercase; color:var(--ink); white-space:nowrap; flex:none; display:flex; align-items:center; gap:40px;
+    text-transform:uppercase; color:var(--ink); white-space:nowrap; flex:none;
   }
-  .ticker-track span::after{ content:''; width:6px; height:6px; border-radius:50%; background:var(--v-500); flex:none; }
   @keyframes tickerScroll{ from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
   @media (prefers-reduced-motion: reduce){ .ticker-track{ animation:none; } }
 

@@ -1119,6 +1119,7 @@
       if (!homeCmsLoaded) {
         loadContent(function(){ buildHomeSidebar(); selectHomeSection(activeSectionKey); });
       } else {
+        buildHomeSidebar();
         selectHomeSection(activeSectionKey);
       }
     }
