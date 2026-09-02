@@ -228,6 +228,8 @@
     box-shadow:0 0 0 2px rgba(0,0,0,.35);
   }
   .cms-media-hint{ font-size:.76rem; color:var(--ink-soft); margin-top:8px; max-width:320px; }
+  .cms-toggle-row{ display:flex; align-items:center; gap:9px; margin-top:12px; cursor:pointer; font-size:.85rem; color:var(--ink); }
+  .cms-toggle-row input{ width:16px; height:16px; accent-color:var(--v-500); cursor:pointer; }
   .cms-media-row{ display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-top:10px; }
   .cms-file-btn{
     display:inline-flex; align-items:center; gap:8px; background:var(--paper-flat); border:1px solid var(--line-strong);
@@ -501,7 +503,7 @@
         { path: 'headlinePost', label: 'Título — después de la parte destacada', type: 'text' },
         { path: 'lede', label: 'Bajada', type: 'textarea' },
         { path: 'ctaText', label: 'Texto del botón (la flecha → se agrega sola)', type: 'text' },
-        { path: 'image', label: 'Foto del hero', type: 'image' }
+        { path: 'image', label: 'Foto del hero', type: 'image', fadeToggle: true }
     ]},
     { key: 'proyectos', title: 'Nuestros proyectos', custom: 'proyectos' },
     { key: 'diferenciales', title: 'Lo que nos hace diferentes', fields: [
@@ -643,7 +645,7 @@
     if (field.type === 'image' || field.type === 'video') {
       var mediaObj = getPath(homeContent, sectionKey + '.' + field.path) || { url: '', posX: 50, posY: 50 };
       setPath(homeContent, sectionKey + '.' + field.path, mediaObj);
-      return renderMediaField(mediaObj, { type: field.type, portrait: field.portrait, label: field.label });
+      return renderMediaField(mediaObj, { type: field.type, portrait: field.portrait, label: field.label, fadeToggle: field.fadeToggle });
     }
     if (field.plain) return renderPlainField(field, sectionKey);
     return renderRichField(
@@ -787,6 +789,21 @@
           status.className = 'cms-media-status is-error';
         });
     });
+
+    if (opts.fadeToggle) {
+      if (mediaObj.fadeBottom == null) mediaObj.fadeBottom = true;
+      var fadeRow = document.createElement('label');
+      fadeRow.className = 'cms-toggle-row';
+      var fadeCheck = document.createElement('input');
+      fadeCheck.type = 'checkbox';
+      fadeCheck.checked = mediaObj.fadeBottom !== false;
+      fadeCheck.addEventListener('change', function(){ mediaObj.fadeBottom = fadeCheck.checked; });
+      var fadeLabel = document.createElement('span');
+      fadeLabel.textContent = 'Difuminado con puntos abajo de la foto';
+      fadeRow.appendChild(fadeCheck);
+      fadeRow.appendChild(fadeLabel);
+      wrap.appendChild(fadeRow);
+    }
 
     return wrap;
   }

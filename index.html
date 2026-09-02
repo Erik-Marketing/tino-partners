@@ -169,6 +169,16 @@
     background:linear-gradient(200deg, color-mix(in srgb, var(--v-500) 30%, transparent) 0%, transparent 45%, color-mix(in srgb, var(--pink-500) 22%, transparent) 100%);
     mix-blend-mode:multiply;
   }
+  /* halftone dot fade at the bottom edge, so the photo dissolves into the
+     page instead of ending on a hard straight line — togglable from admin */
+  .hero-fade-dots{
+    position:absolute; z-index:2; left:0; right:0; bottom:0; height:140px; pointer-events:none;
+    background-image: radial-gradient(circle, var(--paper) 1.5px, transparent 1.6px);
+    background-size: 8px 8px;
+    -webkit-mask-image: linear-gradient(to bottom, transparent, black 88%);
+    mask-image: linear-gradient(to bottom, transparent, black 88%);
+  }
+  .hero-fade-dots.is-off{ display:none; }
   .hero-blob{ width:220px; height:220px; top:8%; left:-60px; opacity:.5; z-index:-1; }
   .blob-shape{ position:absolute; border-radius:63% 37% 54% 46% / 41% 51% 49% 59%; pointer-events:none; }
   .blob-fill{ background:var(--gradient-vivid); }
@@ -499,6 +509,7 @@
     </div>
     <div class="hero-media reveal">
       <img id="cms-hero-img" src="https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/collage-02.jpg" alt="Producción real para la campaña Margen de NOBRAND">
+      <span class="hero-fade-dots" id="cms-hero-fade" aria-hidden="true"></span>
     </div>
   </section>
 
@@ -1019,6 +1030,8 @@
       setHtml('cms-hero-lede', c.hero.lede);
       setHtml('cms-hero-cta', c.hero.ctaText);
       setMedia(document.getElementById('cms-hero-img'), c.hero.image);
+      var fadeDots = document.getElementById('cms-hero-fade');
+      if (fadeDots && c.hero.image) fadeDots.classList.toggle('is-off', c.hero.image.fadeBottom === false);
     }
     if (c.proyectos) {
       setHtml('cms-proy-eyebrow', c.proyectos.eyebrow);

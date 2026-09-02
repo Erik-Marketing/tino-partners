@@ -14,7 +14,7 @@ const DEFAULT_CONTENT = {
     headlinePost: ' de negocio.',
     lede: 'Tino Partners une producción de contenido, planificación de medios y tecnología aplicada en un mismo equipo, para que cada decisión de marca esté tan bien apuntada como se ve.',
     ctaText: 'Contactanos',
-    image: { url: 'https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/collage-02.jpg', posX: 50, posY: 50 },
+    image: { url: 'https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/collage-02.jpg', posX: 50, posY: 50, fadeBottom: true },
   },
   proyectos: {
     eyebrow: 'Nuestros proyectos',
