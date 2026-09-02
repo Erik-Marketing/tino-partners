@@ -754,13 +754,18 @@
 </footer>
 
 <script>
-  // nav scroll state
+  // nav scroll state — stays transparent through the whole hero (text + photo)
+  // so the fixed nav never overlaps/hides part of the hero photo; only turns
+  // solid once the hero has fully scrolled past.
   var nav = document.getElementById('siteNav');
+  var heroEl = document.getElementById('home');
   var onScroll = function(){
-    if(window.scrollY > 12){ nav.classList.add('is-scrolled'); }
+    var heroBottom = heroEl ? heroEl.getBoundingClientRect().bottom : 0;
+    if(heroBottom <= nav.offsetHeight){ nav.classList.add('is-scrolled'); }
     else { nav.classList.remove('is-scrolled'); }
   };
   document.addEventListener('scroll', onScroll, { passive:true });
+  window.addEventListener('resize', onScroll);
   onScroll();
 
   // nav panel toggle (hamburger opens a full link panel at every width now)
