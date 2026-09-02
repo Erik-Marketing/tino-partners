@@ -323,9 +323,9 @@
 
 <main>
   <section class="page-hero">
-    <p class="eyebrow reveal">Nosotros</p>
-    <h1 class="reveal">No somos una agencia. Somos tu partner de negocio.</h1>
-    <p class="lede reveal">Tino Partners une producción de contenido, estrategia de medios y tecnología aplicada bajo un mismo equipo de liderazgo, para que tengas un solo interlocutor pensando tu negocio de punta a punta — no un proveedor más en la lista.</p>
+    <p class="eyebrow reveal" id="cms-nos-hero-eyebrow">Nosotros</p>
+    <h1 class="reveal" id="cms-nos-hero-h1">No somos una agencia. Somos tu partner de negocio.</h1>
+    <p class="lede reveal" id="cms-nos-hero-lede">Una agencia entrega lo que le pedís. Nosotros nos metemos en cómo funciona tu negocio de verdad, y desde ese lugar te decimos lo que pensamos — incluso cuando no es lo que esperabas escuchar. Ese es el trabajo de un partner: acompañar con criterio propio, no solo ejecutar.</p>
   </section>
 
   <section id="equipo" class="services">
@@ -333,30 +333,30 @@
     <span class="ambient-orb ambient-2" aria-hidden="true"></span>
     <div class="section-inner">
       <div class="section-head reveal">
-        <p class="eyebrow">Directivos</p>
-        <h2>Un mismo partner.<br>Distintas especialidades.</h2>
+        <p class="eyebrow" id="cms-nos-equipo-eyebrow">Directivos</p>
+        <h2><span id="cms-nos-equipo-h2-1">Un mismo partner.</span><br><span id="cms-nos-equipo-h2-2">Distintas especialidades.</span></h2>
       </div>
 
       <div class="team-grid">
         <div class="founder-card reveal" data-pillar="produccion">
           <div class="founder-photo"><span>J</span></div>
-          <h3>Juan</h3>
-          <p class="founder-role">Producción &amp; Contenido</p>
-          <p class="founder-bio">Dirige la producción audiovisual y la presencia en redes de cada cliente, de principio a fin.</p>
+          <h3 id="cms-nos-juan-name">Juan</h3>
+          <p class="founder-role" id="cms-nos-juan-role">Producción &amp; Contenido</p>
+          <p class="founder-bio" id="cms-nos-juan-bio">Dirige la producción audiovisual y la presencia en redes de cada cliente, de principio a fin.</p>
         </div>
 
         <div class="founder-card reveal" data-pillar="estrategia">
           <div class="founder-photo"><span>F</span></div>
-          <h3>Fran</h3>
-          <p class="founder-role">Estrategia &amp; Medios</p>
-          <p class="founder-bio">Lidera la estrategia de medios y las decisiones de marca de cada cuenta, con foco en resultados de negocio.</p>
+          <h3 id="cms-nos-fran-name">Fran</h3>
+          <p class="founder-role" id="cms-nos-fran-role">Estrategia &amp; Medios</p>
+          <p class="founder-bio" id="cms-nos-fran-bio">Lidera la estrategia de medios y las decisiones de marca de cada cuenta, con foco en resultados de negocio.</p>
         </div>
 
         <div class="founder-card reveal" data-pillar="tecnologia">
           <div class="founder-photo"><span>E</span></div>
-          <h3>Erik</h3>
-          <p class="founder-role">Tecnología &amp; IA</p>
-          <p class="founder-bio">Diseña y construye la infraestructura técnica y de automatización detrás de cada campaña, incluida esta misma web.</p>
+          <h3 id="cms-nos-erik-name">Erik</h3>
+          <p class="founder-role" id="cms-nos-erik-role">Tecnología &amp; IA</p>
+          <p class="founder-bio" id="cms-nos-erik-bio">Diseña y construye la infraestructura técnica y de automatización detrás de cada campaña, incluida esta misma web.</p>
         </div>
       </div>
     </div>
@@ -364,19 +364,19 @@
 
   <section class="concept">
     <div class="section-inner reveal">
-      <p class="eyebrow" style="margin-bottom:16px;">El nombre</p>
-      <h2>¿Por qué Tino?</h2>
-      <p>"Tener tino" es tener buen ojo, medida justa, saber hasta dónde llegar. Elegimos ese nombre porque es justo lo que buscamos en cada decisión de marca.</p>
-      <p>Ni de más, ni de menos — la medida exacta entre creatividad, estrategia y tecnología. Ese es el filtro que aplicamos antes de proponerte cualquier cosa.</p>
+      <p class="eyebrow" style="margin-bottom:16px;" id="cms-nos-concept-eyebrow">El nombre</p>
+      <h2 id="cms-nos-concept-heading">¿Por qué Tino?</h2>
+      <p id="cms-nos-concept-p1">"Tener tino" es tener buen ojo, medida justa, saber hasta dónde llegar. Elegimos ese nombre porque es justo lo que buscamos en cada decisión de marca.</p>
+      <p id="cms-nos-concept-p2">Ni de más, ni de menos — la medida exacta entre creatividad, estrategia y tecnología. Ese es el filtro que aplicamos antes de proponerte cualquier cosa.</p>
     </div>
   </section>
 
   <section class="cta-band">
     <div class="section-inner">
-      <p class="eyebrow reveal">¿Hablamos?</p>
-      <h2 class="reveal">Contános en qué estás pensando.</h2>
-      <p class="reveal">Una primera charla no tiene costo ni compromiso. Si hay fit de los dos lados, seguimos adelante juntos.</p>
-      <a href="index.html#contacto" class="btn-primary reveal">Contactanos →</a>
+      <p class="eyebrow reveal" id="cms-nos-cta-eyebrow">¿Hablamos?</p>
+      <h2 class="reveal" id="cms-nos-cta-heading">Contános en qué estás pensando.</h2>
+      <p class="reveal" id="cms-nos-cta-texto">Una primera charla no tiene costo ni compromiso. Si hay fit de los dos lados, seguimos adelante juntos.</p>
+      <a href="index.html#contacto" class="btn-primary reveal"><span id="cms-nos-cta-btn">Contactanos</span> →</a>
     </div>
   </section>
 </main>
@@ -412,41 +412,80 @@
     });
   });
 
-  // menu links are editable from the admin panel — load and apply them,
-  // falling back to the links already in the HTML above if this fails
+  // content from the admin panel — menu links and this page's own text —
+  // loaded and applied here, falling back to what's already in the HTML
+  // above if the request fails.
+  function setText(id, val){ var el = document.getElementById(id); if (el && val != null && val !== '') el.textContent = val; }
+  function setHtml(id, val){ var el = document.getElementById(id); if (el && val != null && val !== '') el.innerHTML = val; }
+
   fetch('/api/content?t=' + Date.now()).then(function(r){ return r.ok ? r.json() : null; }).then(function(c){
-    if (!c || !c.menu || !c.menu.items || !c.menu.items.length) return;
-    var currentFile = location.pathname.split('/').pop() || 'index.html';
-    menu.innerHTML = '';
-    c.menu.items.forEach(function(item){
-      var a = document.createElement('a');
-      a.className = 'menu-link';
-      a.href = item.url;
-      var hashIdx = (item.url || '').indexOf('#');
-      var itemFile = hashIdx !== -1 ? item.url.slice(0, hashIdx) : (item.url || 'index.html');
-      if (!itemFile) itemFile = 'index.html';
-      if (hashIdx !== -1) {
-        a.setAttribute('data-section', '');
-      } else if (itemFile === currentFile) {
-        a.setAttribute('aria-current', 'page');
-      }
-      a.textContent = item.label;
-      menu.appendChild(a);
-    });
-    if (c.menu.ctaLabel) {
-      var cta = document.createElement('a');
-      cta.className = 'menu-cta';
-      cta.href = c.menu.ctaUrl || '#contacto';
-      cta.textContent = c.menu.ctaLabel + ' →';
-      menu.appendChild(cta);
-    }
-    menu.querySelectorAll('a').forEach(function(a){
-      a.addEventListener('click', function(){
-        menu.classList.remove('is-open');
-        toggle.classList.remove('is-open');
-        toggle.setAttribute('aria-expanded', 'false');
+    if (!c) return;
+
+    if (c.menu && c.menu.items && c.menu.items.length) {
+      var currentFile = location.pathname.split('/').pop() || 'index.html';
+      menu.innerHTML = '';
+      c.menu.items.forEach(function(item){
+        var a = document.createElement('a');
+        a.className = 'menu-link';
+        a.href = item.url;
+        var hashIdx = (item.url || '').indexOf('#');
+        var itemFile = hashIdx !== -1 ? item.url.slice(0, hashIdx) : (item.url || 'index.html');
+        if (!itemFile) itemFile = 'index.html';
+        if (hashIdx !== -1) {
+          a.setAttribute('data-section', '');
+        } else if (itemFile === currentFile) {
+          a.setAttribute('aria-current', 'page');
+        }
+        a.textContent = item.label;
+        menu.appendChild(a);
       });
-    });
+      if (c.menu.ctaLabel) {
+        var cta = document.createElement('a');
+        cta.className = 'menu-cta';
+        cta.href = c.menu.ctaUrl || '#contacto';
+        cta.textContent = c.menu.ctaLabel + ' →';
+        menu.appendChild(cta);
+      }
+      menu.querySelectorAll('a').forEach(function(a){
+        a.addEventListener('click', function(){
+          menu.classList.remove('is-open');
+          toggle.classList.remove('is-open');
+          toggle.setAttribute('aria-expanded', 'false');
+        });
+      });
+    }
+
+    if (c.nosotros) {
+      var n = c.nosotros;
+      if (n.hero) {
+        setHtml('cms-nos-hero-eyebrow', n.hero.eyebrow);
+        setHtml('cms-nos-hero-h1', n.hero.headline);
+        setHtml('cms-nos-hero-lede', n.hero.lede);
+      }
+      if (n.equipo) {
+        setHtml('cms-nos-equipo-eyebrow', n.equipo.eyebrow);
+        setHtml('cms-nos-equipo-h2-1', n.equipo.headingLine1);
+        setHtml('cms-nos-equipo-h2-2', n.equipo.headingLine2);
+        (n.equipo.members || []).forEach(function(m){
+          if (!m.key) return;
+          setHtml('cms-nos-' + m.key + '-name', m.name);
+          setHtml('cms-nos-' + m.key + '-role', m.role);
+          setHtml('cms-nos-' + m.key + '-bio', m.bio);
+        });
+      }
+      if (n.concept) {
+        setHtml('cms-nos-concept-eyebrow', n.concept.eyebrow);
+        setHtml('cms-nos-concept-heading', n.concept.heading);
+        setHtml('cms-nos-concept-p1', n.concept.parrafo1);
+        setHtml('cms-nos-concept-p2', n.concept.parrafo2);
+      }
+      if (n.cta) {
+        setHtml('cms-nos-cta-eyebrow', n.cta.eyebrow);
+        setHtml('cms-nos-cta-heading', n.cta.heading);
+        setHtml('cms-nos-cta-texto', n.cta.texto);
+        setHtml('cms-nos-cta-btn', n.cta.ctaText);
+      }
+    }
   }).catch(function(){});
 
   // scroll reveal

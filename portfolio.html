@@ -488,12 +488,12 @@
 <main>
   <section class="page-hero">
     <span class="blob-shape blob-fill hero-blob" aria-hidden="true"></span>
-    <p class="eyebrow reveal">Portfolio</p>
-    <h1 class="reveal">El formato del portfolio, antes que los primeros casos.</h1>
-    <p class="lede reveal">Todavía no tenemos proyectos reales para mostrar acá — pero ya estamos trabajando con las primeras marcas. Así vamos a presentar cada caso apenas cerremos una entrega: qué hicimos, con qué estrategia, y qué resultado dejó.</p>
+    <p class="eyebrow reveal" id="cms-port-hero-eyebrow">Portfolio</p>
+    <h1 class="reveal" id="cms-port-hero-h1">El formato del portfolio, antes que los primeros casos.</h1>
+    <p class="lede reveal" id="cms-port-hero-lede">Todavía no tenemos proyectos reales para mostrar acá — pero ya estamos trabajando con las primeras marcas. Así vamos a presentar cada caso apenas cerremos una entrega: qué hicimos, con qué estrategia, y qué resultado dejó.</p>
     <span class="preview-flag reveal">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>
-      Vista previa del formato — contenido de ejemplo
+      <span id="cms-port-hero-flag">Vista previa del formato — contenido de ejemplo</span>
     </span>
   </section>
 
@@ -514,28 +514,28 @@
             </div>
           </div>
           <div class="tile-overlay">
-            <span class="wt-status">Cliente</span>
+            <span class="wt-status" id="cms-port-tile1-status">Cliente</span>
             <div>
-              <span class="eyebrow">Producción</span>
-              <div class="wt-title">NOBRAND</div>
-              <div class="wt-meta">Campaña Margen — 2026</div>
+              <span class="eyebrow" id="cms-port-tile1-category">Producción</span>
+              <div class="wt-title" id="cms-port-tile1-title">NOBRAND</div>
+              <div class="wt-meta" id="cms-port-tile1-meta">Campaña Margen — 2026</div>
             </div>
           </div>
         </a>
         <div class="work-tile reveal">
-          <span class="wt-status">Ejemplo</span>
+          <span class="wt-status" id="cms-port-tile2-status">Ejemplo</span>
           <div>
-            <span class="eyebrow">Estrategia</span>
-            <div class="wt-title">Marca Ejemplo 02</div>
-            <div class="wt-meta">Campaña de lanzamiento — 2026</div>
+            <span class="eyebrow" id="cms-port-tile2-category">Estrategia</span>
+            <div class="wt-title" id="cms-port-tile2-title">Marca Ejemplo 02</div>
+            <div class="wt-meta" id="cms-port-tile2-meta">Campaña de lanzamiento — 2026</div>
           </div>
         </div>
         <div class="work-tile reveal">
-          <span class="wt-status">Ejemplo</span>
+          <span class="wt-status" id="cms-port-tile3-status">Ejemplo</span>
           <div>
-            <span class="eyebrow">Tecnología</span>
-            <div class="wt-title">Marca Ejemplo 03</div>
-            <div class="wt-meta">Automatización &amp; medición — 2026</div>
+            <span class="eyebrow" id="cms-port-tile3-category">Tecnología</span>
+            <div class="wt-title" id="cms-port-tile3-title">Marca Ejemplo 03</div>
+            <div class="wt-meta" id="cms-port-tile3-meta">Automatización &amp; medición — 2026</div>
           </div>
         </div>
       </div>
@@ -768,9 +768,9 @@
 
   <section class="cta-band">
     <div class="section-inner">
-      <p class="eyebrow reveal">¿Hablamos?</p>
-      <h2 class="reveal">Sé parte del primer caso real acá.</h2>
-      <p class="reveal">Una primera charla no tiene costo ni compromiso. Si hay fit de los dos lados, tu proyecto puede ser el primero en reemplazar estos ejemplos.</p>
+      <p class="eyebrow reveal" id="cms-port-cta-eyebrow">¿Hablamos?</p>
+      <h2 class="reveal" id="cms-port-cta-heading">Sé parte del primer caso real acá.</h2>
+      <p class="reveal" id="cms-port-cta-texto">Una primera charla no tiene costo ni compromiso. Si hay fit de los dos lados, tu proyecto puede ser el primero en reemplazar estos ejemplos.</p>
       <a href="index.html#contacto" class="btn-primary reveal">Contactanos →</a>
     </div>
   </section>
@@ -805,41 +805,70 @@
     });
   });
 
-  // menu links are editable from the admin panel — load and apply them,
-  // falling back to the links already in the HTML above if this fails
+  // content from the admin panel — menu links and this page's own text —
+  // loaded and applied here, falling back to what's already in the HTML
+  // above if the request fails.
+  function setText(id, val){ var el = document.getElementById(id); if (el && val != null && val !== '') el.textContent = val; }
+  function setHtml(id, val){ var el = document.getElementById(id); if (el && val != null && val !== '') el.innerHTML = val; }
+
   fetch('/api/content?t=' + Date.now()).then(function(r){ return r.ok ? r.json() : null; }).then(function(c){
-    if (!c || !c.menu || !c.menu.items || !c.menu.items.length) return;
-    var currentFile = location.pathname.split('/').pop() || 'index.html';
-    menu.innerHTML = '';
-    c.menu.items.forEach(function(item){
-      var a = document.createElement('a');
-      a.className = 'menu-link';
-      a.href = item.url;
-      var hashIdx = (item.url || '').indexOf('#');
-      var itemFile = hashIdx !== -1 ? item.url.slice(0, hashIdx) : (item.url || 'index.html');
-      if (!itemFile) itemFile = 'index.html';
-      if (hashIdx !== -1) {
-        a.setAttribute('data-section', '');
-      } else if (itemFile === currentFile) {
-        a.setAttribute('aria-current', 'page');
-      }
-      a.textContent = item.label;
-      menu.appendChild(a);
-    });
-    if (c.menu.ctaLabel) {
-      var cta = document.createElement('a');
-      cta.className = 'menu-cta';
-      cta.href = c.menu.ctaUrl || '#contacto';
-      cta.textContent = c.menu.ctaLabel + ' →';
-      menu.appendChild(cta);
-    }
-    menu.querySelectorAll('a').forEach(function(a){
-      a.addEventListener('click', function(){
-        menu.classList.remove('is-open');
-        toggle.classList.remove('is-open');
-        toggle.setAttribute('aria-expanded', 'false');
+    if (!c) return;
+
+    if (c.menu && c.menu.items && c.menu.items.length) {
+      var currentFile = location.pathname.split('/').pop() || 'index.html';
+      menu.innerHTML = '';
+      c.menu.items.forEach(function(item){
+        var a = document.createElement('a');
+        a.className = 'menu-link';
+        a.href = item.url;
+        var hashIdx = (item.url || '').indexOf('#');
+        var itemFile = hashIdx !== -1 ? item.url.slice(0, hashIdx) : (item.url || 'index.html');
+        if (!itemFile) itemFile = 'index.html';
+        if (hashIdx !== -1) {
+          a.setAttribute('data-section', '');
+        } else if (itemFile === currentFile) {
+          a.setAttribute('aria-current', 'page');
+        }
+        a.textContent = item.label;
+        menu.appendChild(a);
       });
-    });
+      if (c.menu.ctaLabel) {
+        var cta = document.createElement('a');
+        cta.className = 'menu-cta';
+        cta.href = c.menu.ctaUrl || '#contacto';
+        cta.textContent = c.menu.ctaLabel + ' →';
+        menu.appendChild(cta);
+      }
+      menu.querySelectorAll('a').forEach(function(a){
+        a.addEventListener('click', function(){
+          menu.classList.remove('is-open');
+          toggle.classList.remove('is-open');
+          toggle.setAttribute('aria-expanded', 'false');
+        });
+      });
+    }
+
+    if (c.portfolio) {
+      var p = c.portfolio;
+      if (p.hero) {
+        setHtml('cms-port-hero-eyebrow', p.hero.eyebrow);
+        setHtml('cms-port-hero-h1', p.hero.headline);
+        setHtml('cms-port-hero-lede', p.hero.lede);
+        setHtml('cms-port-hero-flag', p.hero.previewFlag);
+      }
+      (p.tiles || []).forEach(function(tile){
+        if (!tile.key) return;
+        setHtml('cms-port-' + tile.key + '-status', tile.status);
+        setHtml('cms-port-' + tile.key + '-category', tile.category);
+        setHtml('cms-port-' + tile.key + '-title', tile.title);
+        setHtml('cms-port-' + tile.key + '-meta', tile.meta);
+      });
+      if (p.cta) {
+        setHtml('cms-port-cta-eyebrow', p.cta.eyebrow);
+        setHtml('cms-port-cta-heading', p.cta.heading);
+        setHtml('cms-port-cta-texto', p.cta.texto);
+      }
+    }
   }).catch(function(){});
 
   var io = new IntersectionObserver(function(entries){

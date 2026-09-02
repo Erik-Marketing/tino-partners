@@ -143,6 +143,53 @@ const DEFAULT_CONTENT = {
     instagram: '@tinopartners',
     ubicacion: 'Buenos Aires, Argentina',
   },
+  nosotros: {
+    hero: {
+      eyebrow: 'Nosotros',
+      headline: 'No somos una agencia. Somos tu partner de negocio.',
+      lede: 'Una agencia entrega lo que le pedís. Nosotros nos metemos en cómo funciona tu negocio de verdad, y desde ese lugar te decimos lo que pensamos — incluso cuando no es lo que esperabas escuchar. Ese es el trabajo de un partner: acompañar con criterio propio, no solo ejecutar.',
+    },
+    equipo: {
+      eyebrow: 'Directivos',
+      headingLine1: 'Un mismo partner.',
+      headingLine2: 'Distintas especialidades.',
+      members: [
+        { key: 'juan', name: 'Juan', role: 'Producción &amp; Contenido', bio: 'Dirige la producción audiovisual y la presencia en redes de cada cliente, de principio a fin.' },
+        { key: 'fran', name: 'Fran', role: 'Estrategia &amp; Medios', bio: 'Lidera la estrategia de medios y las decisiones de marca de cada cuenta, con foco en resultados de negocio.' },
+        { key: 'erik', name: 'Erik', role: 'Tecnología &amp; IA', bio: 'Diseña y construye la infraestructura técnica y de automatización detrás de cada campaña, incluida esta misma web.' },
+      ],
+    },
+    concept: {
+      eyebrow: 'El nombre',
+      heading: '¿Por qué Tino?',
+      parrafo1: '"Tener tino" es tener buen ojo, medida justa, saber hasta dónde llegar. Elegimos ese nombre porque es justo lo que buscamos en cada decisión de marca.',
+      parrafo2: 'Ni de más, ni de menos — la medida exacta entre creatividad, estrategia y tecnología. Ese es el filtro que aplicamos antes de proponerte cualquier cosa.',
+    },
+    cta: {
+      eyebrow: '¿Hablamos?',
+      heading: 'Contános en qué estás pensando.',
+      texto: 'Una primera charla no tiene costo ni compromiso. Si hay fit de los dos lados, seguimos adelante juntos.',
+      ctaText: 'Contactanos',
+    },
+  },
+  portfolio: {
+    hero: {
+      eyebrow: 'Portfolio',
+      headline: 'El formato del portfolio, antes que los primeros casos.',
+      lede: 'Todavía no tenemos proyectos reales para mostrar acá — pero ya estamos trabajando con las primeras marcas. Así vamos a presentar cada caso apenas cerremos una entrega: qué hicimos, con qué estrategia, y qué resultado dejó.',
+      previewFlag: 'Vista previa del formato — contenido de ejemplo',
+    },
+    tiles: [
+      { key: 'tile1', status: 'Cliente', category: 'Producción', title: 'NOBRAND', meta: 'Campaña Margen — 2026' },
+      { key: 'tile2', status: 'Ejemplo', category: 'Estrategia', title: 'Marca Ejemplo 02', meta: 'Campaña de lanzamiento — 2026' },
+      { key: 'tile3', status: 'Ejemplo', category: 'Tecnología', title: 'Marca Ejemplo 03', meta: 'Automatización &amp; medición — 2026' },
+    ],
+    cta: {
+      eyebrow: '¿Hablamos?',
+      heading: 'Sé parte del primer caso real acá.',
+      texto: 'Una primera charla no tiene costo ni compromiso. Si hay fit de los dos lados, tu proyecto puede ser el primero en reemplazar estos ejemplos.',
+    },
+  },
 };
 
 function readCookie(req, name) {
