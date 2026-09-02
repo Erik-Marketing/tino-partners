@@ -551,7 +551,7 @@
     <div class="hero-media reveal">
       <picture>
         <source id="cms-hero-img-mobile-source" media="(max-width:900px)">
-        <img id="cms-hero-img" src="https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/collage-02.jpg" alt="Producción real para la campaña Margen de NOBRAND">
+        <img id="cms-hero-img" src="https://8re8o884kengswvt.public.blob.vercel-storage.com/uploads/1788359629540-man-portrait-editorial-collage-2k-202609021132.jpeg" alt="Foto de portada de Tino Partners" style="--hero-img-pos:53% 44%">
       </picture>
       <span class="hero-fade-dots" id="cms-hero-fade" aria-hidden="true"></span>
     </div>
@@ -1004,7 +1004,8 @@
   // already in the HTML above if the request fails or a field is unset).
   // Rich-text fields (edited with the admin's bold/underline/color/size
   // toolbar) are applied as HTML; plain fields as text.
-  fetch('/api/content?t=' + Date.now()).then(function(r){ return r.ok ? r.json() : null; }).then(function(c){
+  var CONTENT_CACHE_KEY = 'tp_home_content_v1';
+  function applyContent(c){
     if (!c) return;
     function setText(id, val){ var el = document.getElementById(id); if (el && val != null && val !== '') el.textContent = val; }
     function setHtml(id, val){ var el = document.getElementById(id); if (el && val != null && val !== '') el.innerHTML = val; }
@@ -1276,5 +1277,19 @@
         });
       }
     }
+  }
+
+  // apply a cached copy synchronously (if we have one from a previous visit)
+  // before the network round-trip even starts, so returning visitors don't
+  // see the hardcoded HTML defaults flash before the real content swaps in.
+  try {
+    var cachedContent = localStorage.getItem(CONTENT_CACHE_KEY);
+    if (cachedContent) applyContent(JSON.parse(cachedContent));
+  } catch (e) {}
+
+  fetch('/api/content?t=' + Date.now()).then(function(r){ return r.ok ? r.json() : null; }).then(function(c){
+    if (!c) return;
+    applyContent(c);
+    try { localStorage.setItem(CONTENT_CACHE_KEY, JSON.stringify(c)); } catch (e) {}
   }).catch(function(){ /* keep the defaults already in the page */ });
 </script>
