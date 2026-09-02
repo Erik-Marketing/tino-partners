@@ -1,25 +1,38 @@
 const { put } = require('@vercel/blob');
 
+// The set of questions is admin-configurable (see api/content.js's `form`
+// section), so this endpoint doesn't know field names in advance — it just
+// sanitizes whatever object the form posted instead of validating specific
+// keys. The site's own client-side validation already enforces "required"
+// before submitting; this is a defensive backstop, not the source of truth
+// for which fields exist.
+const MAX_FIELDS = 30;
+const MAX_KEY_LENGTH = 60;
+const MAX_VALUE_LENGTH = 4000;
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { nombre, email, rubro, tamano, ganancias, mensaje } = req.body || {};
-  if (!nombre || !email || !rubro || !tamano || !ganancias || !mensaje) {
+  const body = req.body;
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
     return res.status(400).json({ error: 'Faltan campos requeridos' });
   }
 
-  const entry = {
-    nombre: String(nombre).slice(0, 200),
-    email: String(email).slice(0, 200),
-    rubro: String(rubro).slice(0, 200),
-    tamano: String(tamano).slice(0, 200),
-    ganancias: String(ganancias).slice(0, 200),
-    mensaje: String(mensaje).slice(0, 4000),
-    fecha: new Date().toISOString(),
-  };
+  const entries = Object.entries(body).slice(0, MAX_FIELDS);
+  const hasContent = entries.some(([, value]) => String(value || '').trim());
+  if (!entries.length || !hasContent) {
+    return res.status(400).json({ error: 'Faltan campos requeridos' });
+  }
+
+  const entry = {};
+  for (const [key, value] of entries) {
+    const safeKey = String(key).slice(0, MAX_KEY_LENGTH);
+    entry[safeKey] = String(value == null ? '' : value).slice(0, MAX_VALUE_LENGTH);
+  }
+  entry.fecha = new Date().toISOString();
 
   // Each submission is its own blob (no shared file to read-modify-write), so
   // two submissions arriving at the same time can never overwrite each other.

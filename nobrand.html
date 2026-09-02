@@ -83,9 +83,9 @@
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
-  /* ---- nav ---- */
+  /* ---- nav: logo + hamburger only, at every width — opens a full link panel ---- */
   .nav{
-    position:fixed; top:0; left:0; right:0; z-index:40;
+    position:fixed; top:0; left:0; right:0; z-index:42;
     display:flex; align-items:center; justify-content:space-between;
     padding:16px clamp(20px,5vw,64px);
     border-bottom:1px solid transparent;
@@ -99,35 +99,43 @@
   }
   .nav.is-scrolled{ border-bottom-color:var(--line); }
   .nav.is-scrolled::before{ opacity:1; }
-  .brand{ display:flex; align-items:center; gap:10px; text-decoration:none; }
+  .brand{ display:flex; align-items:center; gap:10px; text-decoration:none; position:relative; z-index:2; }
   .brand svg{ width:30px; height:30px; flex:none; }
   .brand-word{ font-family:'Big Shoulders Display', sans-serif; font-weight:800; font-size:1.28rem; letter-spacing:.01em; text-transform:uppercase; }
   .brand-word span{ display:block; font-family:'IBM Plex Mono', monospace; font-size:.55rem; font-weight:600; letter-spacing:.22em; color:var(--ink-soft); text-transform:uppercase; margin-top:-2px; }
 
-  .menu{ display:flex; align-items:center; gap:clamp(18px,2.6vw,34px); }
-  .menu-link, .menu-cta{
-    text-decoration:none;
-    font-family:'IBM Plex Mono', monospace;
-    font-size:.76rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase;
-    line-height:1;
+  .nav-toggle{
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+    background:rgba(23,18,33,.45); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+    border:none; border-radius:10px; cursor:pointer; padding:11px;
+    position:relative; z-index:42; transition:background .2s ease;
   }
-  .menu-link{ color:var(--ink); position:relative; padding:0; }
-  .menu-link[aria-current="page"]{ color:var(--coral-fill); }
-  .menu-link::after{
-    content:""; position:absolute; left:0; right:100%; bottom:-4px; height:1px;
-    background:var(--coral-fill); transition:right .25s ease;
-  }
-  .menu-link:hover::after{ right:0; }
+  .nav-toggle span{ width:22px; height:2.5px; border-radius:2px; background:#fff; transition:transform .2s ease, opacity .2s ease; }
+  .nav-toggle.is-open{ background:rgba(23,18,33,.65); }
+  .nav-toggle.is-open span:nth-child(1){ transform:translateY(8.5px) rotate(45deg); }
+  .nav-toggle.is-open span:nth-child(2){ opacity:0; }
+  .nav-toggle.is-open span:nth-child(3){ transform:translateY(-8.5px) rotate(-45deg); }
 
-  .menu-cta{
-    display:inline-flex; align-items:center; justify-content:center; white-space:nowrap;
-    padding:10px calc(18px - 0.04em) 10px calc(18px + 0.04em);
-    background:var(--gradient-vivid); color:#fff; border-radius:var(--radius-pill);
-    box-shadow:0 10px 24px -12px rgba(155,93,246,.6);
-    transition:transform .2s ease, box-shadow .2s ease;
+  .menu-panel{
+    position:fixed; inset:0; z-index:41; background:var(--paper);
+    display:flex; flex-direction:column; justify-content:flex-start; gap:clamp(12px,2.4vw,22px);
+    padding:112px clamp(24px,6vw,96px) 48px; overflow-y:auto;
+    opacity:0; visibility:hidden; transform:translateY(-16px);
+    transition:opacity .3s ease, transform .3s ease, visibility 0s linear .3s;
   }
-  .menu-cta:hover{ transform:translateY(-1px); box-shadow:0 14px 28px -12px rgba(155,93,246,.75); }
-  .nav-toggle{ display:none; }
+  .menu-panel.is-open{ opacity:1; visibility:visible; transform:none; transition:opacity .3s ease, transform .3s ease; }
+  .menu-panel .menu-link{
+    text-decoration:none; color:var(--ink); font-family:'Big Shoulders Display',sans-serif;
+    font-weight:800; text-transform:uppercase; font-size:clamp(1.9rem,5.6vw,3.2rem); line-height:1;
+  }
+  .menu-panel .menu-link[aria-current="page"]{ color:var(--v-500); }
+  .menu-panel .menu-cta{
+    margin-top:12px; display:inline-flex; align-self:flex-start; align-items:center; gap:10px; text-decoration:none;
+    background:var(--gradient-vivid); color:#fff; font-family:'IBM Plex Mono',monospace;
+    font-weight:600; font-size:.82rem; letter-spacing:.06em; text-transform:uppercase;
+    padding:16px calc(28px - 0.03em) 16px calc(28px + 0.03em); border-radius:var(--radius-pill);
+    box-shadow:var(--glow);
+  }
 
   /* ---- back link ---- */
   .back-link{
@@ -316,21 +324,6 @@
   @media (max-width: 900px){ .wa-float{ right:16px; bottom:16px; width:52px; height:52px; } .wa-float svg{ width:26px; height:26px; } }
 
   @media (max-width: 900px){
-    .menu{ position:fixed; inset:64px 0 0 0; background:var(--paper); flex-direction:column; align-items:flex-start;
-      padding:28px clamp(20px,5vw,64px); gap:26px; transform:translateY(-12px); opacity:0; pointer-events:none;
-      transition:opacity .25s ease, transform .25s ease; border-top:1px solid var(--line); }
-    .menu.is-open{ opacity:1; transform:none; pointer-events:auto; }
-    .menu-link, .menu-cta{ font-size:1rem; }
-    .nav-toggle{
-      display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
-      background:rgba(23,18,33,.45); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
-      border:none; border-radius:10px; cursor:pointer; padding:11px; z-index:41; transition:background .2s ease;
-    }
-    .nav-toggle span{ width:22px; height:2.5px; border-radius:2px; background:#fff; transition:transform .2s ease, opacity .2s ease; }
-    .nav-toggle.is-open{ background:rgba(23,18,33,.65); }
-    .nav-toggle.is-open span:nth-child(1){ transform:translateY(8.5px) rotate(45deg); }
-    .nav-toggle.is-open span:nth-child(2){ opacity:0; }
-    .nav-toggle.is-open span:nth-child(3){ transform:translateY(-8.5px) rotate(-45deg); }
     .video-grid{ grid-template-columns:1fr; max-width:340px; margin:0 auto; }
     .backstage-grid{ grid-template-columns:1fr; text-align:center; }
     .backstage-copy{ order:2; }
@@ -368,17 +361,20 @@
     </svg>
     <span class="brand-word">Tino<span>Partners</span></span>
   </a>
-  <nav class="menu" id="siteMenu">
-    <a class="menu-link" href="index.html#home">Home</a>
-    <a class="menu-link" href="nosotros.html">Nosotros</a>
-    <a class="menu-link" href="index.html#servicios">Servicios</a>
-    <a class="menu-link" href="portfolio.html" aria-current="page">Portfolio</a>
-    <a class="menu-cta" href="index.html#contacto">Contactanos</a>
-  </nav>
   <button class="nav-toggle" id="navToggle" aria-label="Abrir menú" aria-expanded="false">
     <span></span><span></span><span></span>
   </button>
 </header>
+
+<nav class="menu-panel" id="siteMenu">
+  <a class="menu-link" href="index.html#home">Home</a>
+  <a class="menu-link" href="nosotros.html">Nosotros</a>
+  <a class="menu-link" href="index.html#servicios">Qué hacemos</a>
+  <a class="menu-link" href="index.html#trabajos">Clientes</a>
+  <a class="menu-link" href="portfolio.html">Portfolio</a>
+  <a class="menu-link" href="blog.html">Blog</a>
+  <a class="menu-cta" href="index.html#contacto">Contactanos →</a>
+</nav>
 
 <main>
   <section class="brand-hero">
@@ -528,7 +524,7 @@
 
 <footer class="footer">
   <span>© 2026 Tino Partners</span>
-  <span><a href="index.html#home">Home</a> · <a href="nosotros.html">Nosotros</a> · <a href="index.html#servicios">Servicios</a> · <a href="portfolio.html">Portfolio</a> · <a href="index.html#contacto">Contacto</a></span>
+  <span><a href="terminos.html">Términos y condiciones</a> · <a href="privacidad.html">Política de privacidad</a></span>
 </footer>
 
 <script>

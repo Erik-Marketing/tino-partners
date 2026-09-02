@@ -31,6 +31,12 @@ const DEFAULT_CONTENT = {
       { title: 'Desarrollo en curso', status: 'Próximamente', category: 'Tecnología', video: null },
     ],
   },
+  ticker: {
+    enabled: true,
+    speed: 28,
+    row1: 'Branding, Manual de marca, Filmaker, Tiendas Online, Ecommerce, Foto producto, Redes Sociales, Estrategia creativa, Google Ads, Engagement, Identidad visual',
+    row2: 'Contenido orgánico, Landing Page, Branding, Páginas Web, Diseño Gráfico, Catálogos, Ecommerce, Estrategia creativa, Manual de marca, Google Ads',
+  },
   diferenciales: {
     eyebrow: 'Lo que nos hace diferentes',
     heading: 'Un mismo equipo, de punta a punta.',
@@ -108,6 +114,16 @@ const DEFAULT_CONTENT = {
           { url: 'https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/collage-02.jpg', posX: 50, posY: 50 },
         ],
       },
+    ],
+  },
+  form: {
+    fields: [
+      { key: 'nombre', label: 'Nombre', type: 'text', required: true, placeholder: 'Tu nombre' },
+      { key: 'email', label: 'Email', type: 'email', required: true, placeholder: 'tu@empresa.com' },
+      { key: 'rubro', label: 'Rubro del negocio', type: 'text', required: true, placeholder: 'Ej: indumentaria, gastronomía, salud' },
+      { key: 'tamano', label: 'Tamaño de la empresa', type: 'select', required: true, options: '1 a 5 personas, 6 a 20 personas, 21 a 50 personas, 51 a 200 personas, Más de 200 personas' },
+      { key: 'ganancias', label: 'Presupuesto para Marketing', type: 'select', required: true, options: '0 a 1.000 USD, 1.001 a 5.000 USD, 5.001 a 20.000 USD, 20.001 a 50.000 USD, Más de 50.000 USD' },
+      { key: 'mensaje', label: 'Mensaje', type: 'textarea', required: true, placeholder: 'Contanos sobre tu marca y qué necesitás' },
     ],
   },
   menu: {

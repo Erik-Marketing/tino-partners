@@ -140,15 +140,12 @@
   .consulta-card{
     background:var(--paper-dim); border:1px solid var(--line); border-radius:var(--radius);
     padding:16px 18px; display:grid; gap:12px 20px;
-    grid-template-columns: repeat(3, 1fr);
-    grid-template-areas: "fecha nombre email" "rubro tamano ganancias" "mensaje mensaje mensaje";
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   }
-  .c-fecha{ grid-area:fecha; } .c-nombre{ grid-area:nombre; } .c-email{ grid-area:email; }
-  .c-rubro{ grid-area:rubro; } .c-tamano{ grid-area:tamano; } .c-ganancias{ grid-area:ganancias; }
-  .c-mensaje{ grid-area:mensaje; margin-top:4px; padding-top:10px; border-top:1px solid var(--line); }
+  .c-full{ grid-column:1 / -1; margin-top:4px; padding-top:10px; border-top:1px solid var(--line); }
   .consulta-card .lbl{ display:block; font-family:'IBM Plex Mono',monospace; font-size:.62rem; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:3px; }
   .consulta-card .val{ font-size:.92rem; word-break:break-word; }
-  .c-mensaje .val{ color:var(--ink-soft); line-height:1.55; white-space:pre-wrap; }
+  .c-full .val{ color:var(--ink-soft); line-height:1.55; white-space:pre-wrap; }
 
   /* ---------- Home CMS ---------- */
   .cms-section{
@@ -262,17 +259,8 @@
     .main-wrap{ margin-left:var(--sidebar-w); }
     .main{ padding:40px 44px 60px; max-width:1100px; }
   }
-  @media (max-width: 720px){
-    .consulta-card{
-      grid-template-columns:1fr 1fr;
-      grid-template-areas: "fecha rubro" "nombre tamano" "email ganancias" "mensaje mensaje";
-    }
-  }
   @media (max-width: 480px){
-    .consulta-card{
-      grid-template-columns:1fr;
-      grid-template-areas: "fecha" "nombre" "email" "rubro" "tamano" "ganancias" "mensaje";
-    }
+    .consulta-card{ grid-template-columns:1fr; }
   }
 </style>
 </head>
@@ -321,6 +309,10 @@
         <a class="sb-link" href="#menu" data-view="menu-cms">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
           Menú
+        </a>
+        <a class="sb-link" href="#form" data-view="form-cms">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M7 9h10M7 13h6"/></svg>
+          Form
         </a>
       </div>
       <button class="sb-logout" id="logoutBtn">
@@ -383,6 +375,18 @@
             <span class="cms-save-status" id="menuSaveStatus"></span>
           </div>
         </div>
+
+        <div id="view-form-cms" style="display:none;">
+          <div class="main-head">
+            <h2>Form</h2>
+            <p>Las preguntas del formulario de contacto. Agregá, quitá, editá o reordená — el sitio arma el formulario solo.</p>
+          </div>
+          <div id="formCmsBody"><p class="state-msg">Cargando...</p></div>
+          <div class="cms-savebar" id="formSavebar" style="display:none;">
+            <button class="btn-primary" type="button" id="formSaveBtn">Guardar cambios</button>
+            <span class="cms-save-status" id="formSaveStatus"></span>
+          </div>
+        </div>
       </main>
     </div>
   </div>
@@ -415,10 +419,10 @@
 
   // ---------- view switching (Consultas / Home) ----------
   var viewLinks = Array.prototype.slice.call(document.querySelectorAll('.sb-link[data-view]'));
-  var views = { consultas: document.getElementById('view-consultas'), 'home-cms': document.getElementById('view-home-cms'), 'blog-cms': document.getElementById('view-blog-cms'), 'menu-cms': document.getElementById('view-menu-cms') };
+  var views = { consultas: document.getElementById('view-consultas'), 'home-cms': document.getElementById('view-home-cms'), 'blog-cms': document.getElementById('view-blog-cms'), 'menu-cms': document.getElementById('view-menu-cms'), 'form-cms': document.getElementById('view-form-cms') };
   var topbarTitle = document.querySelector('.topbar-title');
   var homeCmsLoaded = false;
-  var VIEW_TITLES = { consultas: 'Consultas', 'home-cms': 'Home', 'blog-cms': 'Blog', 'menu-cms': 'Menú' };
+  var VIEW_TITLES = { consultas: 'Consultas', 'home-cms': 'Home', 'blog-cms': 'Blog', 'menu-cms': 'Menú', 'form-cms': 'Form' };
   function showView(name){
     Object.keys(views).forEach(function(k){ views[k].style.display = (k === name) ? 'block' : 'none'; });
     viewLinks.forEach(function(a){ a.classList.toggle('active', a.dataset.view === name); });
@@ -436,10 +440,24 @@
   }
 
   var lastSignature = null;
+  var lastConsultaItems = null;
   var pollTimer = null;
   var POLL_MS = 12000;
 
+  // the set of questions is admin-configurable (see the "Form" section), so
+  // consultas are rendered from whatever keys actually came back per
+  // submission instead of a fixed list of columns — labels are looked up
+  // from the current form config when available, else the raw key.
+  function labelForKey(key){
+    if (window.homeContent && homeContent.form && homeContent.form.fields) {
+      var match = homeContent.form.fields.filter(function(f){ return f.key === key; })[0];
+      if (match) return match.label;
+    }
+    return key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ');
+  }
+
   function renderConsultas(items){
+    lastConsultaItems = items;
     if (!items.length){
       content.innerHTML = '<p class="state-msg">Todavía no hay consultas.</p>';
       countPill.textContent = '0 consultas';
@@ -447,18 +465,15 @@
     }
     countPill.textContent = items.length + (items.length === 1 ? ' consulta' : ' consultas');
     content.innerHTML = '<div class="consulta-list">' + items.map(function(item){
-      var fecha = new Date(item.fecha).toLocaleString('es-AR', { dateStyle:'medium', timeStyle:'short' });
-      return (
-        '<div class="consulta-card">' +
-          '<div class="c-fecha"><span class="lbl">Fecha</span><span class="val mono">' + fecha + '</span></div>' +
-          '<div class="c-nombre"><span class="lbl">Nombre</span><span class="val">' + escapeHtml(item.nombre) + '</span></div>' +
-          '<div class="c-email"><span class="lbl">Email</span><span class="val">' + escapeHtml(item.email) + '</span></div>' +
-          '<div class="c-rubro"><span class="lbl">Rubro</span><span class="val">' + escapeHtml(item.rubro) + '</span></div>' +
-          '<div class="c-tamano"><span class="lbl">Tamaño de empresa</span><span class="val">' + escapeHtml(item.tamano || '—') + '</span></div>' +
-          '<div class="c-ganancias"><span class="lbl">Presupuesto para Marketing</span><span class="val">' + escapeHtml(item.ganancias || '—') + '</span></div>' +
-          '<div class="c-mensaje"><span class="lbl">Mensaje</span><span class="val">' + escapeHtml(item.mensaje) + '</span></div>' +
-        '</div>'
-      );
+      var fecha = item.fecha ? new Date(item.fecha).toLocaleString('es-AR', { dateStyle:'medium', timeStyle:'short' }) : '—';
+      var html = '<div><span class="lbl">Fecha</span><span class="val mono">' + escapeHtml(fecha) + '</span></div>';
+      Object.keys(item).forEach(function(key){
+        if (key === 'fecha') return;
+        var value = item[key];
+        var isLong = String(value || '').length > 60;
+        html += '<div' + (isLong ? ' class="c-full"' : '') + '><span class="lbl">' + escapeHtml(labelForKey(key)) + '</span><span class="val">' + escapeHtml(value || '—') + '</span></div>';
+      });
+      return '<div class="consulta-card">' + html + '</div>';
     }).join('') + '</div>';
   }
 
@@ -551,6 +566,7 @@
         { path: 'mobileImage', label: 'Foto del hero (mobile — opcional)', type: 'image', optional: true }
     ]},
     { key: 'proyectos', title: 'Nuestros proyectos', custom: 'proyectos' },
+    { key: 'ticker', title: 'Cinta de palabras', custom: 'ticker' },
     { key: 'diferenciales', title: 'Lo que nos hace diferentes', fields: [
         { path: 'eyebrow', label: 'Etiqueta de la sección', type: 'text' },
         { path: 'heading', label: 'Título', type: 'text' },
@@ -939,6 +955,40 @@
     return wrap;
   }
 
+  function renderTickerSection(){
+    var wrap = document.createElement('div');
+    wrap.className = 'cms-fields';
+    if (!homeContent.ticker) homeContent.ticker = { enabled: true, speed: 28, row1: '', row2: '' };
+    var t = homeContent.ticker;
+
+    var toggleRow = document.createElement('label');
+    toggleRow.className = 'cms-toggle-row';
+    var toggleInput = document.createElement('input');
+    toggleInput.type = 'checkbox';
+    toggleInput.checked = t.enabled !== false;
+    toggleInput.addEventListener('change', function(){ t.enabled = toggleInput.checked; });
+    var toggleLabel = document.createElement('span');
+    toggleLabel.textContent = 'Mostrar la cinta de palabras en el sitio';
+    toggleRow.appendChild(toggleInput);
+    toggleRow.appendChild(toggleLabel);
+    wrap.appendChild(toggleRow);
+
+    var speedField = document.createElement('div');
+    speedField.className = 'cms-field';
+    speedField.appendChild(makeLabel('Velocidad — segundos por vuelta completa (menos = más rápido)'));
+    var speedInput = document.createElement('input');
+    speedInput.type = 'number'; speedInput.min = '6'; speedInput.max = '90'; speedInput.step = '1';
+    speedInput.value = t.speed || 28;
+    speedInput.addEventListener('input', function(){ t.speed = Number(speedInput.value) || 28; });
+    speedField.appendChild(speedInput);
+    wrap.appendChild(speedField);
+
+    wrap.appendChild(renderPlainFieldFor({ label: 'Palabras fila 1, separadas por coma', type: 'textarea' }, function(){ return t.row1; }, function(v){ t.row1 = v; }));
+    wrap.appendChild(renderPlainFieldFor({ label: 'Palabras fila 2, separadas por coma', type: 'textarea' }, function(){ return t.row2; }, function(v){ t.row2 = v; }));
+
+    return wrap;
+  }
+
   function renderProyectosSection(){
     var wrap = document.createElement('div');
     wrap.className = 'cms-fields';
@@ -1049,6 +1099,7 @@
     if (section.custom === 'stats') body = renderStatsSection();
     else if (section.custom === 'quehacemos') body = renderQuehacemosSection();
     else if (section.custom === 'proyectos') body = renderProyectosSection();
+    else if (section.custom === 'ticker') body = renderTickerSection();
     else if (section.custom === 'blog') body = renderBlogSection();
     else {
       body = document.createElement('div');
@@ -1100,6 +1151,7 @@
   wireSaveButton('cmsSaveBtn', 'cmsSaveStatus');
   wireSaveButton('blogSaveBtn', 'blogSaveStatus');
   wireSaveButton('menuSaveBtn', 'menuSaveStatus');
+  wireSaveButton('formSaveBtn', 'formSaveStatus');
 
   var contentLoading = false;
   var pendingContentCallbacks = [];
@@ -1410,6 +1462,108 @@
     else renderMenuCms();
   });
 
+  // ---------- Form CMS ----------
+  var formCmsBody = document.getElementById('formCmsBody');
+  var FIELD_TYPES = [
+    { value: 'text', label: 'Texto corto' },
+    { value: 'email', label: 'Email' },
+    { value: 'textarea', label: 'Texto largo' },
+    { value: 'select', label: 'Opción múltiple (desplegable)' },
+  ];
+
+  function renderFormCms(){
+    formCmsBody.innerHTML = '';
+    if (!homeContent.form) homeContent.form = { fields: [] };
+    var formCfg = homeContent.form;
+    if (!formCfg.fields) formCfg.fields = [];
+
+    var fieldsWrap = document.createElement('div');
+    fieldsWrap.style.cssText = 'display:flex; flex-direction:column; gap:14px; margin-bottom:20px;';
+
+    function renderFields(){
+      fieldsWrap.innerHTML = '';
+      formCfg.fields.forEach(function(field, i){
+        var group = document.createElement('div');
+        group.className = 'cms-subgroup cms-list-item';
+        var title = document.createElement('div');
+        title.className = 'cms-subgroup-title';
+        title.textContent = 'Pregunta ' + (i + 1);
+        group.appendChild(title);
+
+        if (formCfg.fields.length > 1) {
+          var removeBtn = document.createElement('button');
+          removeBtn.type = 'button'; removeBtn.className = 'cms-remove-btn'; removeBtn.textContent = '×'; removeBtn.title = 'Quitar esta pregunta';
+          removeBtn.addEventListener('click', function(){ formCfg.fields.splice(i, 1); renderFields(); });
+          group.appendChild(removeBtn);
+        }
+
+        group.appendChild(renderPlainFieldFor({ label: 'Pregunta / nombre del campo', type: 'text' }, function(){ return field.label; }, function(v){ field.label = v; }));
+
+        var typeField = document.createElement('div');
+        typeField.className = 'cms-field';
+        typeField.appendChild(makeLabel('Tipo de respuesta'));
+        var select = document.createElement('select');
+        FIELD_TYPES.forEach(function(t){
+          var o = document.createElement('option'); o.value = t.value; o.textContent = t.label;
+          if (field.type === t.value) o.selected = true;
+          select.appendChild(o);
+        });
+        typeField.appendChild(select);
+        group.appendChild(typeField);
+
+        var placeholderSlot = document.createElement('div');
+        var optionsSlot = document.createElement('div');
+        function renderTypeExtras(){
+          placeholderSlot.innerHTML = '';
+          optionsSlot.innerHTML = '';
+          if (field.type === 'select') {
+            optionsSlot.appendChild(renderPlainFieldFor({ label: 'Opciones separadas por coma', type: 'textarea' }, function(){ return field.options; }, function(v){ field.options = v; }));
+          } else {
+            placeholderSlot.appendChild(renderPlainFieldFor({ label: 'Texto de ejemplo (placeholder)', type: 'text' }, function(){ return field.placeholder; }, function(v){ field.placeholder = v; }));
+          }
+        }
+        renderTypeExtras();
+        group.appendChild(placeholderSlot);
+        group.appendChild(optionsSlot);
+
+        select.addEventListener('change', function(){ field.type = select.value; renderTypeExtras(); });
+
+        var reqRow = document.createElement('label');
+        reqRow.className = 'cms-toggle-row';
+        var reqInput = document.createElement('input');
+        reqInput.type = 'checkbox';
+        reqInput.checked = field.required !== false;
+        reqInput.addEventListener('change', function(){ field.required = reqInput.checked; });
+        var reqLabel = document.createElement('span');
+        reqLabel.textContent = 'Obligatorio';
+        reqRow.appendChild(reqInput);
+        reqRow.appendChild(reqLabel);
+        group.appendChild(reqRow);
+
+        fieldsWrap.appendChild(group);
+      });
+    }
+    renderFields();
+    formCmsBody.appendChild(fieldsWrap);
+
+    var addBtn = document.createElement('button');
+    addBtn.type = 'button'; addBtn.className = 'cms-add-btn'; addBtn.textContent = '+ Agregar pregunta';
+    addBtn.addEventListener('click', function(){
+      var n = formCfg.fields.length + 1;
+      var key = 'campo_' + Date.now().toString(36) + '_' + n;
+      formCfg.fields.push({ key: key, label: 'Nueva pregunta', type: 'text', required: true, placeholder: '' });
+      renderFields();
+    });
+    formCmsBody.appendChild(addBtn);
+
+    document.getElementById('formSavebar').style.display = 'flex';
+  }
+
+  document.querySelector('.sb-link[data-view="form-cms"]').addEventListener('click', function(){
+    if (!homeCmsLoaded) loadContent(renderFormCms);
+    else renderFormCms();
+  });
+
   // check for an existing session on load
   fetch('/api/consultas')
     .then(function(r){
@@ -1422,6 +1576,12 @@
         lastSignature = JSON.stringify(data.items);
         renderConsultas(data.items);
         startPolling();
+        // pre-fetch content in the background so Consultas can show nice
+        // field labels (from the Form config) instead of raw keys, without
+        // making the admin visit another section first.
+        loadContent(function(){
+          if (lastConsultaItems) renderConsultas(lastConsultaItems);
+        });
       }
     })
     .catch(showLogin);

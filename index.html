@@ -206,6 +206,23 @@
   .section-head .eyebrow{ margin-bottom:14px; }
   .section-head h2{ font-size:clamp(2rem,4.4vw,3.2rem); }
 
+  /* ---- cinta de palabras (marquee) ---- */
+  .ticker-band{ background:#0A0612; padding:clamp(20px,3vh,32px) 0; display:flex; flex-direction:column; gap:14px; }
+  .ticker-band.is-off{ display:none; }
+  .ticker-row{ overflow:hidden; }
+  .ticker-track{
+    display:flex; width:max-content; gap:48px;
+    animation:tickerScroll var(--ticker-duration, 28s) linear infinite;
+  }
+  .ticker-row.is-reverse .ticker-track{ animation-direction:reverse; }
+  .ticker-track span{
+    font-family:'Big Shoulders Display',sans-serif; font-weight:800; font-size:clamp(1.15rem,2.4vw,1.9rem);
+    text-transform:uppercase; color:#fff; white-space:nowrap; flex:none;
+  }
+  .ticker-track span::after{ content:'✦'; color:var(--v-500); margin-left:48px; font-size:.7em; }
+  @keyframes tickerScroll{ from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
+  @media (prefers-reduced-motion: reduce){ .ticker-track{ animation:none; } }
+
   /* ---- proyectos ---- */
   .work{ position:relative; overflow:hidden; padding:clamp(72px,10vh,120px) 0; }
   .work .ambient-1{ width:230px; height:230px; top:8%; right:-70px; background:radial-gradient(circle, var(--lime-fill), transparent 70%); }
@@ -588,6 +605,15 @@
     </div>
   </section>
 
+  <section class="ticker-band" id="cms-ticker">
+    <div class="ticker-row">
+      <div class="ticker-track" id="cms-ticker-row1"></div>
+    </div>
+    <div class="ticker-row is-reverse">
+      <div class="ticker-track" id="cms-ticker-row2"></div>
+    </div>
+  </section>
+
   <section class="different">
     <div class="section-inner different-grid">
       <div class="different-copy reveal">
@@ -758,43 +784,45 @@
         <p class="contact-lede">Contanos un poco de tu marca y del objetivo, y coordinamos una primera charla sin costo.</p>
 
         <form id="contactForm" novalidate>
-          <div class="field">
-            <label for="nombre">Nombre</label>
-            <input id="nombre" name="nombre" type="text" placeholder="Tu nombre" required>
-          </div>
-          <div class="field">
-            <label for="email">Email</label>
-            <input id="email" name="email" type="email" placeholder="tu@empresa.com" required>
-          </div>
-          <div class="field">
-            <label for="rubro">Rubro del negocio</label>
-            <input id="rubro" name="rubro" type="text" placeholder="Ej: indumentaria, gastronomía, salud" required>
-          </div>
-          <div class="field">
-            <label for="tamano">Tamaño de la empresa</label>
-            <select id="tamano" name="tamano" required>
-              <option value="" disabled selected>Seleccioná una opción</option>
-              <option value="1 a 5 personas">1 a 5 personas</option>
-              <option value="6 a 20 personas">6 a 20 personas</option>
-              <option value="21 a 50 personas">21 a 50 personas</option>
-              <option value="51 a 200 personas">51 a 200 personas</option>
-              <option value="Más de 200 personas">Más de 200 personas</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="ganancias">Presupuesto para Marketing</label>
-            <select id="ganancias" name="ganancias" required>
-              <option value="" disabled selected>Seleccioná una opción</option>
-              <option value="0 a 1.000 USD">0 a 1.000 USD</option>
-              <option value="1.001 a 5.000 USD">1.001 a 5.000 USD</option>
-              <option value="5.001 a 20.000 USD">5.001 a 20.000 USD</option>
-              <option value="20.001 a 50.000 USD">20.001 a 50.000 USD</option>
-              <option value="Más de 50.000 USD">Más de 50.000 USD</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="mensaje">Mensaje</label>
-            <textarea id="mensaje" name="mensaje" placeholder="Contanos sobre tu marca y qué necesitás" required></textarea>
+          <div id="contactFields">
+            <div class="field">
+              <label for="nombre">Nombre</label>
+              <input id="nombre" name="nombre" type="text" placeholder="Tu nombre" required>
+            </div>
+            <div class="field">
+              <label for="email">Email</label>
+              <input id="email" name="email" type="email" placeholder="tu@empresa.com" required>
+            </div>
+            <div class="field">
+              <label for="rubro">Rubro del negocio</label>
+              <input id="rubro" name="rubro" type="text" placeholder="Ej: indumentaria, gastronomía, salud" required>
+            </div>
+            <div class="field">
+              <label for="tamano">Tamaño de la empresa</label>
+              <select id="tamano" name="tamano" required>
+                <option value="" disabled selected>Seleccioná una opción</option>
+                <option value="1 a 5 personas">1 a 5 personas</option>
+                <option value="6 a 20 personas">6 a 20 personas</option>
+                <option value="21 a 50 personas">21 a 50 personas</option>
+                <option value="51 a 200 personas">51 a 200 personas</option>
+                <option value="Más de 200 personas">Más de 200 personas</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="ganancias">Presupuesto para Marketing</label>
+              <select id="ganancias" name="ganancias" required>
+                <option value="" disabled selected>Seleccioná una opción</option>
+                <option value="0 a 1.000 USD">0 a 1.000 USD</option>
+                <option value="1.001 a 5.000 USD">1.001 a 5.000 USD</option>
+                <option value="5.001 a 20.000 USD">5.001 a 20.000 USD</option>
+                <option value="20.001 a 50.000 USD">20.001 a 50.000 USD</option>
+                <option value="Más de 50.000 USD">Más de 50.000 USD</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="mensaje">Mensaje</label>
+              <textarea id="mensaje" name="mensaje" placeholder="Contanos sobre tu marca y qué necesitás" required></textarea>
+            </div>
           </div>
           <button class="submit-btn" type="submit">Enviar mensaje →</button>
           <p class="form-note" id="formNote"></p>
@@ -828,7 +856,7 @@
 
 <footer class="footer">
   <span>© 2026 Tino Partners</span>
-  <span><a href="#home">Home</a> · <a href="nosotros.html">Nosotros</a> · <a href="#servicios">Qué hacemos</a> · <a href="#trabajos">Trabajos</a> · <a href="portfolio.html">Portfolio</a> · <a href="blog.html">Blog</a> · <a href="#contacto">Contacto</a></span>
+  <span><a href="terminos.html">Términos y condiciones</a> · <a href="privacidad.html">Política de privacidad</a></span>
 </footer>
 
 <script>
@@ -882,13 +910,13 @@
   // contact form
   var form = document.getElementById('contactForm');
   var note = document.getElementById('formNote');
-  var requiredFields = [form.nombre, form.email, form.rubro, form.tamano, form.ganancias, form.mensaje];
+  var contactFields = document.getElementById('contactFields');
 
-  requiredFields.forEach(function(field){
-    ['input', 'change'].forEach(function(evt){
-      field.addEventListener(evt, function(){ field.classList.remove('field-invalid'); });
-    });
-  });
+  // fields can be rebuilt dynamically once /api/content loads (admin-configured
+  // questions), so validation is delegated to the container instead of bound
+  // to specific field references captured at page-load time.
+  contactFields.addEventListener('input', function(e){ e.target.classList.remove('field-invalid'); });
+  contactFields.addEventListener('change', function(e){ e.target.classList.remove('field-invalid'); });
 
   function setNote(text, isError){
     note.textContent = text;
@@ -898,22 +926,17 @@
   form.addEventListener('submit', function(e){
     e.preventDefault();
     var submitBtn = form.querySelector('.submit-btn');
-    var data = {
-      nombre: form.nombre.value.trim(),
-      email: form.email.value.trim(),
-      rubro: form.rubro.value.trim(),
-      tamano: form.tamano.value.trim(),
-      ganancias: form.ganancias.value.trim(),
-      mensaje: form.mensaje.value.trim()
-    };
-
+    var inputs = Array.prototype.slice.call(contactFields.querySelectorAll('input, select, textarea'));
+    var data = {};
     var firstInvalid = null;
-    requiredFields.forEach(function(field){
-      if (data[field.name]) {
-        field.classList.remove('field-invalid');
-      } else {
+    inputs.forEach(function(field){
+      var value = field.value.trim();
+      data[field.name] = value;
+      if (field.hasAttribute('required') && !value) {
         field.classList.add('field-invalid');
         firstInvalid = firstInvalid || field;
+      } else {
+        field.classList.remove('field-invalid');
       }
     });
     if (firstInvalid) {
@@ -1110,6 +1133,25 @@
       setHtml('cms-proy-nota', c.proyectos.nota);
       renderWorkGrid(c.proyectos.tiles);
     }
+    if (c.ticker) {
+      var tickerBand = document.getElementById('cms-ticker');
+      tickerBand.classList.toggle('is-off', c.ticker.enabled === false);
+      tickerBand.style.setProperty('--ticker-duration', (c.ticker.speed || 28) + 's');
+      function fillTicker(id, csv){
+        var track = document.getElementById(id);
+        if (!track || !csv) return;
+        var words = String(csv).split(',').map(function(w){ return w.trim(); }).filter(Boolean);
+        if (!words.length) return;
+        track.innerHTML = '';
+        words.concat(words).forEach(function(w){
+          var span = document.createElement('span');
+          span.textContent = w;
+          track.appendChild(span);
+        });
+      }
+      fillTicker('cms-ticker-row1', c.ticker.row1);
+      fillTicker('cms-ticker-row2', c.ticker.row2);
+    }
     if (c.diferenciales) {
       setHtml('cms-dif-eyebrow', c.diferenciales.eyebrow);
       setHtml('cms-dif-heading', c.diferenciales.heading);
@@ -1158,6 +1200,41 @@
       setHtml('cms-blog-heading', c.blog.heading);
       setHtml('cms-blog-texto', c.blog.texto);
       renderBlogArticles(c.blog.articles);
+    }
+    if (c.form && c.form.fields && c.form.fields.length) {
+      var fieldsContainer = document.getElementById('contactFields');
+      fieldsContainer.innerHTML = '';
+      c.form.fields.forEach(function(f){
+        var fieldWrap = document.createElement('div');
+        fieldWrap.className = 'field';
+        var label = document.createElement('label');
+        label.setAttribute('for', f.key);
+        label.textContent = f.label;
+        fieldWrap.appendChild(label);
+
+        var input;
+        if (f.type === 'textarea') {
+          input = document.createElement('textarea');
+        } else if (f.type === 'select') {
+          input = document.createElement('select');
+          var placeholderOpt = document.createElement('option');
+          placeholderOpt.value = ''; placeholderOpt.disabled = true; placeholderOpt.selected = true;
+          placeholderOpt.textContent = 'Seleccioná una opción';
+          input.appendChild(placeholderOpt);
+          String(f.options || '').split(',').map(function(o){ return o.trim(); }).filter(Boolean).forEach(function(opt){
+            var o = document.createElement('option'); o.value = opt; o.textContent = opt; input.appendChild(o);
+          });
+        } else {
+          input = document.createElement('input');
+          input.type = f.type || 'text';
+        }
+        input.id = f.key;
+        input.name = f.key;
+        if (f.placeholder && f.type !== 'select') input.placeholder = f.placeholder;
+        if (f.required !== false) input.required = true;
+        fieldWrap.appendChild(input);
+        fieldsContainer.appendChild(fieldWrap);
+      });
     }
     if (c.footer) {
       var emailLink = document.getElementById('cms-footer-email-link');
