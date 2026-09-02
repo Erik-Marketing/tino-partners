@@ -80,7 +80,7 @@
 
   /* ---- nav: logo + hamburger only, at every width — opens a full link panel ---- */
   .nav{
-    position:fixed; top:0; left:0; right:0; z-index:40;
+    position:fixed; top:0; left:0; right:0; z-index:42;
     display:flex; align-items:center; justify-content:space-between;
     padding:16px clamp(20px,5vw,64px);
     border-bottom:1px solid transparent;
@@ -169,7 +169,7 @@
     background:linear-gradient(200deg, color-mix(in srgb, var(--v-500) 30%, transparent) 0%, transparent 45%, color-mix(in srgb, var(--pink-500) 22%, transparent) 100%);
     mix-blend-mode:multiply;
   }
-  .hero-blob{ width:220px; height:220px; top:8%; left:-60px; opacity:.5; z-index:0; }
+  .hero-blob{ width:220px; height:220px; top:8%; left:-60px; opacity:.5; z-index:-1; }
   .blob-shape{ position:absolute; border-radius:63% 37% 54% 46% / 41% 51% 49% 59%; pointer-events:none; }
   .blob-fill{ background:var(--gradient-vivid); }
 
