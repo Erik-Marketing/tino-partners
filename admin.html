@@ -165,10 +165,11 @@
   .cms-section[open] summary::after{ content:'−'; }
   .cms-fields{ padding:4px 18px 20px; display:flex; flex-direction:column; gap:16px; }
   .cms-field label{ display:block; font-family:'IBM Plex Mono',monospace; font-size:.68rem; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:7px; }
-  .cms-field input[type=text], .cms-field textarea{
+  .cms-field input[type=text], .cms-field textarea, .cms-field select{
     width:100%; background:var(--paper-flat); border:1px solid var(--line-strong); color:var(--ink);
     padding:11px 13px; border-radius:9px; font-size:.92rem; font-family:inherit;
   }
+  .cms-field select{ cursor:pointer; }
   .cms-field textarea{ min-height:78px; resize:vertical; line-height:1.5; }
   .cms-field input:focus, .cms-field textarea:focus{ outline:2px solid var(--pink-500); outline-offset:1px; }
   .cms-hint{ font-size:.76rem; color:var(--ink-soft); margin-top:5px; }
@@ -308,6 +309,15 @@
           <svg class="sb-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
         <div class="sb-subnav" id="sbHomeSubnav"></div>
+        <button class="sb-link sb-group-toggle" type="button" id="sbBlogToggle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          Blog
+          <svg class="sb-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="sb-subnav" id="sbBlogSubnav">
+          <a class="sb-sublink" href="#" data-blogview="new">Nuevo artículo</a>
+          <a class="sb-sublink" href="#" data-blogview="list">Artículos</a>
+        </div>
       </div>
       <button class="sb-logout" id="logoutBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -345,6 +355,18 @@
             <span class="cms-save-status" id="cmsSaveStatus"></span>
           </div>
         </div>
+
+        <div id="view-blog-cms" style="display:none;">
+          <div class="main-head">
+            <h2 id="blogSectionTitle">Blog</h2>
+            <p>Creá y editá los artículos del blog. Los cambios se ven en el sitio apenas los guardás.</p>
+          </div>
+          <div id="blogCmsBody"><p class="state-msg">Cargando...</p></div>
+          <div class="cms-savebar" id="blogSavebar" style="display:none;">
+            <button class="btn-primary" type="button" id="blogSaveBtn">Guardar cambios</button>
+            <span class="cms-save-status" id="blogSaveStatus"></span>
+          </div>
+        </div>
       </main>
     </div>
   </div>
@@ -377,13 +399,14 @@
 
   // ---------- view switching (Consultas / Home) ----------
   var viewLinks = Array.prototype.slice.call(document.querySelectorAll('.sb-link[data-view]'));
-  var views = { consultas: document.getElementById('view-consultas'), 'home-cms': document.getElementById('view-home-cms') };
+  var views = { consultas: document.getElementById('view-consultas'), 'home-cms': document.getElementById('view-home-cms'), 'blog-cms': document.getElementById('view-blog-cms') };
   var topbarTitle = document.querySelector('.topbar-title');
   var homeCmsLoaded = false;
+  var VIEW_TITLES = { consultas: 'Consultas', 'home-cms': 'Home', 'blog-cms': 'Blog' };
   function showView(name){
     Object.keys(views).forEach(function(k){ views[k].style.display = (k === name) ? 'block' : 'none'; });
     viewLinks.forEach(function(a){ a.classList.toggle('active', a.dataset.view === name); });
-    if (topbarTitle) topbarTitle.textContent = name === 'home-cms' ? 'Home' : 'Consultas';
+    if (topbarTitle) topbarTitle.textContent = VIEW_TITLES[name] || 'Consultas';
     closeSidebar();
   }
   viewLinks.forEach(function(a){
@@ -952,49 +975,15 @@
   function renderBlogSection(){
     var wrap = document.createElement('div');
     wrap.className = 'cms-fields';
-    var b = homeContent.blog;
-    if (!b.articles) b.articles = [];
+    if (!homeContent.blog.articles) homeContent.blog.articles = [];
 
-    wrap.appendChild(renderField({ path: 'heading', label: 'Título', type: 'text' }, 'blog'));
-    wrap.appendChild(renderField({ path: 'texto', label: 'Texto', type: 'textarea' }, 'blog'));
+    wrap.appendChild(renderField({ path: 'heading', label: 'Título de la sección en el Home', type: 'text' }, 'blog'));
+    wrap.appendChild(renderField({ path: 'texto', label: 'Texto de introducción en el Home', type: 'textarea' }, 'blog'));
 
     var note = document.createElement('p');
     note.className = 'example-note';
-    note.textContent = 'Todavía no existe la página del blog — estos son ejemplos de cómo se verían los artículos, y se muestran en el sitio marcados como "Ejemplo".';
+    note.textContent = 'Los artículos en sí (título, portada, contenido) se crean y editan desde la sección "Blog" del menú, más abajo.';
     wrap.appendChild(note);
-
-    var articlesWrap = document.createElement('div');
-    articlesWrap.style.cssText = 'display:flex; flex-direction:column; gap:14px; margin:4px 0;';
-
-    function renderArticles(){
-      articlesWrap.innerHTML = '';
-      b.articles.forEach(function(art, i){
-        var group = document.createElement('div');
-        group.className = 'cms-subgroup cms-list-item';
-        group.appendChild(renderGroupTitleInput(art, 'Artículo de ejemplo ' + (i + 1)));
-
-        var removeBtn = document.createElement('button');
-        removeBtn.type = 'button'; removeBtn.className = 'cms-remove-btn'; removeBtn.textContent = '×'; removeBtn.title = 'Quitar este artículo';
-        removeBtn.addEventListener('click', function(){ b.articles.splice(i, 1); renderArticles(); });
-        group.appendChild(removeBtn);
-
-        group.appendChild(renderPlainFieldFor({ label: 'Etiqueta (ej: Estrategia)', type: 'text' }, function(){ return art.tag; }, function(v){ art.tag = v; }));
-        group.appendChild(renderRichField({ label: 'Título', type: 'text' }, function(){ return art.title; }, function(v){ art.title = v; }));
-        group.appendChild(renderRichField({ label: 'Bajada', type: 'textarea' }, function(){ return art.excerpt; }, function(v){ art.excerpt = v; }));
-
-        articlesWrap.appendChild(group);
-      });
-    }
-    renderArticles();
-    wrap.appendChild(articlesWrap);
-
-    var addBtn = document.createElement('button');
-    addBtn.type = 'button'; addBtn.className = 'cms-add-btn'; addBtn.textContent = '+ Agregar artículo de ejemplo';
-    addBtn.addEventListener('click', function(){
-      b.articles.push({ tag: 'Estrategia', title: 'Título del artículo', excerpt: 'Bajada breve del artículo.' });
-      renderArticles();
-    });
-    wrap.appendChild(addBtn);
 
     return wrap;
   }
@@ -1057,44 +1046,271 @@
     homeSubnavEl.classList.toggle('is-open', willOpen);
     if (willOpen) {
       showView('home-cms');
-      if (!homeCmsLoaded) { homeCmsLoaded = true; loadHomeContent(); }
-      else selectHomeSection(activeSectionKey);
+      if (!homeCmsLoaded) {
+        loadContent(function(){ buildHomeSidebar(); selectHomeSection(activeSectionKey); });
+      } else {
+        selectHomeSection(activeSectionKey);
+      }
     }
   });
 
-  document.getElementById('cmsSaveBtn').addEventListener('click', function(){
-    var btn = document.getElementById('cmsSaveBtn');
-    var status = document.getElementById('cmsSaveStatus');
-    btn.disabled = true;
-    status.textContent = 'Guardando...'; status.className = 'cms-save-status';
-    fetch('/api/content', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(homeContent)
-    })
-      .then(function(r){ return r.json().then(function(data){ return { ok: r.ok, data: data }; }); })
-      .then(function(res){
-        if (!res.ok) throw new Error(res.data.error || 'No se pudo guardar.');
-        status.textContent = 'Guardado. Ya está visible en la web.';
-        status.className = 'cms-save-status is-ok';
+  function wireSaveButton(btnId, statusId){
+    var btn = document.getElementById(btnId);
+    var status = document.getElementById(statusId);
+    btn.addEventListener('click', function(){
+      btn.disabled = true;
+      status.textContent = 'Guardando...'; status.className = 'cms-save-status';
+      fetch('/api/content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(homeContent)
       })
-      .catch(function(err){
-        status.textContent = err.message;
-        status.className = 'cms-save-status is-error';
-      })
-      .finally(function(){ btn.disabled = false; });
-  });
+        .then(function(r){ return r.json().then(function(data){ return { ok: r.ok, data: data }; }); })
+        .then(function(res){
+          if (!res.ok) throw new Error(res.data.error || 'No se pudo guardar.');
+          status.textContent = 'Guardado. Ya está visible en la web.';
+          status.className = 'cms-save-status is-ok';
+        })
+        .catch(function(err){
+          status.textContent = err.message;
+          status.className = 'cms-save-status is-error';
+        })
+        .finally(function(){ btn.disabled = false; });
+    });
+  }
+  wireSaveButton('cmsSaveBtn', 'cmsSaveStatus');
+  wireSaveButton('blogSaveBtn', 'blogSaveStatus');
 
-  function loadHomeContent(){
+  var contentLoading = false;
+  var pendingContentCallbacks = [];
+  function loadContent(afterLoad){
+    if (homeCmsLoaded) { afterLoad(); return; }
+    pendingContentCallbacks.push(afterLoad);
+    if (contentLoading) return; // a fetch is already in flight — queue behind it instead of racing a second one
+    contentLoading = true;
     fetch('/api/content')
       .then(function(r){ return r.json(); })
       .then(function(data){
         homeContent = data;
-        buildHomeSidebar();
-        selectHomeSection(activeSectionKey);
+        homeCmsLoaded = true;
+        contentLoading = false;
+        var callbacks = pendingContentCallbacks;
+        pendingContentCallbacks = [];
+        callbacks.forEach(function(cb){ cb(); });
       })
-      .catch(function(){ homeCmsBody.innerHTML = '<p class="state-msg">No se pudo cargar el contenido.</p>'; });
+      .catch(function(){
+        contentLoading = false;
+        homeCmsBody.innerHTML = '<p class="state-msg">No se pudo cargar el contenido.</p>';
+        blogCmsBody.innerHTML = '<p class="state-msg">No se pudo cargar el contenido.</p>';
+      });
   }
+
+  // ---------- Blog CMS (Nuevo artículo / Artículos) ----------
+  var blogCmsBody = document.getElementById('blogCmsBody');
+  var blogSectionTitleEl = document.getElementById('blogSectionTitle');
+  var blogGroupToggle = document.getElementById('sbBlogToggle');
+  var blogSubnavEl = document.getElementById('sbBlogSubnav');
+  var activeBlogView = 'new';
+
+  var TEMPLATES = [
+    { value: 'estandar', label: 'Estándar (portada + texto)' },
+    { value: 'video', label: 'Con video destacado' },
+    { value: 'galeria', label: 'Galería de fotos' }
+  ];
+
+  function slugify(text){
+    return String(text || '')
+      .toLowerCase()
+      .normalize('NFD').replace(/\p{Mark}/gu, '')
+      .replace(/[^a-z0-9\s-]/g, '')
+      .trim().replace(/\s+/g, '-').slice(0, 60) || 'articulo';
+  }
+  function uniqueSlug(base, articles, skip){
+    var slug = base, n = 2;
+    while (articles.some(function(a){ return a !== skip && a.slug === slug; })) {
+      slug = base + '-' + n; n++;
+    }
+    return slug;
+  }
+
+  function renderArticleFields(article, opts){
+    var wrap = document.createElement('div');
+    wrap.className = 'cms-fields';
+
+    var templateField = document.createElement('div');
+    templateField.className = 'cms-field';
+    templateField.appendChild(makeLabel('Plantilla'));
+    var select = document.createElement('select');
+    TEMPLATES.forEach(function(t){
+      var o = document.createElement('option'); o.value = t.value; o.textContent = t.label;
+      if (article.template === t.value) o.selected = true;
+      select.appendChild(o);
+    });
+    if (!article.template) article.template = 'estandar';
+    templateField.appendChild(select);
+    wrap.appendChild(templateField);
+
+    wrap.appendChild(renderPlainFieldFor({ label: 'Etiqueta (ej: Estrategia)', type: 'text' }, function(){ return article.tag; }, function(v){ article.tag = v; }));
+    wrap.appendChild(renderRichField({ label: 'Título', type: 'text' }, function(){ return article.title; }, function(v){ article.title = v; }));
+    wrap.appendChild(renderRichField({ label: 'Bajada (se muestra en las tarjetas)', type: 'textarea' }, function(){ return article.excerpt; }, function(v){ article.excerpt = v; }));
+
+    var coverSlot = document.createElement('div');
+    function renderCover(){
+      coverSlot.innerHTML = '';
+      if (!article.cover) article.cover = { url: '', posX: 50, posY: 50 };
+      var isVideo = article.template === 'video';
+      coverSlot.appendChild(renderMediaField(article.cover, { type: isVideo ? 'video' : 'image', label: isVideo ? 'Video de portada' : 'Foto de portada' }));
+    }
+    renderCover();
+    wrap.appendChild(coverSlot);
+
+    wrap.appendChild(renderRichField({ label: 'Contenido del artículo', type: 'textarea' }, function(){ return article.body; }, function(v){ article.body = v; }));
+
+    var gallerySlot = document.createElement('div');
+    function renderGallery(){
+      gallerySlot.innerHTML = '';
+      if (article.template !== 'galeria') return;
+      if (!article.gallery) article.gallery = [];
+      var galleryWrap = document.createElement('div');
+      galleryWrap.style.cssText = 'display:flex; flex-direction:column; gap:12px; margin:4px 0;';
+      article.gallery.forEach(function(img, gi){
+        var row = document.createElement('div');
+        row.className = 'cms-subgroup cms-list-item';
+        var removeBtn = document.createElement('button');
+        removeBtn.type = 'button'; removeBtn.className = 'cms-remove-btn'; removeBtn.textContent = '×'; removeBtn.title = 'Quitar esta foto';
+        removeBtn.addEventListener('click', function(){ article.gallery.splice(gi, 1); renderGallery(); });
+        row.appendChild(removeBtn);
+        row.appendChild(renderMediaField(img, { type: 'image', label: 'Foto ' + (gi + 1) }));
+        galleryWrap.appendChild(row);
+      });
+      gallerySlot.appendChild(galleryWrap);
+      var addImgBtn = document.createElement('button');
+      addImgBtn.type = 'button'; addImgBtn.className = 'cms-add-btn'; addImgBtn.textContent = '+ Agregar foto a la galería';
+      addImgBtn.addEventListener('click', function(){ article.gallery.push({ url: '', posX: 50, posY: 50 }); renderGallery(); });
+      gallerySlot.appendChild(addImgBtn);
+    }
+    renderGallery();
+    wrap.appendChild(gallerySlot);
+
+    select.addEventListener('change', function(){
+      article.template = select.value;
+      renderCover();
+      renderGallery();
+    });
+
+    if (opts && opts.onRemove) {
+      var removeArticleBtn = document.createElement('button');
+      removeArticleBtn.type = 'button'; removeArticleBtn.className = 'cms-add-btn'; removeArticleBtn.textContent = 'Eliminar este artículo';
+      removeArticleBtn.style.borderColor = 'var(--pink-500)'; removeArticleBtn.style.color = 'var(--pink-500)';
+      removeArticleBtn.addEventListener('click', opts.onRemove);
+      wrap.appendChild(removeArticleBtn);
+    }
+
+    return wrap;
+  }
+
+  function renderBlogNew(){
+    blogSectionTitleEl.textContent = 'Nuevo artículo';
+    blogCmsBody.innerHTML = '';
+    var blank = { template: 'estandar', tag: '', title: '', excerpt: '', cover: { url: '', posX: 50, posY: 50 }, body: '', gallery: [] };
+    var fieldsWrap = renderArticleFields(blank, null);
+    blogCmsBody.appendChild(fieldsWrap);
+
+    var publishBtn = document.createElement('button');
+    publishBtn.type = 'button'; publishBtn.className = 'btn-primary'; publishBtn.style.cssText = 'width:auto; padding:13px 26px; margin-top:6px;';
+    publishBtn.textContent = 'Publicar artículo';
+    var publishStatus = document.createElement('span');
+    publishStatus.className = 'cms-save-status'; publishStatus.style.marginLeft = '14px';
+    blogCmsBody.appendChild(publishBtn);
+    blogCmsBody.appendChild(publishStatus);
+
+    publishBtn.addEventListener('click', function(){
+      if (!blank.title || !String(blank.title).replace(/<[^>]+>/g, '').trim()) {
+        publishStatus.textContent = 'Ponele un título antes de publicar.';
+        publishStatus.className = 'cms-save-status is-error';
+        return;
+      }
+      if (!homeContent.blog.articles) homeContent.blog.articles = [];
+      var plainTitle = (function(){ var d = document.createElement('div'); d.innerHTML = blank.title; return d.textContent; })();
+      blank.slug = uniqueSlug(slugify(plainTitle), homeContent.blog.articles);
+      homeContent.blog.articles.push(blank);
+      publishStatus.textContent = 'Agregado — guardá los cambios para publicarlo.';
+      publishStatus.className = 'cms-save-status is-ok';
+      publishBtn.disabled = true;
+    });
+
+    document.getElementById('blogSavebar').style.display = 'flex';
+  }
+
+  function renderBlogList(){
+    blogSectionTitleEl.textContent = 'Artículos';
+    blogCmsBody.innerHTML = '';
+    if (!homeContent.blog.articles) homeContent.blog.articles = [];
+    var articles = homeContent.blog.articles;
+
+    if (!articles.length) {
+      var empty = document.createElement('p');
+      empty.className = 'state-msg';
+      empty.textContent = 'Todavía no hay artículos — creá uno desde "Nuevo artículo".';
+      blogCmsBody.appendChild(empty);
+      document.getElementById('blogSavebar').style.display = 'none';
+      return;
+    }
+
+    articles.forEach(function(article, i){
+      var details = document.createElement('details');
+      details.className = 'cms-section';
+      details.open = (i === 0);
+      var summary = document.createElement('summary');
+      var plainTitle = (function(){ var d = document.createElement('div'); d.innerHTML = article.title || ''; return d.textContent; })();
+      summary.textContent = plainTitle || ('Artículo ' + (i + 1));
+      details.appendChild(summary);
+
+      var fields = renderArticleFields(article, {
+        onRemove: function(){
+          if (!confirm('¿Eliminar este artículo? No se puede deshacer una vez que guardes.')) return;
+          articles.splice(i, 1);
+          renderBlogList();
+        }
+      });
+      details.appendChild(fields);
+      blogCmsBody.appendChild(details);
+    });
+
+    document.getElementById('blogSavebar').style.display = 'flex';
+  }
+
+  function renderBlogCms(){
+    if (activeBlogView === 'list') renderBlogList();
+    else renderBlogNew();
+  }
+
+  Array.prototype.slice.call(blogSubnavEl.querySelectorAll('.sb-sublink')).forEach(function(a){
+    a.addEventListener('click', function(e){
+      e.preventDefault();
+      showView('blog-cms');
+      blogGroupToggle.classList.add('is-open');
+      blogSubnavEl.classList.add('is-open');
+      activeBlogView = a.dataset.blogview;
+      Array.prototype.slice.call(blogSubnavEl.querySelectorAll('.sb-sublink')).forEach(function(x){
+        x.classList.toggle('active', x === a);
+      });
+      if (!homeCmsLoaded) loadContent(renderBlogCms);
+      else renderBlogCms();
+      closeSidebar();
+    });
+  });
+
+  blogGroupToggle.addEventListener('click', function(){
+    var willOpen = !blogGroupToggle.classList.contains('is-open');
+    blogGroupToggle.classList.toggle('is-open', willOpen);
+    blogSubnavEl.classList.toggle('is-open', willOpen);
+    if (willOpen) {
+      showView('blog-cms');
+      if (!homeCmsLoaded) loadContent(renderBlogCms);
+      else renderBlogCms();
+    }
+  });
 
   // check for an existing session on load
   fetch('/api/consultas')

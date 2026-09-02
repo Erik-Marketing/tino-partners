@@ -324,7 +324,9 @@
   .blog-card{
     background:var(--paper-flat); border:1px solid var(--line); border-radius:var(--radius);
     padding:22px; display:flex; flex-direction:column; gap:10px; box-shadow:var(--shadow);
+    text-decoration:none; color:var(--ink); transition:transform .2s ease, box-shadow .2s ease;
   }
+  .blog-card:hover{ transform:translateY(-4px); box-shadow:0 30px 60px -24px rgba(74,49,112,.28); }
   .blog-card .eyebrow{ color:var(--v-500); }
   .blog-card h3{ font-family:'Big Shoulders Display',sans-serif; font-weight:800; font-size:1.2rem; text-transform:uppercase; margin:0; line-height:1.15; }
   .blog-card p{ color:var(--ink-soft); font-size:.9rem; line-height:1.55; margin:0; }
@@ -493,6 +495,7 @@
   <a class="menu-link" href="#servicios">Qué hacemos</a>
   <a class="menu-link" href="#trabajos">Trabajos</a>
   <a class="menu-link" href="portfolio.html">Portfolio</a>
+  <a class="menu-link" href="blog.html">Blog</a>
   <a class="menu-cta" href="#contacto">Contactanos →</a>
 </nav>
 
@@ -688,8 +691,9 @@
           <p class="eyebrow">Contenido interesante</p>
           <h2 id="cms-blog-heading">Lo que estamos pensando.</h2>
         </div>
+        <a href="blog.html" class="btn-ghost">Ver todos los artículos</a>
       </div>
-      <div class="blog-empty reveal">
+      <div class="blog-empty reveal" id="cms-blog-empty">
         <p id="cms-blog-texto">Estamos armando el blog de Tino Partners. Cuando esté listo, vas a encontrar acá notas sobre estrategia, producción y tecnología aplicada a marcas — por ahora, seguinos en Instagram para lo último.</p>
       </div>
       <div class="blog-grid" id="cms-blog-articles"></div>
@@ -774,7 +778,7 @@
 
 <footer class="footer">
   <span>© 2026 Tino Partners</span>
-  <span><a href="#home">Home</a> · <a href="nosotros.html">Nosotros</a> · <a href="#servicios">Qué hacemos</a> · <a href="#trabajos">Trabajos</a> · <a href="portfolio.html">Portfolio</a> · <a href="#contacto">Contacto</a></span>
+  <span><a href="#home">Home</a> · <a href="nosotros.html">Nosotros</a> · <a href="#servicios">Qué hacemos</a> · <a href="#trabajos">Trabajos</a> · <a href="portfolio.html">Portfolio</a> · <a href="blog.html">Blog</a> · <a href="#contacto">Contacto</a></span>
 </footer>
 
 <script>
@@ -1005,16 +1009,18 @@
 
     function renderBlogArticles(articles){
       var grid = document.getElementById('cms-blog-articles');
+      var emptyBox = document.getElementById('cms-blog-empty');
       if (!grid || !articles || !articles.length) return;
+      if (emptyBox) emptyBox.style.display = 'none';
       grid.innerHTML = '';
       articles.forEach(function(art){
-        var card = document.createElement('div');
+        var card = document.createElement('a');
         card.className = 'blog-card reveal';
+        card.href = 'blog-post.html?s=' + encodeURIComponent(art.slug || '');
         var tag = document.createElement('span'); tag.className = 'eyebrow'; tag.textContent = art.tag || '';
         var title = document.createElement('h3');
         var excerpt = document.createElement('p');
-        var flag = document.createElement('span'); flag.className = 'example-flag'; flag.textContent = 'Ejemplo';
-        card.appendChild(tag); card.appendChild(title); card.appendChild(excerpt); card.appendChild(flag);
+        card.appendChild(tag); card.appendChild(title); card.appendChild(excerpt);
         if (art.title) title.innerHTML = art.title;
         if (art.excerpt) excerpt.innerHTML = art.excerpt;
         grid.appendChild(card);

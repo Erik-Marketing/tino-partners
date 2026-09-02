@@ -1,0 +1,314 @@
+<title>Blog — Tino Partners</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FFFFFF">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --ink:#171221;
+    --ink-soft:#6B6478;
+    --paper:#FFFFFF;
+    --paper-dim:#F6F3FB;
+    --paper-flat:#FFFFFF;
+    --line: rgba(23,18,33,.10);
+    --line-strong: rgba(23,18,33,.20);
+    --lime:#9B5DF6;
+    --lime-fill:#C4B5FD;
+    --coral:#9B5DF6;
+    --coral-fill:#C4B5FD;
+    --steel:#B7AFC9;
+    --shadow: 0 24px 60px -28px rgba(74,49,112,.18);
+    --radius: 14px;
+    --radius-pill: 999px;
+    --maxw: 1180px;
+    --v-900:#3B1A78;
+    --v-700:#6D28D9;
+    --v-500:#9B5DF6;
+    --pink-500:#EE60C6;
+    --pink-300:#F9AEE0;
+    --gradient-vivid: linear-gradient(135deg, var(--v-500) 0%, var(--pink-500) 100%);
+    --glow: 0 20px 50px -14px rgba(155,93,246,.35);
+    color-scheme: light;
+  }
+
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; scroll-padding-top:84px; }
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Work Sans', ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  h1,h2,h3{
+    font-family:'Big Shoulders Display', 'Arial Narrow', sans-serif;
+    font-weight:800;
+    line-height:.94;
+    text-transform:uppercase;
+    letter-spacing:.005em;
+    text-wrap:balance;
+    margin:0;
+  }
+  em{ font-style:normal; color:var(--v-500); }
+  p{ margin:0; }
+  a{ color:inherit; }
+  .eyebrow{
+    font-family:'IBM Plex Mono', ui-monospace, monospace;
+    font-size:.72rem;
+    font-weight:600;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .example-flag{
+    display:inline-flex; align-items:center; gap:6px; margin-top:14px;
+    font-family:'IBM Plex Mono',monospace; font-size:.68rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--v-500); border:1px solid var(--lime-fill); border-radius:var(--radius-pill); padding:6px 14px;
+  }
+  .section-inner{ position:relative; z-index:1; max-width:var(--maxw); margin:0 auto; padding-inline:clamp(20px,5vw,64px); }
+  img{ max-width:100%; display:block; }
+
+  .grain{
+    position:fixed; inset:0; pointer-events:none; z-index:2;
+    opacity:.05; mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ---- nav: logo + hamburger only, at every width — opens a full link panel ---- */
+  .nav{
+    position:fixed; top:0; left:0; right:0; z-index:42;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px clamp(20px,5vw,64px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav::before{
+    content:""; position:absolute; inset:0; z-index:-1;
+    background:color-mix(in srgb, var(--paper) 86%, transparent);
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  }
+  .brand{ display:flex; align-items:center; gap:10px; text-decoration:none; position:relative; z-index:2; }
+  .brand svg{ width:30px; height:30px; flex:none; }
+  .brand-word{ font-family:'Big Shoulders Display', sans-serif; font-weight:800; font-size:1.28rem; letter-spacing:.01em; text-transform:uppercase; }
+  .brand-word span{ display:block; font-family:'IBM Plex Mono', monospace; font-size:.55rem; font-weight:600; letter-spacing:.22em; color:var(--ink-soft); text-transform:uppercase; margin-top:-2px; }
+
+  .nav-toggle{
+    display:flex; flex-direction:column; gap:5px; background:none; border:none; cursor:pointer; padding:8px;
+    position:relative; z-index:42;
+  }
+  .nav-toggle span{ width:24px; height:2px; background:var(--ink); transition:transform .2s ease, opacity .2s ease; }
+  .nav-toggle.is-open span:nth-child(1){ transform:translateY(7px) rotate(45deg); }
+  .nav-toggle.is-open span:nth-child(2){ opacity:0; }
+  .nav-toggle.is-open span:nth-child(3){ transform:translateY(-7px) rotate(-45deg); }
+
+  .menu-panel{
+    position:fixed; inset:0; z-index:41; background:var(--paper);
+    display:flex; flex-direction:column; justify-content:center; gap:clamp(16px,3vw,28px);
+    padding:96px clamp(24px,6vw,96px) 64px;
+    opacity:0; visibility:hidden; transform:translateY(-16px);
+    transition:opacity .3s ease, transform .3s ease, visibility 0s linear .3s;
+  }
+  .menu-panel.is-open{ opacity:1; visibility:visible; transform:none; transition:opacity .3s ease, transform .3s ease; }
+  .menu-panel .menu-link{
+    text-decoration:none; color:var(--ink); font-family:'Big Shoulders Display',sans-serif;
+    font-weight:800; text-transform:uppercase; font-size:clamp(2.2rem,7vw,4rem); line-height:1;
+  }
+  .menu-panel .menu-link[aria-current="page"]{ color:var(--v-500); }
+  .menu-panel .menu-cta{
+    margin-top:12px; display:inline-flex; align-self:flex-start; align-items:center; gap:10px; text-decoration:none;
+    background:var(--gradient-vivid); color:#fff; font-family:'IBM Plex Mono',monospace;
+    font-weight:600; font-size:.82rem; letter-spacing:.06em; text-transform:uppercase;
+    padding:16px calc(28px - 0.03em) 16px calc(28px + 0.03em); border-radius:var(--radius-pill);
+    box-shadow:var(--glow);
+  }
+
+  .btn-ghost{
+    text-decoration:none; font-family:'IBM Plex Mono',monospace; font-size:.82rem; font-weight:600;
+    letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft);
+    border-bottom:1px solid var(--line-strong); padding-bottom:3px; transition:color .2s ease, border-color .2s ease;
+  }
+  .btn-ghost:hover{ color:var(--ink); border-color:var(--ink); }
+  .arrow-link{ display:inline-flex; align-items:center; gap:8px; text-decoration:none; color:var(--ink); font-weight:600; }
+  .arrow-link svg{ width:18px; height:18px; transition:transform .2s ease; }
+  .arrow-link:hover svg{ transform:translate(3px,-3px); }
+
+  section{ position:relative; z-index:1; }
+
+  /* ---- blog hero ---- */
+  .blog-hero{ padding:calc(96px + 6vh) 0 clamp(40px,6vh,64px); }
+  .blog-hero h1{ font-size:clamp(2.6rem,6vw,4.4rem); margin-top:14px; max-width:14ch; }
+  .blog-hero p{ margin-top:18px; max-width:52ch; color:var(--ink-soft); font-size:1.05rem; line-height:1.6; }
+
+  /* ---- blog grid ---- */
+  .blog-list{ padding-bottom:clamp(80px,10vh,120px); }
+  .blog-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:24px; }
+  .blog-card{
+    display:flex; flex-direction:column; text-decoration:none; color:var(--ink);
+    background:var(--paper-flat); border:1px solid var(--line); border-radius:var(--radius);
+    overflow:hidden; box-shadow:var(--shadow); transition:transform .2s ease, box-shadow .2s ease;
+  }
+  .blog-card:hover{ transform:translateY(-4px); box-shadow:0 30px 60px -24px rgba(74,49,112,.28); }
+  .blog-card-cover{ position:relative; aspect-ratio:16/10; overflow:hidden; background:var(--paper-dim); }
+  .blog-card-cover img, .blog-card-cover video{ width:100%; height:100%; object-fit:cover; display:block; }
+  .blog-card-body{ padding:20px 22px 24px; display:flex; flex-direction:column; gap:9px; flex:1; }
+  .blog-card-body .eyebrow{ color:var(--v-500); }
+  .blog-card-body h2{ font-size:1.25rem; text-transform:uppercase; line-height:1.15; }
+  .blog-card-body p{ color:var(--ink-soft); font-size:.92rem; line-height:1.55; }
+  .blog-card-body .arrow-link{ margin-top:auto; font-family:'IBM Plex Mono',monospace; font-size:.76rem; letter-spacing:.05em; text-transform:uppercase; }
+  .blog-empty-state{ border:1px dashed var(--line-strong); border-radius:var(--radius); padding:clamp(40px,6vw,64px); text-align:center; color:var(--ink-soft); }
+
+  /* ---- footer ---- */
+  .footer{
+    display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+    padding:24px clamp(20px,5vw,64px); background:var(--v-900); color:rgba(255,255,255,.55);
+    border-top:1px solid rgba(255,255,255,.14);
+    font-family:'IBM Plex Mono',monospace; font-size:.7rem; letter-spacing:.05em; text-transform:uppercase;
+  }
+  .footer a{ text-decoration:none; color:inherit; }
+  .footer a:hover{ color:var(--pink-300); }
+
+  .reveal{ opacity:0; transform:translateY(18px); transition:opacity .7s ease, transform .7s ease; }
+  .reveal.is-visible{ opacity:1; transform:none; }
+  @media (prefers-reduced-motion: reduce){ .reveal{ opacity:1; transform:none; transition:none; } }
+
+  .wa-float{
+    position:fixed; right:20px; bottom:20px; z-index:50;
+    width:58px; height:58px; border-radius:50%;
+    background:#25D366; color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 14px 30px -10px rgba(20,8,40,.35);
+    text-decoration:none;
+    transition:transform .2s ease, box-shadow .2s ease;
+  }
+  .wa-float:hover{ transform:translateY(-2px) scale(1.04); box-shadow:0 18px 36px -10px rgba(20,8,40,.4); }
+  .wa-float svg{ width:29px; height:29px; position:relative; z-index:2; }
+  @media (max-width: 900px){ .wa-float{ right:16px; bottom:16px; width:52px; height:52px; } .wa-float svg{ width:26px; height:26px; } }
+</style>
+
+<div class="grain"></div>
+
+<a class="wa-float" href="https://wa.me/5491125378238" target="_blank" rel="noopener" aria-label="Escribinos por WhatsApp">
+  <svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">
+    <path d="M16.001 3C9.373 3 4 8.373 4 15c0 2.36.687 4.56 1.872 6.41L4 29l7.78-1.84A11.94 11.94 0 0 0 16 27c6.627 0 12-5.373 12-12S22.628 3 16.001 3zm6.965 16.845c-.294.828-1.463 1.518-2.403 1.716-.64.135-1.475.243-4.29-.92-3.6-1.49-5.918-5.14-6.098-5.378-.173-.238-1.457-1.94-1.457-3.7 0-1.76.92-2.62 1.246-2.98.294-.32.646-.4.862-.4.216 0 .432.002.62.012.2.01.468-.076.732.56.294.703 1 2.42 1.087 2.596.087.176.146.383.03.62-.116.238-.176.383-.343.588-.173.207-.36.462-.514.62-.173.176-.353.365-.152.716.2.35.887 1.464 1.905 2.372 1.31 1.166 2.415 1.528 2.767 1.702.353.176.56.148.767-.09.207-.236.883-1.03 1.118-1.383.235-.353.47-.294.79-.176.323.118 2.043.966 2.394 1.142.353.176.588.264.674.412.088.148.088.856-.206 1.684z"/>
+  </svg>
+</a>
+
+<header class="nav is-scrolled" id="siteNav">
+  <a class="brand" href="tino-partners.html">
+    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="20" cy="20" r="18.5" stroke="currentColor" stroke-width="1.4"/>
+      <circle cx="20" cy="20" r="10" stroke="currentColor" stroke-width="1.4"/>
+      <circle cx="20" cy="20" r="3.2" fill="var(--v-500)"/>
+      <line x1="20" y1="0" x2="20" y2="7" stroke="currentColor" stroke-width="1.4"/>
+      <line x1="20" y1="33" x2="20" y2="40" stroke="currentColor" stroke-width="1.4"/>
+      <line x1="0" y1="20" x2="7" y2="20" stroke="currentColor" stroke-width="1.4"/>
+      <line x1="33" y1="20" x2="40" y2="20" stroke="currentColor" stroke-width="1.4"/>
+    </svg>
+    <span class="brand-word">Tino<span>Partners</span></span>
+  </a>
+  <button class="nav-toggle" id="navToggle" aria-label="Abrir menú" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<nav class="menu-panel" id="siteMenu">
+  <a class="menu-link" href="tino-partners.html">Home</a>
+  <a class="menu-link" href="nosotros.html">Nosotros</a>
+  <a class="menu-link" href="tino-partners.html#trabajos">Trabajos</a>
+  <a class="menu-link" href="portfolio.html">Portfolio</a>
+  <a class="menu-link" href="blog.html" aria-current="page">Blog</a>
+  <a class="menu-cta" href="tino-partners.html#contacto">Contactanos →</a>
+</nav>
+
+<main>
+  <section class="blog-hero">
+    <div class="section-inner">
+      <p class="eyebrow">Contenido interesante</p>
+      <h1 id="blogHeading">Lo que estamos pensando.</h1>
+      <p id="blogIntro">Notas sobre estrategia, producción y tecnología aplicada a marcas.</p>
+    </div>
+  </section>
+
+  <section class="blog-list">
+    <div class="section-inner">
+      <div class="blog-grid" id="blogGrid"></div>
+      <div class="blog-empty-state" id="blogEmptyState" style="display:none;">
+        <p>Todavía no hay artículos publicados. Volvé pronto.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <span>© 2026 Tino Partners</span>
+  <span><a href="tino-partners.html">Home</a> · <a href="nosotros.html">Nosotros</a> · <a href="portfolio.html">Portfolio</a> · <a href="blog.html">Blog</a> · <a href="tino-partners.html#contacto">Contacto</a></span>
+</footer>
+
+<script>
+  var toggle = document.getElementById('navToggle');
+  var menu = document.getElementById('siteMenu');
+  toggle.addEventListener('click', function(){
+    var open = menu.classList.toggle('is-open');
+    toggle.classList.toggle('is-open', open);
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  menu.querySelectorAll('a').forEach(function(a){
+    a.addEventListener('click', function(){
+      menu.classList.remove('is-open');
+      toggle.classList.remove('is-open');
+      toggle.setAttribute('aria-expanded', 'false');
+    });
+  });
+
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if (entry.isIntersecting){ entry.target.classList.add('is-visible'); io.unobserve(entry.target); }
+    });
+  }, { threshold: .15 });
+
+  function escapeAttr(str){ return String(str || '').replace(/"/g, '&quot;'); }
+
+  fetch('/api/content').then(function(r){ return r.ok ? r.json() : null; }).then(function(c){
+    if (!c || !c.blog) return;
+    if (c.blog.heading) document.getElementById('blogHeading').textContent = (function(){ var d = document.createElement('div'); d.innerHTML = c.blog.heading; return d.textContent; })();
+    if (c.blog.texto) document.getElementById('blogIntro').textContent = (function(){ var d = document.createElement('div'); d.innerHTML = c.blog.texto; return d.textContent; })();
+
+    var grid = document.getElementById('blogGrid');
+    var articles = c.blog.articles || [];
+    if (!articles.length) {
+      document.getElementById('blogEmptyState').style.display = 'block';
+      return;
+    }
+    articles.forEach(function(art){
+      var card = document.createElement('a');
+      card.className = 'blog-card reveal';
+      card.href = 'blog-post.html?s=' + encodeURIComponent(art.slug || '');
+
+      var coverHtml = '';
+      if (art.cover && art.cover.url) {
+        var pos = (art.cover.posX != null ? art.cover.posX : 50) + '% ' + (art.cover.posY != null ? art.cover.posY : 50) + '%';
+        if (art.template === 'video') {
+          coverHtml = '<div class="blog-card-cover"><video src="' + escapeAttr(art.cover.url) + '" style="object-position:' + pos + '" muted loop playsinline preload="metadata" autoplay></video></div>';
+        } else {
+          coverHtml = '<div class="blog-card-cover"><img src="' + escapeAttr(art.cover.url) + '" style="object-position:' + pos + '" alt=""></div>';
+        }
+      }
+
+      card.innerHTML = coverHtml +
+        '<div class="blog-card-body">' +
+          '<span class="eyebrow"></span>' +
+          '<h2></h2>' +
+          '<p></p>' +
+          '<span class="arrow-link">Leer más <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg></span>' +
+        '</div>';
+      card.querySelector('.eyebrow').textContent = art.tag || '';
+      card.querySelector('h2').innerHTML = art.title || '';
+      card.querySelector('p').innerHTML = art.excerpt || '';
+
+      grid.appendChild(card);
+      io.observe(card);
+    });
+  }).catch(function(){});
+</script>

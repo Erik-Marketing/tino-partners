@@ -75,9 +75,38 @@ const DEFAULT_CONTENT = {
     heading: 'Lo que estamos pensando.',
     texto: 'Estamos armando el blog de Tino Partners. Cuando esté listo, vas a encontrar acá notas sobre estrategia, producción y tecnología aplicada a marcas — por ahora, seguinos en Instagram para lo último.',
     articles: [
-      { tag: 'Estrategia', title: 'Cómo armar un plan de medios que no dependa de un solo canal', excerpt: 'Ideas para repartir presupuesto entre canales sin perder foco en lo que realmente mueve el negocio.' },
-      { tag: 'Producción', title: 'Contenido que se adapta a cada plataforma (no al revés)', excerpt: 'Por qué el mismo video no debería verse igual en Instagram, YouTube y TikTok.' },
-      { tag: 'Tecnología', title: 'Automatizar reportes sin perder el criterio humano', excerpt: 'Dónde conviene meter IA en la medición de una campaña, y dónde todavía no.' },
+      {
+        slug: 'como-armar-un-plan-de-medios-que-no-dependa-de-un-solo-canal',
+        template: 'estandar',
+        tag: 'Estrategia',
+        title: 'Cómo armar un plan de medios que no dependa de un solo canal',
+        excerpt: 'Ideas para repartir presupuesto entre canales sin perder foco en lo que realmente mueve el negocio.',
+        cover: { url: 'https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/collage-02.jpg', posX: 50, posY: 50 },
+        body: '<p>Repartir el presupuesto de medios entre varios canales suena a sentido común, pero en la práctica muchas marcas terminan concentrando todo en el canal que mejor conocen — no necesariamente el que mejor rinde.</p><p>Antes de sumar un canal nuevo conviene tener claro qué rol cumple cada uno: hay canales de descubrimiento, canales de conversión y canales de retención, y no todos se miden con la misma vara. Mezclar esos objetivos en un solo reporte es la forma más rápida de tomar una mala decisión con buenos datos.</p><p>La regla que nos funciona: ningún canal debería quedarse con más del 60% del presupuesto hasta tener al menos dos ciclos completos de datos que confirmen que ahí es donde está el negocio.</p>',
+        gallery: [],
+      },
+      {
+        slug: 'contenido-que-se-adapta-a-cada-plataforma',
+        template: 'video',
+        tag: 'Producción',
+        title: 'Contenido que se adapta a cada plataforma (no al revés)',
+        excerpt: 'Por qué el mismo video no debería verse igual en Instagram, YouTube y TikTok.',
+        cover: { url: 'https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/trailer-vertical.mp4', posX: 50, posY: 50 },
+        body: '<p>El error más común que vemos: grabar un solo video "para redes" y despachar el mismo corte a todas las plataformas. Cada una tiene su propio comportamiento de consumo — no es solo el formato (vertical vs. horizontal), es el ritmo, el tiempo que tenés antes de perder al espectador, y hasta si el sonido arranca activado o no.</p><p>Producir pensando en esto no significa grabar tres veces lo mismo. Significa planificar el rodaje con suficiente material crudo (b-roll, planos alternativos, tomas más largas) para poder editar versiones realmente distintas después, en vez de recortar una sola pieza a la fuerza.</p>',
+        gallery: [],
+      },
+      {
+        slug: 'automatizar-reportes-sin-perder-el-criterio-humano',
+        template: 'galeria',
+        tag: 'Tecnología',
+        title: 'Automatizar reportes sin perder el criterio humano',
+        excerpt: 'Dónde conviene meter IA en la medición de una campaña, y dónde todavía no.',
+        cover: { url: 'https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/collage-02.jpg', posX: 50, posY: 50 },
+        body: '<p>La automatización de reportes ahorra horas de trabajo repetitivo: juntar datos de varias plataformas, armar el mismo gráfico todas las semanas, redactar el resumen ejecutivo. Ahí la IA suma, y suma mucho.</p><p>Donde todavía no reemplaza a una persona es en la lectura del contexto: por qué bajó una métrica, si fue la campaña o el mercado, qué vale la pena escalar. Automatizamos la parte mecánica del reporte para que el tiempo humano se vaya a esa segunda parte, no a copiar números de una planilla a otra.</p>',
+        gallery: [
+          { url: 'https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/collage-02.jpg', posX: 50, posY: 50 },
+        ],
+      },
     ],
   },
   footer: {
@@ -94,6 +123,40 @@ function readCookie(req, name) {
   return match ? decodeURIComponent(match.slice(name.length + 1)) : null;
 }
 
+function slugify(text) {
+  const plain = String(text || '').replace(/<[^>]+>/g, '');
+  return (
+    plain
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/\p{Mark}/gu, '')
+      .replace(/[^a-z0-9\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-')
+      .slice(0, 60) || 'articulo'
+  );
+}
+
+// fills in fields added after some articles were already saved (slug,
+// template, cover, body, gallery), so old data keeps working on the new
+// blog pages without needing a manual re-save first.
+function normalizeArticles(articles) {
+  if (!Array.isArray(articles)) return [];
+  const usedSlugs = new Set();
+  return articles.map((article) => {
+    const next = Object.assign({ template: 'estandar', cover: null, body: '', gallery: [] }, article);
+    if (!next.slug) {
+      let base = slugify(next.title);
+      let slug = base;
+      let n = 2;
+      while (usedSlugs.has(slug)) { slug = `${base}-${n}`; n += 1; }
+      next.slug = slug;
+    }
+    usedSlugs.add(next.slug);
+    return next;
+  });
+}
+
 module.exports = async function handler(req, res) {
   if (req.method === 'GET') {
     try {
@@ -105,7 +168,11 @@ module.exports = async function handler(req, res) {
       if (!result || result.statusCode !== 200) return res.status(200).json(DEFAULT_CONTENT);
       const text = await new Response(result.stream).text();
       const saved = JSON.parse(text);
-      return res.status(200).json(Object.assign({}, DEFAULT_CONTENT, saved));
+      const merged = Object.assign({}, DEFAULT_CONTENT, saved);
+      merged.blog = Object.assign({}, DEFAULT_CONTENT.blog, saved.blog, {
+        articles: normalizeArticles((saved.blog && saved.blog.articles) || DEFAULT_CONTENT.blog.articles),
+      });
+      return res.status(200).json(merged);
     } catch (err) {
       return res.status(200).json(DEFAULT_CONTENT);
     }
