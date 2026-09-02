@@ -21,7 +21,14 @@ const DEFAULT_CONTENT = {
     headingLine1: 'Marcas con las que',
     headingLine2: 'hemos trabajado.',
     nota: 'Venimos haciendo esto hace años y ya pasaron muchas marcas por nuestras manos — lo que está en construcción es la web, no la experiencia. Arrancamos a subir ese trabajo acá, empezando por NOBRAND, y esta sección se va a ir llenando con cada proyecto que sumamos.',
-    video: { url: 'https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/trailer-vertical.mp4', posX: 50, posY: 50 },
+    tiles: [
+      {
+        title: 'NOBRAND', status: 'Cliente', category: 'Producción', link: 'nobrand.html',
+        video: { url: 'https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/trailer-vertical.mp4', posX: 50, posY: 50 },
+      },
+      { title: 'Campaña en curso', status: 'Próximamente', category: 'Estrategia', video: null },
+      { title: 'Desarrollo en curso', status: 'Próximamente', category: 'Tecnología', video: null },
+    ],
   },
   diferenciales: {
     eyebrow: 'Lo que nos hace diferentes',
@@ -67,6 +74,11 @@ const DEFAULT_CONTENT = {
   blog: {
     heading: 'Lo que estamos pensando.',
     texto: 'Estamos armando el blog de Tino Partners. Cuando esté listo, vas a encontrar acá notas sobre estrategia, producción y tecnología aplicada a marcas — por ahora, seguinos en Instagram para lo último.',
+    articles: [
+      { tag: 'Estrategia', title: 'Cómo armar un plan de medios que no dependa de un solo canal', excerpt: 'Ideas para repartir presupuesto entre canales sin perder foco en lo que realmente mueve el negocio.' },
+      { tag: 'Producción', title: 'Contenido que se adapta a cada plataforma (no al revés)', excerpt: 'Por qué el mismo video no debería verse igual en Instagram, YouTube y TikTok.' },
+      { tag: 'Tecnología', title: 'Automatizar reportes sin perder el criterio humano', excerpt: 'Dónde conviene meter IA en la medición de una campaña, y dónde todavía no.' },
+    ],
   },
   footer: {
     email: 'hola@tinopartners.com',

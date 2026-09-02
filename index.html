@@ -307,6 +307,18 @@
     border:1px dashed var(--line-strong); border-radius:var(--radius); padding:clamp(36px,6vw,56px);
     text-align:center; color:var(--ink-soft);
   }
+  .blog-grid{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:18px; margin-top:22px;
+  }
+  .blog-grid:empty{ display:none; margin-top:0; }
+  .blog-card{
+    background:var(--paper-flat); border:1px solid var(--line); border-radius:var(--radius);
+    padding:22px; display:flex; flex-direction:column; gap:10px; box-shadow:var(--shadow);
+  }
+  .blog-card .eyebrow{ color:var(--v-500); }
+  .blog-card h3{ font-family:'Big Shoulders Display',sans-serif; font-weight:800; font-size:1.2rem; text-transform:uppercase; margin:0; line-height:1.15; }
+  .blog-card p{ color:var(--ink-soft); font-size:.9rem; line-height:1.55; margin:0; }
+  .blog-card .example-flag{ margin-top:auto; align-self:flex-start; }
 
   /* ---- contacto ---- */
   .contact{
@@ -501,7 +513,7 @@
           <a href="portfolio.html" class="btn-ghost">Ver portfolio</a>
         </div>
       </div>
-      <div class="work-grid">
+      <div class="work-grid" id="cms-work-grid">
         <a class="work-tile has-video reveal" href="nobrand.html">
           <div class="video-frame" data-video>
             <video id="cms-proy-video" src="https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/trailer-vertical.mp4" muted loop playsinline preload="metadata"></video>
@@ -669,6 +681,7 @@
       <div class="blog-empty reveal">
         <p id="cms-blog-texto">Estamos armando el blog de Tino Partners. Cuando esté listo, vas a encontrar acá notas sobre estrategia, producción y tecnología aplicada a marcas — por ahora, seguinos en Instagram para lo último.</p>
       </div>
+      <div class="blog-grid" id="cms-blog-articles"></div>
     </div>
   </section>
 
@@ -883,7 +896,7 @@
     });
   }, { threshold: .4 });
 
-  document.querySelectorAll('[data-video]').forEach(function(frame){
+  function wireVideoFrame(frame){
     var video = frame.querySelector('video');
     var muteBtn = frame.querySelector('.v-mute');
     var expandBtn = frame.querySelector('.v-expand');
@@ -905,13 +918,18 @@
       });
     }
     videoVisibility.observe(frame);
-  });
+  }
+
+  document.querySelectorAll('[data-video]').forEach(wireVideoFrame);
 
   // load editable content from the admin panel (falls back to the text
-  // already in the HTML above if the request fails or a field is unset)
+  // already in the HTML above if the request fails or a field is unset).
+  // Rich-text fields (edited with the admin's bold/underline/color/size
+  // toolbar) are applied as HTML; plain fields as text.
   fetch('/api/content').then(function(r){ return r.ok ? r.json() : null; }).then(function(c){
     if (!c) return;
     function setText(id, val){ var el = document.getElementById(id); if (el && val != null && val !== '') el.textContent = val; }
+    function setHtml(id, val){ var el = document.getElementById(id); if (el && val != null && val !== '') el.innerHTML = val; }
     function setTags(id, csv){
       var el = document.getElementById(id);
       if (!el || !csv) return;
@@ -920,8 +938,7 @@
       el.innerHTML = '';
       tags.forEach(function(t){ var span = document.createElement('span'); span.textContent = t; el.appendChild(span); });
     }
-    function setMedia(id, media){
-      var el = document.getElementById(id);
+    function setMedia(el, media){
       if (!el || !media) return;
       if (media.url && el.getAttribute('src') !== media.url) {
         el.src = media.url;
@@ -931,58 +948,122 @@
       var y = (media.posY != null ? media.posY : 50);
       el.style.objectPosition = x + '% ' + y + '%';
     }
+    var VIDEO_CONTROLS_HTML =
+      '<div class="video-controls">' +
+        '<button class="v-btn v-mute" type="button" aria-label="Activar sonido">' +
+          '<svg class="icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>' +
+          '<svg class="icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>' +
+        '</button>' +
+        '<button class="v-btn v-expand" type="button" aria-label="Ampliar video">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>' +
+        '</button>' +
+      '</div>';
+
+    function renderWorkGrid(tiles){
+      var grid = document.getElementById('cms-work-grid');
+      if (!grid || !tiles || !tiles.length) return;
+      grid.innerHTML = '';
+      tiles.forEach(function(tile){
+        var hasVideo = tile.video && tile.video.url;
+        var el = document.createElement(hasVideo ? 'a' : 'div');
+        el.className = 'work-tile reveal' + (hasVideo ? ' has-video' : '');
+        if (hasVideo) el.href = tile.link || '#';
+
+        if (hasVideo) {
+          el.innerHTML =
+            '<div class="video-frame" data-video><video muted loop playsinline preload="metadata"></video>' + VIDEO_CONTROLS_HTML + '</div>' +
+            '<div class="tile-overlay">' +
+              '<span class="wt-status"></span>' +
+              '<div><span class="eyebrow" style="color:rgba(255,255,255,.7)"></span><div class="wt-title"></div></div>' +
+            '</div>';
+          el.querySelector('.wt-status').textContent = tile.status || '';
+          el.querySelector('.eyebrow').textContent = tile.category || '';
+          el.querySelector('.wt-title').textContent = tile.title || '';
+          setMedia(el.querySelector('video'), tile.video);
+          wireVideoFrame(el.querySelector('.video-frame'));
+        } else {
+          var eyebrow = document.createElement('span'); eyebrow.className = 'eyebrow'; eyebrow.textContent = tile.category || '';
+          var status = document.createElement('span'); status.className = 'wt-status'; status.textContent = tile.status || '';
+          var title = document.createElement('span'); title.className = 'wt-title'; title.textContent = tile.title || '';
+          el.appendChild(eyebrow); el.appendChild(status); el.appendChild(title);
+        }
+        grid.appendChild(el);
+        io.observe(el);
+      });
+    }
+
+    function renderBlogArticles(articles){
+      var grid = document.getElementById('cms-blog-articles');
+      if (!grid || !articles || !articles.length) return;
+      grid.innerHTML = '';
+      articles.forEach(function(art){
+        var card = document.createElement('div');
+        card.className = 'blog-card reveal';
+        var tag = document.createElement('span'); tag.className = 'eyebrow'; tag.textContent = art.tag || '';
+        var title = document.createElement('h3');
+        var excerpt = document.createElement('p');
+        var flag = document.createElement('span'); flag.className = 'example-flag'; flag.textContent = 'Ejemplo';
+        card.appendChild(tag); card.appendChild(title); card.appendChild(excerpt); card.appendChild(flag);
+        if (art.title) title.innerHTML = art.title;
+        if (art.excerpt) excerpt.innerHTML = art.excerpt;
+        grid.appendChild(card);
+        io.observe(card);
+      });
+    }
 
     if (c.hero) {
-      setText('cms-hero-eyebrow', c.hero.eyebrow);
-      setText('cms-hero-pre', c.hero.headlinePre);
-      setText('cms-hero-em', c.hero.headlineEm);
-      setText('cms-hero-post', c.hero.headlinePost);
-      setText('cms-hero-lede', c.hero.lede);
-      setText('cms-hero-cta', c.hero.ctaText);
-      setMedia('cms-hero-img', c.hero.image);
+      setHtml('cms-hero-eyebrow', c.hero.eyebrow);
+      setHtml('cms-hero-pre', c.hero.headlinePre);
+      setHtml('cms-hero-em', c.hero.headlineEm);
+      setHtml('cms-hero-post', c.hero.headlinePost);
+      setHtml('cms-hero-lede', c.hero.lede);
+      setHtml('cms-hero-cta', c.hero.ctaText);
+      setMedia(document.getElementById('cms-hero-img'), c.hero.image);
     }
     if (c.proyectos) {
-      setText('cms-proy-eyebrow', c.proyectos.eyebrow);
-      setText('cms-proy-h1', c.proyectos.headingLine1);
-      setText('cms-proy-h2', c.proyectos.headingLine2);
-      setText('cms-proy-nota', c.proyectos.nota);
-      setMedia('cms-proy-video', c.proyectos.video);
+      setHtml('cms-proy-eyebrow', c.proyectos.eyebrow);
+      setHtml('cms-proy-h1', c.proyectos.headingLine1);
+      setHtml('cms-proy-h2', c.proyectos.headingLine2);
+      setHtml('cms-proy-nota', c.proyectos.nota);
+      renderWorkGrid(c.proyectos.tiles);
     }
     if (c.diferenciales) {
-      setText('cms-dif-eyebrow', c.diferenciales.eyebrow);
-      setText('cms-dif-heading', c.diferenciales.heading);
-      setText('cms-dif-texto', c.diferenciales.texto);
-      setMedia('cms-dif-video', c.diferenciales.video);
+      setHtml('cms-dif-eyebrow', c.diferenciales.eyebrow);
+      setHtml('cms-dif-heading', c.diferenciales.heading);
+      setHtml('cms-dif-texto', c.diferenciales.texto);
+      setMedia(document.getElementById('cms-dif-video'), c.diferenciales.video);
     }
     if (c.stats) {
       (c.stats.items || []).forEach(function(item, i){
-        setText('cms-stat-num-' + i, item.num);
-        setText('cms-stat-label-' + i, item.label);
+        setHtml('cms-stat-num-' + i, item.num);
+        setHtml('cms-stat-label-' + i, item.label);
       });
-      setText('cms-stats-flag', c.stats.flag);
+      setHtml('cms-stats-flag', c.stats.flag);
     }
     if (c.quehacemos) {
       (c.quehacemos.items || []).forEach(function(item, i){
-        setText('cms-qh-title-' + i, item.title);
-        setText('cms-qh-texto-' + i, item.texto);
+        setHtml('cms-qh-title-' + i, item.title);
+        setHtml('cms-qh-texto-' + i, item.texto);
         setTags('cms-qh-tags-' + i, item.tags);
       });
     }
     if (c.marcas) setTags('cms-brands-row', c.marcas.items);
     if (c.testimonios) {
-      setText('cms-testi-name', c.testimonios.nombre);
-      setText('cms-testi-role', c.testimonios.rol);
+      setHtml('cms-testi-name', c.testimonios.nombre);
+      setHtml('cms-testi-role', c.testimonios.rol);
       setText('cms-testi-flag', c.testimonios.flag);
       var q = document.getElementById('cms-testi-quote');
-      if (q && c.testimonios.quote) q.textContent = '"' + c.testimonios.quote + '"';
+      if (q && c.testimonios.quote) q.innerHTML = '"' + c.testimonios.quote + '"';
       var avatar = document.getElementById('cms-testi-avatar');
       if (avatar && c.testimonios.nombre) {
-        avatar.textContent = c.testimonios.nombre.trim().split(/\s+/).slice(0, 2).map(function(w){ return w[0]; }).join('').toUpperCase();
+        var plainName = document.createElement('div'); plainName.innerHTML = c.testimonios.nombre;
+        avatar.textContent = (plainName.textContent || '').trim().split(/\s+/).slice(0, 2).map(function(w){ return w[0]; }).join('').toUpperCase();
       }
     }
     if (c.blog) {
-      setText('cms-blog-heading', c.blog.heading);
-      setText('cms-blog-texto', c.blog.texto);
+      setHtml('cms-blog-heading', c.blog.heading);
+      setHtml('cms-blog-texto', c.blog.texto);
+      renderBlogArticles(c.blog.articles);
     }
     if (c.footer) {
       var emailLink = document.getElementById('cms-footer-email-link');

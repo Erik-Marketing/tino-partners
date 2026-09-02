@@ -10,14 +10,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=IBM+Plex+Mono:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#F1E9FB; --ink-soft:#C9B8DE;
-    --paper:#180A2E; --paper-dim:#241340; --paper-flat:#120821;
-    --line: rgba(241,233,251,.14); --line-strong: rgba(241,233,251,.30);
+    --ink:#171221; --ink-soft:#6B6478;
+    --paper:#FFFFFF; --paper-dim:#F6F3FB; --paper-flat:#FFFFFF;
+    --line: rgba(23,18,33,.10); --line-strong: rgba(23,18,33,.20);
     --v-900:#3B1A78; --v-500:#9B5DF6; --pink-500:#EE60C6;
-    --gradient-vivid: linear-gradient(135deg, var(--v-900) 0%, var(--v-500) 55%, var(--pink-500) 100%);
-    --glow: 0 20px 50px -14px rgba(155,93,246,.55);
+    --gradient-vivid: linear-gradient(135deg, var(--v-500) 0%, var(--pink-500) 100%);
+    --glow: 0 20px 50px -14px rgba(155,93,246,.35);
     --radius:14px; --sidebar-w:248px;
-    color-scheme: dark;
+    color-scheme: light;
   }
   *{ box-sizing:border-box; }
   html,body{ height:100%; }
@@ -38,7 +38,7 @@
   }
   .login-card{
     width:100%; max-width:380px; background:var(--paper-dim); border:1px solid var(--line);
-    border-radius:var(--radius); padding:36px 30px; box-shadow:0 24px 60px -28px rgba(0,0,0,.6);
+    border-radius:var(--radius); padding:36px 30px; box-shadow:0 24px 60px -28px rgba(74,49,112,.25);
   }
   .login-brand{ font-family:'Big Shoulders Display',sans-serif; font-weight:800; font-size:1.3rem; text-transform:uppercase; margin-bottom:4px; }
   .login-brand span{ display:block; font-family:'IBM Plex Mono',monospace; font-size:.62rem; font-weight:600; letter-spacing:.2em; color:var(--ink-soft); text-transform:uppercase; margin-top:2px; }
@@ -82,6 +82,21 @@
   }
   .sb-link svg{ width:16px; height:16px; flex:none; }
   .sb-link.active{ background:rgba(155,93,246,.16); color:var(--ink); }
+  .sb-group-toggle{
+    background:none; border:none; width:100%; cursor:pointer; text-align:left;
+    position:relative;
+  }
+  .sb-chevron{ margin-left:auto; transition:transform .2s ease; flex:none; }
+  .sb-group-toggle.is-open .sb-chevron{ transform:rotate(180deg); }
+  .sb-subnav{ display:none; flex-direction:column; gap:2px; padding-left:14px; margin:2px 0 6px; border-left:1px solid var(--line); margin-left:18px; }
+  .sb-subnav.is-open{ display:flex; }
+  .sb-sublink{
+    display:block; text-decoration:none; color:var(--ink-soft); cursor:pointer;
+    font-family:'IBM Plex Mono',monospace; font-size:.72rem; font-weight:600; letter-spacing:.03em; text-transform:uppercase;
+    padding:9px 10px; border-radius:8px;
+  }
+  .sb-sublink:hover{ color:var(--ink); }
+  .sb-sublink.active{ background:rgba(155,93,246,.16); color:var(--ink); }
   .sb-logout{
     display:flex; align-items:center; gap:10px; background:none; border:1px solid var(--line-strong); color:var(--ink-soft);
     font-family:'IBM Plex Mono',monospace; font-size:.75rem; font-weight:600; letter-spacing:.04em; text-transform:uppercase;
@@ -160,6 +175,45 @@
   .cms-subgroup{ border:1px solid var(--line); border-radius:10px; padding:14px; display:flex; flex-direction:column; gap:12px; }
   .cms-subgroup + .cms-subgroup{ margin-top:2px; }
   .cms-subgroup-title{ font-family:'IBM Plex Mono',monospace; font-size:.72rem; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em; }
+
+  /* rich text field: small toolbar + contenteditable */
+  .rt-toolbar{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-bottom:7px; }
+  .rt-btn{
+    background:var(--paper-flat); border:1px solid var(--line-strong); color:var(--ink);
+    width:30px; height:30px; border-radius:7px; cursor:pointer; font-size:.82rem; font-weight:700;
+    display:inline-flex; align-items:center; justify-content:center;
+  }
+  .rt-btn.is-underline{ text-decoration:underline; }
+  .rt-btn:hover{ border-color:var(--ink-soft); }
+  .rt-size-select{
+    background:var(--paper-flat); border:1px solid var(--line-strong); color:var(--ink);
+    height:30px; border-radius:7px; font-size:.72rem; font-family:'IBM Plex Mono',monospace; padding:0 6px;
+  }
+  .rt-color{
+    width:22px; height:22px; border-radius:50%; border:2px solid var(--line-strong); cursor:pointer; padding:0;
+  }
+  .rt-color.is-clear{ background:var(--paper-flat); position:relative; }
+  .rt-color.is-clear::after{ content:''; position:absolute; inset:4px; background:var(--pink-500); transform:rotate(45deg); width:2px; left:50%; margin-left:-1px; }
+  .rt-editable{
+    width:100%; min-height:44px; background:var(--paper-flat); border:1px solid var(--line-strong); color:var(--ink);
+    padding:11px 13px; border-radius:9px; font-size:.92rem; font-family:inherit; line-height:1.5;
+  }
+  .rt-editable.is-multiline{ min-height:78px; }
+  .rt-editable:focus{ outline:2px solid var(--pink-500); outline-offset:1px; }
+
+  .cms-list-item{ position:relative; }
+  .cms-remove-btn{
+    position:absolute; top:12px; right:12px; background:none; border:1px solid var(--line-strong); color:var(--ink-soft);
+    width:26px; height:26px; border-radius:50%; cursor:pointer; line-height:1; font-size:.9rem;
+  }
+  .cms-remove-btn:hover{ color:var(--pink-500); border-color:var(--pink-500); }
+  .cms-add-btn{
+    align-self:flex-start; background:none; border:1px dashed var(--line-strong); color:var(--ink-soft);
+    font-family:'IBM Plex Mono',monospace; font-size:.75rem; letter-spacing:.04em; text-transform:uppercase;
+    padding:11px 16px; border-radius:9px; cursor:pointer;
+  }
+  .cms-add-btn:hover{ color:var(--ink); border-color:var(--ink-soft); }
+  .example-note{ font-size:.78rem; color:var(--ink-soft); background:var(--paper-flat); border:1px dashed var(--line-strong); border-radius:9px; padding:10px 12px; }
 
   .cms-media-preview{
     position:relative; width:100%; max-width:320px; border-radius:10px; overflow:hidden;
@@ -241,10 +295,12 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
           Consultas
         </a>
-        <a class="sb-link" href="#home-cms" data-view="home-cms">
+        <button class="sb-link sb-group-toggle" type="button" id="sbHomeToggle">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
           Home
-        </a>
+          <svg class="sb-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="sb-subnav" id="sbHomeSubnav"></div>
       </div>
       <button class="sb-logout" id="logoutBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -273,10 +329,14 @@
 
         <div id="view-home-cms" style="display:none;">
           <div class="main-head">
-            <h2>Home</h2>
+            <h2 id="homeSectionTitle">Home</h2>
             <p>Editá los textos, fotos y videos de la página principal. Los cambios se ven en el sitio apenas los guardás.</p>
           </div>
           <div id="homeCmsBody"><p class="state-msg">Cargando...</p></div>
+          <div class="cms-savebar" id="cmsSavebar" style="display:none;">
+            <button class="btn-primary" type="button" id="cmsSaveBtn">Guardar cambios</button>
+            <span class="cms-save-status" id="cmsSaveStatus"></span>
+          </div>
         </div>
       </main>
     </div>
@@ -318,7 +378,6 @@
     viewLinks.forEach(function(a){ a.classList.toggle('active', a.dataset.view === name); });
     if (topbarTitle) topbarTitle.textContent = name === 'home-cms' ? 'Home' : 'Consultas';
     closeSidebar();
-    if (name === 'home-cms' && !homeCmsLoaded) { homeCmsLoaded = true; loadHomeContent(); }
   }
   viewLinks.forEach(function(a){
     a.addEventListener('click', function(e){ e.preventDefault(); showView(a.dataset.view); });
@@ -422,6 +481,7 @@
   // ---------- Home CMS ----------
   var homeContent = null;
   var homeCmsBody = document.getElementById('homeCmsBody');
+  var activeSectionKey = 'hero';
 
   function getPath(obj, path){
     return path.split('.').reduce(function(o, k){ return (o == null) ? o : o[k]; }, obj);
@@ -443,13 +503,7 @@
         { path: 'ctaText', label: 'Texto del botón (la flecha → se agrega sola)', type: 'text' },
         { path: 'image', label: 'Foto del hero', type: 'image' }
     ]},
-    { key: 'proyectos', title: 'Nuestros proyectos', fields: [
-        { path: 'eyebrow', label: 'Etiqueta de la sección', type: 'text' },
-        { path: 'headingLine1', label: 'Título — línea 1', type: 'text' },
-        { path: 'headingLine2', label: 'Título — línea 2', type: 'text' },
-        { path: 'video', label: 'Video del proyecto destacado', type: 'video', portrait: true },
-        { path: 'nota', label: 'Texto debajo de la grilla', type: 'textarea' }
-    ]},
+    { key: 'proyectos', title: 'Nuestros proyectos', custom: 'proyectos' },
     { key: 'diferenciales', title: 'Lo que nos hace diferentes', fields: [
         { path: 'eyebrow', label: 'Etiqueta de la sección', type: 'text' },
         { path: 'heading', label: 'Título', type: 'text' },
@@ -459,7 +513,7 @@
     { key: 'stats', title: 'Números', custom: 'stats' },
     { key: 'quehacemos', title: 'Qué hacemos', custom: 'quehacemos' },
     { key: 'marcas', title: 'Marcas', fields: [
-        { path: 'items', label: 'Nombres separados por coma', type: 'text' }
+        { path: 'items', label: 'Nombres separados por coma', type: 'text', plain: true }
     ]},
     { key: 'testimonios', title: 'Testimonios', fields: [
         { path: 'quote', label: 'Cita (sin comillas, se agregan solas)', type: 'textarea' },
@@ -467,20 +521,17 @@
         { path: 'rol', label: 'Rol / cargo', type: 'text' },
         { path: 'flag', label: 'Etiqueta (ej: "Ejemplo")', type: 'text' }
     ]},
-    { key: 'blog', title: 'Contenido interesante (blog)', fields: [
-        { path: 'heading', label: 'Título', type: 'text' },
-        { path: 'texto', label: 'Texto', type: 'textarea' }
-    ]},
+    { key: 'blog', title: 'Contenido interesante (blog)', custom: 'blog' },
     { key: 'footer', title: 'Datos de contacto', fields: [
-        { path: 'email', label: 'Email', type: 'text' },
-        { path: 'instagram', label: 'Instagram (con @)', type: 'text' },
-        { path: 'ubicacion', label: 'Ubicación', type: 'text' }
+        { path: 'email', label: 'Email', type: 'text', plain: true },
+        { path: 'instagram', label: 'Instagram (con @)', type: 'text', plain: true },
+        { path: 'ubicacion', label: 'Ubicación', type: 'text', plain: true }
     ]}
   ];
 
   function makeLabel(text){ var l = document.createElement('label'); l.textContent = text; return l; }
 
-  function renderTextField(field, sectionKey){
+  function renderPlainField(field, sectionKey){
     var wrap = document.createElement('div');
     wrap.className = 'cms-field';
     wrap.appendChild(makeLabel(field.label));
@@ -490,6 +541,116 @@
     input.addEventListener('input', function(){ setPath(homeContent, sectionKey + '.' + field.path, input.value); });
     wrap.appendChild(input);
     return wrap;
+  }
+
+  // ---------- rich text field: bold / underline / size / color on any selection ----------
+  var RICH_COLORS = ['#171221', '#9B5DF6', '#EE60C6', '#6B6478'];
+
+  function wrapSelectionStyle(editable, styleText){
+    var sel = window.getSelection();
+    if (!sel.rangeCount || sel.isCollapsed || !editable.contains(sel.anchorNode)) return;
+    var range = sel.getRangeAt(0);
+    var span = document.createElement('span');
+    span.setAttribute('style', styleText);
+    try { range.surroundContents(span); }
+    catch (e) { var frag = range.extractContents(); span.appendChild(frag); range.insertNode(span); }
+    sel.removeAllRanges();
+  }
+  function clearSelectionStyle(editable){
+    var sel = window.getSelection();
+    if (!sel.rangeCount || sel.isCollapsed || !editable.contains(sel.anchorNode)) return;
+    var range = sel.getRangeAt(0);
+    var span = document.createElement('span');
+    try { range.surroundContents(span); }
+    catch (e) { var frag = range.extractContents(); span.appendChild(frag); range.insertNode(span); }
+    var text = document.createTextNode(span.textContent);
+    span.parentNode.replaceChild(text, span);
+    sel.removeAllRanges();
+  }
+
+  function renderRichField(field, getVal, setVal){
+    var wrap = document.createElement('div');
+    wrap.className = 'cms-field';
+    wrap.appendChild(makeLabel(field.label));
+
+    var toolbar = document.createElement('div');
+    toolbar.className = 'rt-toolbar';
+
+    var editable = document.createElement('div');
+    editable.className = 'rt-editable' + (field.type === 'textarea' ? ' is-multiline' : '');
+    editable.contentEditable = 'true';
+    editable.innerHTML = getVal() || '';
+    editable.addEventListener('input', function(){ setVal(editable.innerHTML); });
+
+    function toolBtn(label, title, extraClass, onClick){
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'rt-btn' + (extraClass ? ' ' + extraClass : ''); b.textContent = label; b.title = title;
+      b.addEventListener('mousedown', function(e){ e.preventDefault(); }); // keeps the text selection alive
+      b.addEventListener('click', function(){ editable.focus(); onClick(); editable.dispatchEvent(new Event('input')); });
+      return b;
+    }
+    toolbar.appendChild(toolBtn('B', 'Negrita', null, function(){ document.execCommand('bold'); }));
+    toolbar.appendChild(toolBtn('U', 'Subrayado', 'is-underline', function(){ document.execCommand('underline'); }));
+
+    // native <select>s steal focus/selection before "change" fires, so the
+    // last real selection inside `editable` is cached and restored first.
+    var lastRange = null;
+    ['mouseup', 'keyup'].forEach(function(evt){
+      editable.addEventListener(evt, function(){
+        var sel = window.getSelection();
+        if (sel.rangeCount && !sel.isCollapsed && editable.contains(sel.anchorNode)) lastRange = sel.getRangeAt(0).cloneRange();
+      });
+    });
+    function restoreRange(){
+      if (!lastRange) return false;
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(lastRange);
+      return true;
+    }
+
+    var sizeSelect = document.createElement('select');
+    sizeSelect.className = 'rt-size-select';
+    [['', 'Tamaño'], ['0.8em', 'Chico'], ['1em', 'Normal'], ['1.35em', 'Grande'], ['1.8em', 'Muy grande']].forEach(function(opt){
+      var o = document.createElement('option'); o.value = opt[0]; o.textContent = opt[1]; sizeSelect.appendChild(o);
+    });
+    sizeSelect.addEventListener('change', function(){
+      if (sizeSelect.value && restoreRange()) wrapSelectionStyle(editable, 'font-size:' + sizeSelect.value);
+      sizeSelect.value = '';
+      editable.dispatchEvent(new Event('input'));
+    });
+    toolbar.appendChild(sizeSelect);
+
+    RICH_COLORS.forEach(function(c){
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'rt-color'; b.style.background = c; b.title = 'Pintar de este color';
+      b.addEventListener('mousedown', function(e){ e.preventDefault(); });
+      b.addEventListener('click', function(){ editable.focus(); wrapSelectionStyle(editable, 'color:' + c); editable.dispatchEvent(new Event('input')); });
+      toolbar.appendChild(b);
+    });
+    var clearBtn = document.createElement('button');
+    clearBtn.type = 'button'; clearBtn.className = 'rt-color is-clear'; clearBtn.title = 'Quitar color/formato de la selección';
+    clearBtn.addEventListener('mousedown', function(e){ e.preventDefault(); });
+    clearBtn.addEventListener('click', function(){ editable.focus(); clearSelectionStyle(editable); editable.dispatchEvent(new Event('input')); });
+    toolbar.appendChild(clearBtn);
+
+    wrap.appendChild(toolbar);
+    wrap.appendChild(editable);
+    return wrap;
+  }
+
+  function renderField(field, sectionKey){
+    if (field.type === 'image' || field.type === 'video') {
+      var mediaObj = getPath(homeContent, sectionKey + '.' + field.path) || { url: '', posX: 50, posY: 50 };
+      setPath(homeContent, sectionKey + '.' + field.path, mediaObj);
+      return renderMediaField(mediaObj, { type: field.type, portrait: field.portrait, label: field.label });
+    }
+    if (field.plain) return renderPlainField(field, sectionKey);
+    return renderRichField(
+      field,
+      function(){ return getPath(homeContent, sectionKey + '.' + field.path); },
+      function(v){ setPath(homeContent, sectionKey + '.' + field.path, v); }
+    );
   }
 
   // ---------- media field: preview + drag-to-reposition + upload/URL ----------
@@ -519,20 +680,18 @@
     });
   }
 
-  function renderMediaField(field, sectionKey){
-    var mediaObj = getPath(homeContent, sectionKey + '.' + field.path) || { url: '', posX: 50, posY: 50 };
-    setPath(homeContent, sectionKey + '.' + field.path, mediaObj);
+  function renderMediaField(mediaObj, opts){
     if (mediaObj.posX == null) mediaObj.posX = 50;
     if (mediaObj.posY == null) mediaObj.posY = 50;
 
     var wrap = document.createElement('div');
     wrap.className = 'cms-field';
-    wrap.appendChild(makeLabel(field.label));
+    if (opts.label) wrap.appendChild(makeLabel(opts.label));
 
     var preview = document.createElement('div');
-    preview.className = 'cms-media-preview' + (field.portrait ? ' is-portrait' : '');
-    var mediaEl = document.createElement(field.type === 'video' ? 'video' : 'img');
-    if (field.type === 'video') { mediaEl.muted = true; mediaEl.loop = true; mediaEl.playsInline = true; mediaEl.autoplay = true; }
+    preview.className = 'cms-media-preview' + (opts.portrait ? ' is-portrait' : '');
+    var mediaEl = document.createElement(opts.type === 'video' ? 'video' : 'img');
+    if (opts.type === 'video') { mediaEl.muted = true; mediaEl.loop = true; mediaEl.playsInline = true; mediaEl.autoplay = true; }
     if (mediaObj.url) mediaEl.src = mediaObj.url;
     mediaEl.style.objectPosition = mediaObj.posX + '% ' + mediaObj.posY + '%';
     preview.appendChild(mediaEl);
@@ -566,10 +725,10 @@
     row.className = 'cms-media-row';
     var fileBtn = document.createElement('label');
     fileBtn.className = 'cms-file-btn';
-    fileBtn.textContent = field.type === 'video' ? 'Subir video' : 'Subir foto';
+    fileBtn.textContent = opts.type === 'video' ? 'Subir video' : 'Subir foto';
     var fileInput = document.createElement('input');
     fileInput.type = 'file';
-    fileInput.accept = field.type === 'video' ? 'video/*' : 'image/*';
+    fileInput.accept = opts.type === 'video' ? 'video/*' : 'image/*';
     fileBtn.appendChild(fileInput);
     row.appendChild(fileBtn);
 
@@ -598,7 +757,7 @@
       status.textContent = 'Subiendo...';
 
       var prep = Promise.resolve(file);
-      if (field.type !== 'video' && file.size > 700 * 1024) {
+      if (opts.type !== 'video' && file.size > 700 * 1024) {
         prep = compressImage(file, 1600, 0.82);
       }
 
@@ -610,7 +769,7 @@
           return fetch('/api/upload-media', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filename: file.name, contentType: field.type === 'video' ? file.type : 'image/jpeg', dataBase64: base64 })
+            body: JSON.stringify({ filename: file.name, contentType: opts.type === 'video' ? file.type : 'image/jpeg', dataBase64: base64 })
           });
         });
       })
@@ -642,26 +801,11 @@
       title.className = 'cms-subgroup-title';
       title.textContent = 'Número ' + (i + 1);
       group.appendChild(title);
-
-      var numField = document.createElement('div');
-      numField.className = 'cms-field';
-      numField.appendChild(makeLabel('Número (ej: 3+, 100%)'));
-      var numInput = document.createElement('input'); numInput.type = 'text'; numInput.value = item.num || '';
-      numInput.addEventListener('input', function(){ item.num = numInput.value; });
-      numField.appendChild(numInput);
-      group.appendChild(numField);
-
-      var labelField = document.createElement('div');
-      labelField.className = 'cms-field';
-      labelField.appendChild(makeLabel('Descripción'));
-      var labelInput = document.createElement('input'); labelInput.type = 'text'; labelInput.value = item.label || '';
-      labelInput.addEventListener('input', function(){ item.label = labelInput.value; });
-      labelField.appendChild(labelInput);
-      group.appendChild(labelField);
-
+      group.appendChild(renderRichField({ label: 'Número (ej: 3+, 100%)', type: 'text' }, function(){ return item.num; }, function(v){ item.num = v; }));
+      group.appendChild(renderRichField({ label: 'Descripción', type: 'text' }, function(){ return item.label; }, function(v){ item.label = v; }));
       wrap.appendChild(group);
     });
-    wrap.appendChild(renderTextField({ path: 'flag', label: 'Etiqueta debajo de los números', type: 'text' }, 'stats'));
+    wrap.appendChild(renderField({ path: 'flag', label: 'Etiqueta debajo de los números', type: 'text' }, 'stats'));
     return wrap;
   }
 
@@ -675,86 +819,229 @@
       title.className = 'cms-subgroup-title';
       title.textContent = 'Ítem ' + (i + 1);
       group.appendChild(title);
-
-      [['title', 'Título'], ['texto', 'Descripción'], ['tags', 'Etiquetas separadas por coma']].forEach(function(pair){
-        var f = document.createElement('div');
-        f.className = 'cms-field';
-        f.appendChild(makeLabel(pair[1]));
-        var input = (pair[0] === 'texto') ? document.createElement('textarea') : document.createElement('input');
-        if (pair[0] !== 'texto') input.type = 'text';
-        input.value = item[pair[0]] || '';
-        input.addEventListener('input', function(){ item[pair[0]] = input.value; });
-        f.appendChild(input);
-        group.appendChild(f);
-      });
-
+      group.appendChild(renderRichField({ label: 'Título', type: 'text' }, function(){ return item.title; }, function(v){ item.title = v; }));
+      group.appendChild(renderRichField({ label: 'Descripción', type: 'textarea' }, function(){ return item.texto; }, function(v){ item.texto = v; }));
+      group.appendChild(renderPlainFieldFor({ label: 'Etiquetas separadas por coma', type: 'text' }, function(){ return item.tags; }, function(v){ item.tags = v; }));
       wrap.appendChild(group);
     });
     return wrap;
   }
 
-  function buildHomeCms(){
-    homeCmsBody.innerHTML = '';
-    SECTIONS.forEach(function(section){
-      var details = document.createElement('details');
-      details.className = 'cms-section';
-      var summary = document.createElement('summary');
-      summary.textContent = section.title;
-      details.appendChild(summary);
+  // plain (non-rich) field bound via explicit getter/setter, for array items
+  function renderPlainFieldFor(field, getVal, setVal){
+    var wrap = document.createElement('div');
+    wrap.className = 'cms-field';
+    wrap.appendChild(makeLabel(field.label));
+    var input = document.createElement(field.type === 'textarea' ? 'textarea' : 'input');
+    if (field.type !== 'textarea') input.type = 'text';
+    input.value = getVal() || '';
+    input.addEventListener('input', function(){ setVal(input.value); });
+    wrap.appendChild(input);
+    return wrap;
+  }
 
-      var body;
-      if (section.custom === 'stats') body = renderStatsSection();
-      else if (section.custom === 'quehacemos') body = renderQuehacemosSection();
-      else {
-        body = document.createElement('div');
-        body.className = 'cms-fields';
-        section.fields.forEach(function(field){
-          var el = (field.type === 'image' || field.type === 'video')
-            ? renderMediaField(field, section.key)
-            : renderTextField(field, section.key);
-          body.appendChild(el);
-        });
-      }
-      details.appendChild(body);
-      homeCmsBody.appendChild(details);
+  function renderProyectosSection(){
+    var wrap = document.createElement('div');
+    wrap.className = 'cms-fields';
+    var p = homeContent.proyectos;
+    if (!p.tiles) p.tiles = [];
+
+    wrap.appendChild(renderField({ path: 'eyebrow', label: 'Etiqueta de la sección', type: 'text' }, 'proyectos'));
+    wrap.appendChild(renderField({ path: 'headingLine1', label: 'Título — línea 1', type: 'text' }, 'proyectos'));
+    wrap.appendChild(renderField({ path: 'headingLine2', label: 'Título — línea 2', type: 'text' }, 'proyectos'));
+
+    var tilesWrap = document.createElement('div');
+    tilesWrap.style.cssText = 'display:flex; flex-direction:column; gap:14px; margin:4px 0;';
+
+    function renderTiles(){
+      tilesWrap.innerHTML = '';
+      p.tiles.forEach(function(tile, i){
+        var group = document.createElement('div');
+        group.className = 'cms-subgroup cms-list-item';
+        var title = document.createElement('div');
+        title.className = 'cms-subgroup-title';
+        title.textContent = 'Proyecto ' + (i + 1);
+        group.appendChild(title);
+
+        if (p.tiles.length > 1) {
+          var removeBtn = document.createElement('button');
+          removeBtn.type = 'button'; removeBtn.className = 'cms-remove-btn'; removeBtn.textContent = '×'; removeBtn.title = 'Quitar este proyecto';
+          removeBtn.addEventListener('click', function(){ p.tiles.splice(i, 1); renderTiles(); });
+          group.appendChild(removeBtn);
+        }
+
+        group.appendChild(renderRichField({ label: 'Título', type: 'text' }, function(){ return tile.title; }, function(v){ tile.title = v; }));
+        group.appendChild(renderPlainFieldFor({ label: 'Estado (ej: Cliente, Próximamente)', type: 'text' }, function(){ return tile.status; }, function(v){ tile.status = v; }));
+        group.appendChild(renderPlainFieldFor({ label: 'Categoría (ej: Producción)', type: 'text' }, function(){ return tile.category; }, function(v){ tile.category = v; }));
+
+        if (!tile.video) tile.video = { url: '', posX: 50, posY: 50 };
+        group.appendChild(renderMediaField(tile.video, { type: 'video', portrait: true, label: 'Video (opcional)' }));
+
+        tilesWrap.appendChild(group);
+      });
+    }
+    renderTiles();
+    wrap.appendChild(tilesWrap);
+
+    var addBtn = document.createElement('button');
+    addBtn.type = 'button'; addBtn.className = 'cms-add-btn'; addBtn.textContent = '+ Agregar proyecto';
+    addBtn.addEventListener('click', function(){
+      p.tiles.push({ title: 'Nuevo proyecto', status: 'Próximamente', category: '', video: null });
+      renderTiles();
     });
+    wrap.appendChild(addBtn);
 
-    var savebar = document.createElement('div');
-    savebar.className = 'cms-savebar';
-    var saveBtn = document.createElement('button');
-    saveBtn.className = 'btn-primary'; saveBtn.type = 'button'; saveBtn.textContent = 'Guardar cambios';
-    var saveStatus = document.createElement('span');
-    saveStatus.className = 'cms-save-status';
-    savebar.appendChild(saveBtn);
-    savebar.appendChild(saveStatus);
-    homeCmsBody.appendChild(savebar);
+    wrap.appendChild(renderField({ path: 'nota', label: 'Texto debajo de la grilla', type: 'textarea' }, 'proyectos'));
+    return wrap;
+  }
 
-    saveBtn.addEventListener('click', function(){
-      saveBtn.disabled = true;
-      saveStatus.textContent = 'Guardando...'; saveStatus.className = 'cms-save-status';
-      fetch('/api/content', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(homeContent)
-      })
-        .then(function(r){ return r.json().then(function(data){ return { ok: r.ok, data: data }; }); })
-        .then(function(res){
-          if (!res.ok) throw new Error(res.data.error || 'No se pudo guardar.');
-          saveStatus.textContent = 'Guardado. Ya está visible en la web.';
-          saveStatus.className = 'cms-save-status is-ok';
-        })
-        .catch(function(err){
-          saveStatus.textContent = err.message;
-          saveStatus.className = 'cms-save-status is-error';
-        })
-        .finally(function(){ saveBtn.disabled = false; });
+  function renderBlogSection(){
+    var wrap = document.createElement('div');
+    wrap.className = 'cms-fields';
+    var b = homeContent.blog;
+    if (!b.articles) b.articles = [];
+
+    wrap.appendChild(renderField({ path: 'heading', label: 'Título', type: 'text' }, 'blog'));
+    wrap.appendChild(renderField({ path: 'texto', label: 'Texto', type: 'textarea' }, 'blog'));
+
+    var note = document.createElement('p');
+    note.className = 'example-note';
+    note.textContent = 'Todavía no existe la página del blog — estos son ejemplos de cómo se verían los artículos, y se muestran en el sitio marcados como "Ejemplo".';
+    wrap.appendChild(note);
+
+    var articlesWrap = document.createElement('div');
+    articlesWrap.style.cssText = 'display:flex; flex-direction:column; gap:14px; margin:4px 0;';
+
+    function renderArticles(){
+      articlesWrap.innerHTML = '';
+      b.articles.forEach(function(art, i){
+        var group = document.createElement('div');
+        group.className = 'cms-subgroup cms-list-item';
+        var title = document.createElement('div');
+        title.className = 'cms-subgroup-title';
+        title.textContent = 'Artículo de ejemplo ' + (i + 1);
+        group.appendChild(title);
+
+        var removeBtn = document.createElement('button');
+        removeBtn.type = 'button'; removeBtn.className = 'cms-remove-btn'; removeBtn.textContent = '×'; removeBtn.title = 'Quitar este artículo';
+        removeBtn.addEventListener('click', function(){ b.articles.splice(i, 1); renderArticles(); });
+        group.appendChild(removeBtn);
+
+        group.appendChild(renderPlainFieldFor({ label: 'Etiqueta (ej: Estrategia)', type: 'text' }, function(){ return art.tag; }, function(v){ art.tag = v; }));
+        group.appendChild(renderRichField({ label: 'Título', type: 'text' }, function(){ return art.title; }, function(v){ art.title = v; }));
+        group.appendChild(renderRichField({ label: 'Bajada', type: 'textarea' }, function(){ return art.excerpt; }, function(v){ art.excerpt = v; }));
+
+        articlesWrap.appendChild(group);
+      });
+    }
+    renderArticles();
+    wrap.appendChild(articlesWrap);
+
+    var addBtn = document.createElement('button');
+    addBtn.type = 'button'; addBtn.className = 'cms-add-btn'; addBtn.textContent = '+ Agregar artículo de ejemplo';
+    addBtn.addEventListener('click', function(){
+      b.articles.push({ tag: 'Estrategia', title: 'Título del artículo', excerpt: 'Bajada breve del artículo.' });
+      renderArticles();
+    });
+    wrap.appendChild(addBtn);
+
+    return wrap;
+  }
+
+  // ---------- sidebar submenu (one link per section) + single-section view ----------
+  var homeSectionTitleEl = document.getElementById('homeSectionTitle');
+  var homeGroupToggle = document.getElementById('sbHomeToggle');
+  var homeSubnavEl = document.getElementById('sbHomeSubnav');
+
+  function buildHomeSidebar(){
+    homeSubnavEl.innerHTML = '';
+    SECTIONS.forEach(function(section){
+      var a = document.createElement('a');
+      a.className = 'sb-sublink';
+      a.href = '#';
+      a.textContent = section.title;
+      a.dataset.section = section.key;
+      a.addEventListener('click', function(e){
+        e.preventDefault();
+        showView('home-cms');
+        homeGroupToggle.classList.add('is-open');
+        homeSubnavEl.classList.add('is-open');
+        selectHomeSection(section.key);
+      });
+      homeSubnavEl.appendChild(a);
     });
   }
+
+  function selectHomeSection(key){
+    activeSectionKey = key;
+    Array.prototype.slice.call(homeSubnavEl.querySelectorAll('.sb-sublink')).forEach(function(a){
+      a.classList.toggle('active', a.dataset.section === key);
+    });
+    renderActiveHomeSection();
+    closeSidebar();
+  }
+
+  function renderActiveHomeSection(){
+    if (!homeContent) return;
+    var section = SECTIONS.filter(function(s){ return s.key === activeSectionKey; })[0] || SECTIONS[0];
+    homeSectionTitleEl.textContent = section.title;
+    homeCmsBody.innerHTML = '';
+    var body;
+    if (section.custom === 'stats') body = renderStatsSection();
+    else if (section.custom === 'quehacemos') body = renderQuehacemosSection();
+    else if (section.custom === 'proyectos') body = renderProyectosSection();
+    else if (section.custom === 'blog') body = renderBlogSection();
+    else {
+      body = document.createElement('div');
+      body.className = 'cms-fields';
+      section.fields.forEach(function(field){ body.appendChild(renderField(field, section.key)); });
+    }
+    homeCmsBody.appendChild(body);
+    document.getElementById('cmsSavebar').style.display = 'flex';
+  }
+
+  homeGroupToggle.addEventListener('click', function(){
+    var willOpen = !homeGroupToggle.classList.contains('is-open');
+    homeGroupToggle.classList.toggle('is-open', willOpen);
+    homeSubnavEl.classList.toggle('is-open', willOpen);
+    if (willOpen) {
+      showView('home-cms');
+      if (!homeCmsLoaded) { homeCmsLoaded = true; loadHomeContent(); }
+      else selectHomeSection(activeSectionKey);
+    }
+  });
+
+  document.getElementById('cmsSaveBtn').addEventListener('click', function(){
+    var btn = document.getElementById('cmsSaveBtn');
+    var status = document.getElementById('cmsSaveStatus');
+    btn.disabled = true;
+    status.textContent = 'Guardando...'; status.className = 'cms-save-status';
+    fetch('/api/content', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(homeContent)
+    })
+      .then(function(r){ return r.json().then(function(data){ return { ok: r.ok, data: data }; }); })
+      .then(function(res){
+        if (!res.ok) throw new Error(res.data.error || 'No se pudo guardar.');
+        status.textContent = 'Guardado. Ya está visible en la web.';
+        status.className = 'cms-save-status is-ok';
+      })
+      .catch(function(err){
+        status.textContent = err.message;
+        status.className = 'cms-save-status is-error';
+      })
+      .finally(function(){ btn.disabled = false; });
+  });
 
   function loadHomeContent(){
     fetch('/api/content')
       .then(function(r){ return r.json(); })
-      .then(function(data){ homeContent = data; buildHomeCms(); })
+      .then(function(data){
+        homeContent = data;
+        buildHomeSidebar();
+        selectHomeSection(activeSectionKey);
+      })
       .catch(function(){ homeCmsBody.innerHTML = '<p class="state-msg">No se pudo cargar el contenido.</p>'; });
   }
 
