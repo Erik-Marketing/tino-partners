@@ -318,6 +318,10 @@
           <a class="sb-sublink" href="#" data-blogview="new">Nuevo artículo</a>
           <a class="sb-sublink" href="#" data-blogview="list">Artículos</a>
         </div>
+        <a class="sb-link" href="#menu" data-view="menu-cms">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          Menú
+        </a>
       </div>
       <button class="sb-logout" id="logoutBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -367,6 +371,18 @@
             <span class="cms-save-status" id="blogSaveStatus"></span>
           </div>
         </div>
+
+        <div id="view-menu-cms" style="display:none;">
+          <div class="main-head">
+            <h2>Menú</h2>
+            <p>Los links que aparecen en el menú del sitio (no incluye los artículos del blog, esos se administran en Blog).</p>
+          </div>
+          <div id="menuCmsBody"><p class="state-msg">Cargando...</p></div>
+          <div class="cms-savebar" id="menuSavebar" style="display:none;">
+            <button class="btn-primary" type="button" id="menuSaveBtn">Guardar cambios</button>
+            <span class="cms-save-status" id="menuSaveStatus"></span>
+          </div>
+        </div>
       </main>
     </div>
   </div>
@@ -399,10 +415,10 @@
 
   // ---------- view switching (Consultas / Home) ----------
   var viewLinks = Array.prototype.slice.call(document.querySelectorAll('.sb-link[data-view]'));
-  var views = { consultas: document.getElementById('view-consultas'), 'home-cms': document.getElementById('view-home-cms'), 'blog-cms': document.getElementById('view-blog-cms') };
+  var views = { consultas: document.getElementById('view-consultas'), 'home-cms': document.getElementById('view-home-cms'), 'blog-cms': document.getElementById('view-blog-cms'), 'menu-cms': document.getElementById('view-menu-cms') };
   var topbarTitle = document.querySelector('.topbar-title');
   var homeCmsLoaded = false;
-  var VIEW_TITLES = { consultas: 'Consultas', 'home-cms': 'Home', 'blog-cms': 'Blog' };
+  var VIEW_TITLES = { consultas: 'Consultas', 'home-cms': 'Home', 'blog-cms': 'Blog', 'menu-cms': 'Menú' };
   function showView(name){
     Object.keys(views).forEach(function(k){ views[k].style.display = (k === name) ? 'block' : 'none'; });
     viewLinks.forEach(function(a){ a.classList.toggle('active', a.dataset.view === name); });
@@ -1083,6 +1099,7 @@
   }
   wireSaveButton('cmsSaveBtn', 'cmsSaveStatus');
   wireSaveButton('blogSaveBtn', 'blogSaveStatus');
+  wireSaveButton('menuSaveBtn', 'menuSaveStatus');
 
   var contentLoading = false;
   var pendingContentCallbacks = [];
@@ -1313,6 +1330,84 @@
       if (!homeCmsLoaded) loadContent(renderBlogCms);
       else renderBlogCms();
     }
+  });
+
+  // ---------- Menú CMS ----------
+  var menuCmsBody = document.getElementById('menuCmsBody');
+
+  function renderMenuCms(){
+    menuCmsBody.innerHTML = '';
+    if (!homeContent.menu) homeContent.menu = { items: [], ctaLabel: '', ctaUrl: '' };
+    var menu = homeContent.menu;
+    if (!menu.items) menu.items = [];
+
+    var itemsWrap = document.createElement('div');
+    itemsWrap.style.cssText = 'display:flex; flex-direction:column; gap:14px; margin-bottom:20px;';
+
+    function renderItems(){
+      itemsWrap.innerHTML = '';
+      menu.items.forEach(function(item, i){
+        var group = document.createElement('div');
+        group.className = 'cms-subgroup cms-list-item';
+        var title = document.createElement('div');
+        title.className = 'cms-subgroup-title';
+        title.textContent = 'Link ' + (i + 1);
+        group.appendChild(title);
+
+        if (menu.items.length > 1) {
+          var removeBtn = document.createElement('button');
+          removeBtn.type = 'button'; removeBtn.className = 'cms-remove-btn'; removeBtn.textContent = '×'; removeBtn.title = 'Quitar este link';
+          removeBtn.addEventListener('click', function(){ menu.items.splice(i, 1); renderItems(); });
+          group.appendChild(removeBtn);
+        }
+
+        group.appendChild(renderPlainFieldFor({ label: 'Nombre del botón', type: 'text' }, function(){ return item.label; }, function(v){ item.label = v; }));
+        group.appendChild(renderPlainFieldFor({ label: 'A dónde redirige (ej: nosotros.html, index.html#servicios)', type: 'text' }, function(){ return item.url; }, function(v){ item.url = v; }));
+
+        var moveRow = document.createElement('div');
+        moveRow.style.cssText = 'display:flex; gap:8px; margin-top:2px;';
+        if (i > 0) {
+          var upBtn = document.createElement('button');
+          upBtn.type = 'button'; upBtn.className = 'cms-file-btn'; upBtn.textContent = '↑ Subir';
+          upBtn.addEventListener('click', function(){ var t = menu.items[i - 1]; menu.items[i - 1] = menu.items[i]; menu.items[i] = t; renderItems(); });
+          moveRow.appendChild(upBtn);
+        }
+        if (i < menu.items.length - 1) {
+          var downBtn = document.createElement('button');
+          downBtn.type = 'button'; downBtn.className = 'cms-file-btn'; downBtn.textContent = '↓ Bajar';
+          downBtn.addEventListener('click', function(){ var t = menu.items[i + 1]; menu.items[i + 1] = menu.items[i]; menu.items[i] = t; renderItems(); });
+          moveRow.appendChild(downBtn);
+        }
+        group.appendChild(moveRow);
+
+        itemsWrap.appendChild(group);
+      });
+    }
+    renderItems();
+    menuCmsBody.appendChild(itemsWrap);
+
+    var addBtn = document.createElement('button');
+    addBtn.type = 'button'; addBtn.className = 'cms-add-btn'; addBtn.textContent = '+ Agregar link';
+    addBtn.addEventListener('click', function(){ menu.items.push({ label: 'Nuevo link', url: '' }); renderItems(); });
+    menuCmsBody.appendChild(addBtn);
+
+    var ctaGroup = document.createElement('div');
+    ctaGroup.className = 'cms-subgroup';
+    ctaGroup.style.marginTop = '20px';
+    var ctaTitle = document.createElement('div');
+    ctaTitle.className = 'cms-subgroup-title';
+    ctaTitle.textContent = 'Botón destacado (el que va con fondo de color)';
+    ctaGroup.appendChild(ctaTitle);
+    ctaGroup.appendChild(renderPlainFieldFor({ label: 'Texto del botón', type: 'text' }, function(){ return menu.ctaLabel; }, function(v){ menu.ctaLabel = v; }));
+    ctaGroup.appendChild(renderPlainFieldFor({ label: 'A dónde redirige', type: 'text' }, function(){ return menu.ctaUrl; }, function(v){ menu.ctaUrl = v; }));
+    menuCmsBody.appendChild(ctaGroup);
+
+    document.getElementById('menuSavebar').style.display = 'flex';
+  }
+
+  document.querySelector('.sb-link[data-view="menu-cms"]').addEventListener('click', function(){
+    if (!homeCmsLoaded) loadContent(renderMenuCms);
+    else renderMenuCms();
   });
 
   // check for an existing session on load

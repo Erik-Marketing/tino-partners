@@ -110,6 +110,18 @@ const DEFAULT_CONTENT = {
       },
     ],
   },
+  menu: {
+    items: [
+      { label: 'Home', url: 'index.html#home' },
+      { label: 'Nosotros', url: 'nosotros.html' },
+      { label: 'Qué hacemos', url: 'index.html#servicios' },
+      { label: 'Clientes', url: 'index.html#trabajos' },
+      { label: 'Portfolio', url: 'portfolio.html' },
+      { label: 'Blog', url: 'blog.html' },
+    ],
+    ctaLabel: 'Contactanos',
+    ctaUrl: 'index.html#contacto',
+  },
   footer: {
     email: 'hola@tinopartners.com',
     instagram: '@tinopartners',

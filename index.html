@@ -113,15 +113,15 @@
 
   .menu-panel{
     position:fixed; inset:0; z-index:41; background:var(--paper);
-    display:flex; flex-direction:column; justify-content:center; gap:clamp(16px,3vw,28px);
-    padding:96px clamp(24px,6vw,96px) 64px;
+    display:flex; flex-direction:column; justify-content:flex-start; gap:clamp(12px,2.4vw,22px);
+    padding:112px clamp(24px,6vw,96px) 48px; overflow-y:auto;
     opacity:0; visibility:hidden; transform:translateY(-16px);
     transition:opacity .3s ease, transform .3s ease, visibility 0s linear .3s;
   }
   .menu-panel.is-open{ opacity:1; visibility:visible; transform:none; transition:opacity .3s ease, transform .3s ease; }
   .menu-panel .menu-link{
     text-decoration:none; color:var(--ink); font-family:'Big Shoulders Display',sans-serif;
-    font-weight:800; text-transform:uppercase; font-size:clamp(2.2rem,7vw,4rem); line-height:1;
+    font-weight:800; text-transform:uppercase; font-size:clamp(1.9rem,5.6vw,3.2rem); line-height:1;
   }
   .menu-panel .menu-link[aria-current="page"]{ color:var(--v-500); }
   .menu-panel .menu-cta{
@@ -158,8 +158,8 @@
     min-height:100vh; min-height:100dvh; padding-top:0;
   }
   .hero-copy{
-    display:flex; flex-direction:column; justify-content:center; gap:22px;
-    padding:calc(96px + 4vh) clamp(24px,5vw,72px) clamp(48px,6vh,72px);
+    display:flex; flex-direction:column; justify-content:center; gap:clamp(14px,2vh,22px);
+    padding:calc(88px + 2vh) clamp(24px,5vw,72px) clamp(32px,4vh,56px);
   }
   .hero-copy h1{ font-size:clamp(3.9rem, 6vw, 5.6rem); max-width:11.5ch; }
   .hero-copy .lede{ max-width:46ch; font-size:1.06rem; line-height:1.6; color:var(--ink-soft); }
@@ -269,27 +269,38 @@
   .stat-label{ margin-top:4px; font-size:.86rem; color:var(--ink-soft); }
   .stats .example-flag{ margin-top:32px; }
 
-  /* ---- qué hacemos (acordeón) ---- */
+  /* ---- qué hacemos (columnas con motion graphic) ---- */
   .what{ background:var(--paper-dim); padding:clamp(72px,10vh,120px) 0; }
   .what h2{ color:var(--v-500); font-size:clamp(2.2rem,5vw,3.6rem); margin-bottom:clamp(28px,4vw,44px); text-align:center; }
-  .accordion-item{ border-top:1px solid var(--line-strong); }
-  .accordion-item:last-child{ border-bottom:1px solid var(--line-strong); }
-  .accordion-item summary{
-    list-style:none; cursor:pointer; padding:22px 4px; display:flex; align-items:center; justify-content:space-between; gap:16px;
+  .what-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(20px,3vw,32px); }
+  .what-card{
+    background:var(--paper-flat); border:1px solid var(--line); border-radius:var(--radius);
+    padding:clamp(28px,3vw,36px) clamp(24px,2.6vw,30px); box-shadow:var(--shadow);
+    display:flex; flex-direction:column; gap:14px;
   }
-  .accordion-item summary::-webkit-details-marker{ display:none; }
-  .accordion-item summary h3{
-    font-family:'Big Shoulders Display',sans-serif; font-weight:800; text-transform:none; font-size:clamp(1.2rem,2.4vw,1.7rem); letter-spacing:0;
+  .what-icon{ width:64px; height:64px; color:var(--v-500); }
+  .what-icon svg{ width:100%; height:100%; overflow:visible; }
+  .what-card h3{
+    font-family:'Big Shoulders Display',sans-serif; font-weight:800; text-transform:uppercase;
+    font-size:clamp(1.15rem,2.2vw,1.4rem); letter-spacing:0; color:var(--ink);
   }
-  .acc-icon{
-    position:relative; width:22px; height:22px; flex:none; transition:transform .25s ease;
+  .what-card p{ color:var(--ink-soft); line-height:1.6; font-size:.94rem; }
+  .what-card .accordion-tags{ margin-top:auto; padding-top:4px; }
+
+  @keyframes iconPulseScale{ 0%,100%{ transform:scale(1); opacity:1; } 50%{ transform:scale(1.16); opacity:.72; } }
+  .icon-produccion .pulse{ transform-origin:32px 32px; animation:iconPulseScale 2.4s ease-in-out infinite; }
+
+  @keyframes iconBarGrow{ 0%,100%{ transform:scaleY(.55); } 50%{ transform:scaleY(1); } }
+  .icon-estrategia .bar{ transform-box:fill-box; transform-origin:bottom; animation:iconBarGrow 1.8s ease-in-out infinite; }
+  .icon-estrategia .bar1{ animation-delay:0s; }
+  .icon-estrategia .bar2{ animation-delay:.25s; }
+  .icon-estrategia .bar3{ animation-delay:.5s; }
+
+  @keyframes iconGearSpin{ to{ transform:rotate(360deg); } }
+  .icon-tecnologia .gear{ transform-origin:32px 32px; animation:iconGearSpin 9s linear infinite; }
+  @media (prefers-reduced-motion: reduce){
+    .icon-produccion .pulse, .icon-estrategia .bar, .icon-tecnologia .gear{ animation:none; }
   }
-  .acc-icon::before, .acc-icon::after{
-    content:""; position:absolute; background:var(--ink); border-radius:2px;
-  }
-  .acc-icon::before{ top:50%; left:0; width:100%; height:2px; margin-top:-1px; }
-  .acc-icon::after{ left:50%; top:0; height:100%; width:2px; margin-left:-1px; }
-  .accordion-item[open] .acc-icon{ transform:rotate(45deg); }
   .accordion-body{ padding:0 4px 26px; max-width:70ch; }
   .accordion-body p{ color:var(--ink-soft); line-height:1.65; margin-bottom:14px; }
   .accordion-tags{ display:flex; flex-wrap:wrap; gap:8px 10px; }
@@ -460,6 +471,7 @@
     .hero-copy{ padding-top:112px; order:1; }
     .hero-media{ order:2; min-height:340px; }
     .work-grid{ grid-template-columns:1fr; }
+    .what-grid{ grid-template-columns:1fr; }
     .different-grid{ grid-template-columns:1fr; }
     .different-video .video-frame{ margin-inline:auto; }
     .stats-grid{ grid-template-columns:repeat(2,1fr); row-gap:32px; }
@@ -638,35 +650,61 @@
     <div class="section-inner">
       <h2>Qué hacemos</h2>
 
-      <details class="accordion-item reveal" open>
-        <summary><h3 id="cms-qh-title-0">Producción &amp; contenido</h3><span class="acc-icon"></span></summary>
-        <div class="accordion-body">
+      <div class="what-grid">
+        <div class="what-card reveal">
+          <div class="what-icon icon-produccion">
+            <svg viewBox="0 0 64 64" fill="none">
+              <circle cx="32" cy="32" r="27" stroke="currentColor" stroke-width="2"/>
+              <polygon class="pulse" points="26,20 26,44 46,32" fill="currentColor"/>
+            </svg>
+          </div>
+          <h3 id="cms-qh-title-0">Producción &amp; contenido</h3>
           <p id="cms-qh-texto-0">Fotografía y video con mirada de marca, dirección de arte y gestión integral de redes sociales — contenido pensado para cada plataforma, no adaptado después.</p>
           <div class="accordion-tags" id="cms-qh-tags-0">
             <span>Fotografía</span><span>Video</span><span>Redes sociales</span><span>Dirección de arte</span>
           </div>
         </div>
-      </details>
 
-      <details class="accordion-item reveal">
-        <summary><h3 id="cms-qh-title-1">Estrategia &amp; medios</h3><span class="acc-icon"></span></summary>
-        <div class="accordion-body">
+        <div class="what-card reveal">
+          <div class="what-icon icon-estrategia">
+            <svg viewBox="0 0 64 64" fill="none">
+              <circle cx="32" cy="32" r="27" stroke="currentColor" stroke-width="2"/>
+              <rect class="bar bar1" x="20" y="34" width="6" height="12" rx="1" fill="currentColor"/>
+              <rect class="bar bar2" x="29" y="26" width="6" height="20" rx="1" fill="currentColor"/>
+              <rect class="bar bar3" x="38" y="19" width="6" height="27" rx="1" fill="currentColor"/>
+            </svg>
+          </div>
+          <h3 id="cms-qh-title-1">Estrategia &amp; medios</h3>
           <p id="cms-qh-texto-1">Planes de medios, campañas publicitarias y acciones comerciales diseñadas para mover un número de negocio concreto, no solo métricas de vanidad.</p>
           <div class="accordion-tags" id="cms-qh-tags-1">
             <span>Planificación de medios</span><span>Campañas</span><span>Estrategia de marca</span><span>Acciones comerciales</span>
           </div>
         </div>
-      </details>
 
-      <details class="accordion-item reveal">
-        <summary><h3 id="cms-qh-title-2">Tecnología &amp; automatización</h3><span class="acc-icon"></span></summary>
-        <div class="accordion-body">
+        <div class="what-card reveal">
+          <div class="what-icon icon-tecnologia">
+            <svg viewBox="0 0 64 64" fill="none">
+              <circle cx="32" cy="32" r="27" stroke="currentColor" stroke-width="2"/>
+              <g class="gear">
+                <circle cx="32" cy="32" r="9" stroke="currentColor" stroke-width="2"/>
+                <rect x="29" y="12" width="6" height="8" rx="1" fill="currentColor"/>
+                <rect x="29" y="44" width="6" height="8" rx="1" fill="currentColor"/>
+                <rect x="12" y="29" width="8" height="6" rx="1" fill="currentColor"/>
+                <rect x="44" y="29" width="8" height="6" rx="1" fill="currentColor"/>
+                <rect x="17" y="17" width="7" height="6" rx="1" fill="currentColor" transform="rotate(45 20.5 20)"/>
+                <rect x="40" y="17" width="7" height="6" rx="1" fill="currentColor" transform="rotate(-45 43.5 20)"/>
+                <rect x="17" y="41" width="7" height="6" rx="1" fill="currentColor" transform="rotate(-45 20.5 44)"/>
+                <rect x="40" y="41" width="7" height="6" rx="1" fill="currentColor" transform="rotate(45 43.5 44)"/>
+              </g>
+            </svg>
+          </div>
+          <h3 id="cms-qh-title-2">Tecnología &amp; automatización</h3>
           <p id="cms-qh-texto-2">Automatización de procesos, inteligencia artificial aplicada a imagen, contenido y reportes, medición con Google Tag Manager y Analytics, y desarrollo web y de apps a medida.</p>
           <div class="accordion-tags" id="cms-qh-tags-2">
             <span>Automatización</span><span>IA aplicada</span><span>GTM &amp; Analytics</span><span>Desarrollo web &amp; apps</span>
           </div>
         </div>
-      </details>
+      </div>
     </div>
   </section>
 
@@ -840,16 +878,6 @@
     });
   }, { threshold: .18 });
   document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
-
-  // accordion: keep at most one item open at a time
-  document.querySelectorAll('.accordion-item').forEach(function(item){
-    item.addEventListener('toggle', function(){
-      if (!item.open) return;
-      document.querySelectorAll('.accordion-item').forEach(function(other){
-        if (other !== item) other.open = false;
-      });
-    });
-  });
 
   // contact form
   var form = document.getElementById('contactForm');
@@ -1140,6 +1168,36 @@
         igLink.href = 'https://instagram.com/' + String(c.footer.instagram).replace(/^@/, '');
       }
       setText('cms-footer-ubicacion', c.footer.ubicacion);
+    }
+    if (c.menu && c.menu.items && c.menu.items.length) {
+      var menuNav = document.getElementById('siteMenu');
+      if (menuNav) {
+        var currentFile = location.pathname.split('/').pop() || 'index.html';
+        menuNav.innerHTML = '';
+        c.menu.items.forEach(function(item){
+          var a = document.createElement('a');
+          a.className = 'menu-link';
+          a.href = item.url;
+          var itemFile = (item.url || '').split('#')[0] || 'index.html';
+          if (itemFile === currentFile) a.setAttribute('aria-current', 'page');
+          a.textContent = item.label;
+          menuNav.appendChild(a);
+        });
+        if (c.menu.ctaLabel) {
+          var cta = document.createElement('a');
+          cta.className = 'menu-cta';
+          cta.href = c.menu.ctaUrl || '#contacto';
+          cta.textContent = c.menu.ctaLabel + ' →';
+          menuNav.appendChild(cta);
+        }
+        menuNav.querySelectorAll('a').forEach(function(a){
+          a.addEventListener('click', function(){
+            menu.classList.remove('is-open');
+            toggle.classList.remove('is-open');
+            toggle.setAttribute('aria-expanded', 'false');
+          });
+        });
+      }
     }
   }).catch(function(){ /* keep the defaults already in the page */ });
 </script>
