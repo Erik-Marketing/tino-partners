@@ -117,8 +117,12 @@
   .menu-panel .menu-link{
     text-decoration:none; color:var(--ink); font-family:'Big Shoulders Display',sans-serif;
     font-weight:800; text-transform:uppercase; font-size:clamp(1.9rem,5.6vw,3.2rem); line-height:1;
+    display:inline-flex; align-items:center; gap:.28em;
   }
-  .menu-panel .menu-link[aria-current="page"]{ color:var(--v-500); }
+  .menu-panel .menu-link[data-section]{ color:var(--v-500); }
+  .menu-panel .menu-link[aria-current="page"]::after{
+    content:''; width:.3em; height:.3em; border-radius:50%; background:var(--ink); flex:none;
+  }
   .menu-panel .menu-cta{
     margin-top:12px; display:inline-flex; align-self:flex-start; align-items:center; gap:10px; text-decoration:none;
     background:var(--gradient-vivid); color:#fff; font-family:'IBM Plex Mono',monospace;
@@ -219,7 +223,7 @@
 <nav class="menu-panel" id="siteMenu">
   <a class="menu-link" href="index.html">Home</a>
   <a class="menu-link" href="nosotros.html">Nosotros</a>
-  <a class="menu-link" href="index.html#trabajos">Trabajos</a>
+  <a class="menu-link" href="index.html#trabajos" data-section>Trabajos</a>
   <a class="menu-link" href="portfolio.html">Portfolio</a>
   <a class="menu-link" href="blog.html" aria-current="page">Blog</a>
   <a class="menu-cta" href="index.html#contacto">Contactanos →</a>
@@ -284,8 +288,14 @@
           var a = document.createElement('a');
           a.className = 'menu-link';
           a.href = item.url;
-          var itemFile = (item.url || '').split('#')[0] || 'index.html';
-          if (itemFile === currentFile) a.setAttribute('aria-current', 'page');
+          var hashIdx = (item.url || '').indexOf('#');
+          var itemFile = hashIdx !== -1 ? item.url.slice(0, hashIdx) : (item.url || 'index.html');
+          if (!itemFile) itemFile = 'index.html';
+          if (hashIdx !== -1) {
+            a.setAttribute('data-section', '');
+          } else if (itemFile === currentFile) {
+            a.setAttribute('aria-current', 'page');
+          }
           a.textContent = item.label;
           menuNav.appendChild(a);
         });

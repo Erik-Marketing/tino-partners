@@ -122,8 +122,12 @@
   .menu-panel .menu-link{
     text-decoration:none; color:var(--ink); font-family:'Big Shoulders Display',sans-serif;
     font-weight:800; text-transform:uppercase; font-size:clamp(1.9rem,5.6vw,3.2rem); line-height:1;
+    display:inline-flex; align-items:center; gap:.28em;
   }
-  .menu-panel .menu-link[aria-current="page"]{ color:var(--v-500); }
+  .menu-panel .menu-link[data-section]{ color:var(--v-500); }
+  .menu-panel .menu-link[aria-current="page"]::after{
+    content:''; width:.3em; height:.3em; border-radius:50%; background:var(--ink); flex:none;
+  }
   .menu-panel .menu-cta{
     margin-top:12px; display:inline-flex; align-self:flex-start; align-items:center; gap:10px; text-decoration:none;
     background:var(--gradient-vivid); color:#fff; font-family:'IBM Plex Mono',monospace;
@@ -528,10 +532,10 @@
 </header>
 
 <nav class="menu-panel" id="siteMenu">
-  <a class="menu-link" href="#home" aria-current="page">Home</a>
+  <a class="menu-link" href="#home" data-section aria-current="page">Home</a>
   <a class="menu-link" href="nosotros.html">Nosotros</a>
-  <a class="menu-link" href="#servicios">Qué hacemos</a>
-  <a class="menu-link" href="#trabajos">Trabajos</a>
+  <a class="menu-link" href="#servicios" data-section>Qué hacemos</a>
+  <a class="menu-link" href="#trabajos" data-section>Trabajos</a>
   <a class="menu-link" href="portfolio.html">Portfolio</a>
   <a class="menu-link" href="blog.html">Blog</a>
   <a class="menu-cta" href="#contacto">Contactanos →</a>
@@ -1005,6 +1009,7 @@
   // Rich-text fields (edited with the admin's bold/underline/color/size
   // toolbar) are applied as HTML; plain fields as text.
   var CONTENT_CACHE_KEY = 'tp_home_content_v1';
+  var menuSectionObserver = null;
   function applyContent(c){
     if (!c) return;
     function setText(id, val){ var el = document.getElementById(id); if (el && val != null && val !== '') el.textContent = val; }
@@ -1252,15 +1257,49 @@
       if (menuNav) {
         var currentFile = location.pathname.split('/').pop() || 'index.html';
         menuNav.innerHTML = '';
+        if (menuSectionObserver) { menuSectionObserver.disconnect(); menuSectionObserver = null; }
+        var sectionTargets = [];
         c.menu.items.forEach(function(item){
           var a = document.createElement('a');
           a.className = 'menu-link';
           a.href = item.url;
-          var itemFile = (item.url || '').split('#')[0] || 'index.html';
-          if (itemFile === currentFile) a.setAttribute('aria-current', 'page');
           a.textContent = item.label;
+          var hashIdx = (item.url || '').indexOf('#');
+          var hasSection = hashIdx !== -1;
+          var itemFile = hasSection ? item.url.slice(0, hashIdx) : (item.url || 'index.html');
+          if (!itemFile) itemFile = 'index.html';
+          // links that jump to a section of the home page are always shown in
+          // violet (they're "the same page"), separately from aria-current
+          // (which now tracks exactly where we are: current page for regular
+          // links, currently-scrolled-to section for home-section links)
+          if (hasSection) {
+            a.setAttribute('data-section', '');
+            if (itemFile === currentFile) {
+              var target = document.getElementById(item.url.slice(hashIdx + 1));
+              if (target) sectionTargets.push({ link: a, target: target });
+            }
+          } else if (itemFile === currentFile) {
+            a.setAttribute('aria-current', 'page');
+          }
           menuNav.appendChild(a);
         });
+        // scroll-spy: whichever tracked home section is crossing the middle
+        // of the viewport gets the "current" dot; scrolling past all of them
+        // (or leaving the page) clears it instead of leaving it stuck.
+        if (sectionTargets.length && 'IntersectionObserver' in window) {
+          var currentSectionLink = null;
+          menuSectionObserver = new IntersectionObserver(function(entries){
+            entries.forEach(function(entry){
+              var match = sectionTargets.filter(function(t){ return t.target === entry.target; })[0];
+              if (!match) return;
+              if (entry.isIntersecting) currentSectionLink = match.link;
+              else if (currentSectionLink === match.link) currentSectionLink = null;
+            });
+            sectionTargets.forEach(function(t){ t.link.removeAttribute('aria-current'); });
+            if (currentSectionLink) currentSectionLink.setAttribute('aria-current', 'page');
+          }, { rootMargin: '-45% 0px -45% 0px', threshold: 0 });
+          sectionTargets.forEach(function(t){ menuSectionObserver.observe(t.target); });
+        }
         if (c.menu.ctaLabel) {
           var cta = document.createElement('a');
           cta.className = 'menu-cta';

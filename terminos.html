@@ -36,8 +36,9 @@
   .nav-toggle.is-open span:nth-child(3){ transform:translateY(-8.5px) rotate(-45deg); }
   .menu-panel{ position:fixed; inset:0; z-index:41; background:var(--paper); display:flex; flex-direction:column; justify-content:flex-start; gap:clamp(12px,2.4vw,22px); padding:112px clamp(24px,6vw,96px) 48px; overflow-y:auto; opacity:0; visibility:hidden; transform:translateY(-16px); transition:opacity .3s ease, transform .3s ease, visibility 0s linear .3s; }
   .menu-panel.is-open{ opacity:1; visibility:visible; transform:none; transition:opacity .3s ease, transform .3s ease; }
-  .menu-panel .menu-link{ text-decoration:none; color:var(--ink); font-family:'Big Shoulders Display',sans-serif; font-weight:800; text-transform:uppercase; font-size:clamp(1.9rem,5.6vw,3.2rem); line-height:1; }
-  .menu-panel .menu-link[aria-current="page"]{ color:var(--v-500); }
+  .menu-panel .menu-link{ text-decoration:none; color:var(--ink); font-family:'Big Shoulders Display',sans-serif; font-weight:800; text-transform:uppercase; font-size:clamp(1.9rem,5.6vw,3.2rem); line-height:1; display:inline-flex; align-items:center; gap:.28em; }
+  .menu-panel .menu-link[data-section]{ color:var(--v-500); }
+  .menu-panel .menu-link[aria-current="page"]::after{ content:''; width:.3em; height:.3em; border-radius:50%; background:var(--ink); flex:none; }
   .menu-panel .menu-cta{ margin-top:12px; display:inline-flex; align-self:flex-start; align-items:center; gap:10px; text-decoration:none; background:var(--gradient-vivid); color:#fff; font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:.82rem; letter-spacing:.06em; text-transform:uppercase; padding:16px calc(28px - 0.03em) 16px calc(28px + 0.03em); border-radius:var(--radius-pill); box-shadow:var(--glow); }
 
   .legal{ max-width:74ch; margin:0 auto; padding:calc(96px + 5vh) clamp(20px,5vw,64px) clamp(72px,10vh,110px); }
@@ -73,10 +74,10 @@
 </header>
 
 <nav class="menu-panel" id="siteMenu">
-  <a class="menu-link" href="index.html#home">Home</a>
+  <a class="menu-link" href="index.html#home" data-section>Home</a>
   <a class="menu-link" href="nosotros.html">Nosotros</a>
-  <a class="menu-link" href="index.html#servicios">Qué hacemos</a>
-  <a class="menu-link" href="index.html#trabajos">Clientes</a>
+  <a class="menu-link" href="index.html#servicios" data-section>Qué hacemos</a>
+  <a class="menu-link" href="index.html#trabajos" data-section>Clientes</a>
   <a class="menu-link" href="portfolio.html">Portfolio</a>
   <a class="menu-link" href="blog.html">Blog</a>
   <a class="menu-cta" href="index.html#contacto">Contactanos →</a>
@@ -157,8 +158,14 @@
       var a = document.createElement('a');
       a.className = 'menu-link';
       a.href = item.url;
-      var itemFile = (item.url || '').split('#')[0] || 'index.html';
-      if (itemFile === currentFile) a.setAttribute('aria-current', 'page');
+      var hashIdx = (item.url || '').indexOf('#');
+      var itemFile = hashIdx !== -1 ? item.url.slice(0, hashIdx) : (item.url || 'index.html');
+      if (!itemFile) itemFile = 'index.html';
+      if (hashIdx !== -1) {
+        a.setAttribute('data-section', '');
+      } else if (itemFile === currentFile) {
+        a.setAttribute('aria-current', 'page');
+      }
       a.textContent = item.label;
       menu.appendChild(a);
     });
