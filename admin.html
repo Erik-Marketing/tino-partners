@@ -135,6 +135,64 @@
   .consulta-card .val{ font-size:.92rem; word-break:break-word; }
   .c-mensaje .val{ color:var(--ink-soft); line-height:1.55; white-space:pre-wrap; }
 
+  /* ---------- Home CMS ---------- */
+  .cms-section{
+    background:var(--paper-dim); border:1px solid var(--line); border-radius:var(--radius);
+    margin-bottom:14px; overflow:hidden;
+  }
+  .cms-section summary{
+    cursor:pointer; list-style:none; padding:16px 18px; font-family:'IBM Plex Mono',monospace;
+    font-size:.85rem; font-weight:600; letter-spacing:.04em; text-transform:uppercase;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+  .cms-section summary::-webkit-details-marker{ display:none; }
+  .cms-section summary::after{ content:'+'; font-size:1.1rem; color:var(--ink-soft); transition:transform .2s ease; }
+  .cms-section[open] summary::after{ content:'−'; }
+  .cms-fields{ padding:4px 18px 20px; display:flex; flex-direction:column; gap:16px; }
+  .cms-field label{ display:block; font-family:'IBM Plex Mono',monospace; font-size:.68rem; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:7px; }
+  .cms-field input[type=text], .cms-field textarea{
+    width:100%; background:var(--paper-flat); border:1px solid var(--line-strong); color:var(--ink);
+    padding:11px 13px; border-radius:9px; font-size:.92rem; font-family:inherit;
+  }
+  .cms-field textarea{ min-height:78px; resize:vertical; line-height:1.5; }
+  .cms-field input:focus, .cms-field textarea:focus{ outline:2px solid var(--pink-500); outline-offset:1px; }
+  .cms-hint{ font-size:.76rem; color:var(--ink-soft); margin-top:5px; }
+  .cms-subgroup{ border:1px solid var(--line); border-radius:10px; padding:14px; display:flex; flex-direction:column; gap:12px; }
+  .cms-subgroup + .cms-subgroup{ margin-top:2px; }
+  .cms-subgroup-title{ font-family:'IBM Plex Mono',monospace; font-size:.72rem; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em; }
+
+  .cms-media-preview{
+    position:relative; width:100%; max-width:320px; border-radius:10px; overflow:hidden;
+    background:var(--paper-flat); border:1px solid var(--line-strong); cursor:crosshair; touch-action:none;
+    aspect-ratio:16/10;
+  }
+  .cms-media-preview.is-portrait{ aspect-ratio:9/16; max-width:200px; }
+  .cms-media-preview img, .cms-media-preview video{ width:100%; height:100%; object-fit:cover; display:block; }
+  .cms-media-marker{
+    position:absolute; width:18px; height:18px; border-radius:50%; border:2px solid #fff;
+    background:rgba(238,96,198,.85); transform:translate(-50%,-50%); pointer-events:none;
+    box-shadow:0 0 0 2px rgba(0,0,0,.35);
+  }
+  .cms-media-hint{ font-size:.76rem; color:var(--ink-soft); margin-top:8px; max-width:320px; }
+  .cms-media-row{ display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-top:10px; }
+  .cms-file-btn{
+    display:inline-flex; align-items:center; gap:8px; background:var(--paper-flat); border:1px solid var(--line-strong);
+    color:var(--ink); font-family:'IBM Plex Mono',monospace; font-size:.75rem; letter-spacing:.04em; text-transform:uppercase;
+    padding:9px 14px; border-radius:9px; cursor:pointer;
+  }
+  .cms-file-btn input{ display:none; }
+  .cms-media-status{ font-size:.78rem; color:var(--ink-soft); }
+  .cms-media-status.is-error{ color:var(--pink-500); }
+
+  .cms-savebar{
+    position:sticky; bottom:0; margin-top:8px; padding:14px 0; background:var(--paper);
+    display:flex; align-items:center; gap:14px; border-top:1px solid var(--line);
+  }
+  .cms-savebar .btn-primary{ width:auto; padding:13px 26px; }
+  .cms-save-status{ font-size:.85rem; color:var(--ink-soft); }
+  .cms-save-status.is-ok{ color:#4ADE80; }
+  .cms-save-status.is-error{ color:var(--pink-500); }
+
   @media (min-width: 960px){
     .sidebar{ transform:none; }
     .sidebar-backdrop{ display:none !important; }
@@ -179,9 +237,13 @@
     <nav class="sidebar" id="sidebar">
       <div class="sb-brand">Tino Partners<span>Panel interno</span></div>
       <div class="sb-nav">
-        <a class="sb-link active" href="#consultas">
+        <a class="sb-link active" href="#consultas" data-view="consultas">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
           Consultas
+        </a>
+        <a class="sb-link" href="#home-cms" data-view="home-cms">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
+          Home
         </a>
       </div>
       <button class="sb-logout" id="logoutBtn">
@@ -199,13 +261,23 @@
       </div>
 
       <main class="main">
-        <div class="main-head">
-          <h2>Consultas</h2>
-          <p>Mensajes recibidos desde el formulario de contacto del sitio.</p>
-          <span class="stat-pill" id="countPill">— consultas</span>
-          <span class="stat-pill live-pill"><span class="live-dot"></span>En vivo</span>
+        <div id="view-consultas">
+          <div class="main-head">
+            <h2>Consultas</h2>
+            <p>Mensajes recibidos desde el formulario de contacto del sitio.</p>
+            <span class="stat-pill" id="countPill">— consultas</span>
+            <span class="stat-pill live-pill"><span class="live-dot"></span>En vivo</span>
+          </div>
+          <div id="content"></div>
         </div>
-        <div id="content"></div>
+
+        <div id="view-home-cms" style="display:none;">
+          <div class="main-head">
+            <h2>Home</h2>
+            <p>Editá los textos, fotos y videos de la página principal. Los cambios se ven en el sitio apenas los guardás.</p>
+          </div>
+          <div id="homeCmsBody"><p class="state-msg">Cargando...</p></div>
+        </div>
       </main>
     </div>
   </div>
@@ -235,6 +307,22 @@
   function closeSidebar(){ sidebar.classList.remove('open'); backdrop.classList.remove('open'); }
   document.getElementById('hamburger').addEventListener('click', openSidebar);
   backdrop.addEventListener('click', closeSidebar);
+
+  // ---------- view switching (Consultas / Home) ----------
+  var viewLinks = Array.prototype.slice.call(document.querySelectorAll('.sb-link[data-view]'));
+  var views = { consultas: document.getElementById('view-consultas'), 'home-cms': document.getElementById('view-home-cms') };
+  var topbarTitle = document.querySelector('.topbar-title');
+  var homeCmsLoaded = false;
+  function showView(name){
+    Object.keys(views).forEach(function(k){ views[k].style.display = (k === name) ? 'block' : 'none'; });
+    viewLinks.forEach(function(a){ a.classList.toggle('active', a.dataset.view === name); });
+    if (topbarTitle) topbarTitle.textContent = name === 'home-cms' ? 'Home' : 'Consultas';
+    closeSidebar();
+    if (name === 'home-cms' && !homeCmsLoaded) { homeCmsLoaded = true; loadHomeContent(); }
+  }
+  viewLinks.forEach(function(a){
+    a.addEventListener('click', function(e){ e.preventDefault(); showView(a.dataset.view); });
+  });
 
   function escapeHtml(str){
     var div = document.createElement('div');
@@ -330,6 +418,345 @@
     stopPolling();
     fetch('/api/logout', { method: 'POST' }).finally(showLogin);
   });
+
+  // ---------- Home CMS ----------
+  var homeContent = null;
+  var homeCmsBody = document.getElementById('homeCmsBody');
+
+  function getPath(obj, path){
+    return path.split('.').reduce(function(o, k){ return (o == null) ? o : o[k]; }, obj);
+  }
+  function setPath(obj, path, value){
+    var parts = path.split('.');
+    var last = parts.pop();
+    var target = parts.reduce(function(o, k){ if (!o[k]) o[k] = {}; return o[k]; }, obj);
+    target[last] = value;
+  }
+
+  var SECTIONS = [
+    { key: 'hero', title: 'Hero (portada)', fields: [
+        { path: 'eyebrow', label: 'Texto chico arriba del título', type: 'text' },
+        { path: 'headlinePre', label: 'Título — antes de la parte destacada', type: 'text' },
+        { path: 'headlineEm', label: 'Título — parte destacada (color)', type: 'text' },
+        { path: 'headlinePost', label: 'Título — después de la parte destacada', type: 'text' },
+        { path: 'lede', label: 'Bajada', type: 'textarea' },
+        { path: 'ctaText', label: 'Texto del botón (la flecha → se agrega sola)', type: 'text' },
+        { path: 'image', label: 'Foto del hero', type: 'image' }
+    ]},
+    { key: 'proyectos', title: 'Nuestros proyectos', fields: [
+        { path: 'eyebrow', label: 'Etiqueta de la sección', type: 'text' },
+        { path: 'headingLine1', label: 'Título — línea 1', type: 'text' },
+        { path: 'headingLine2', label: 'Título — línea 2', type: 'text' },
+        { path: 'video', label: 'Video del proyecto destacado', type: 'video', portrait: true },
+        { path: 'nota', label: 'Texto debajo de la grilla', type: 'textarea' }
+    ]},
+    { key: 'diferenciales', title: 'Lo que nos hace diferentes', fields: [
+        { path: 'eyebrow', label: 'Etiqueta de la sección', type: 'text' },
+        { path: 'heading', label: 'Título', type: 'text' },
+        { path: 'texto', label: 'Párrafo', type: 'textarea' },
+        { path: 'video', label: 'Video', type: 'video' }
+    ]},
+    { key: 'stats', title: 'Números', custom: 'stats' },
+    { key: 'quehacemos', title: 'Qué hacemos', custom: 'quehacemos' },
+    { key: 'marcas', title: 'Marcas', fields: [
+        { path: 'items', label: 'Nombres separados por coma', type: 'text' }
+    ]},
+    { key: 'testimonios', title: 'Testimonios', fields: [
+        { path: 'quote', label: 'Cita (sin comillas, se agregan solas)', type: 'textarea' },
+        { path: 'nombre', label: 'Nombre', type: 'text' },
+        { path: 'rol', label: 'Rol / cargo', type: 'text' },
+        { path: 'flag', label: 'Etiqueta (ej: "Ejemplo")', type: 'text' }
+    ]},
+    { key: 'blog', title: 'Contenido interesante (blog)', fields: [
+        { path: 'heading', label: 'Título', type: 'text' },
+        { path: 'texto', label: 'Texto', type: 'textarea' }
+    ]},
+    { key: 'footer', title: 'Datos de contacto', fields: [
+        { path: 'email', label: 'Email', type: 'text' },
+        { path: 'instagram', label: 'Instagram (con @)', type: 'text' },
+        { path: 'ubicacion', label: 'Ubicación', type: 'text' }
+    ]}
+  ];
+
+  function makeLabel(text){ var l = document.createElement('label'); l.textContent = text; return l; }
+
+  function renderTextField(field, sectionKey){
+    var wrap = document.createElement('div');
+    wrap.className = 'cms-field';
+    wrap.appendChild(makeLabel(field.label));
+    var input = document.createElement(field.type === 'textarea' ? 'textarea' : 'input');
+    if (field.type !== 'textarea') input.type = 'text';
+    input.value = getPath(homeContent, sectionKey + '.' + field.path) || '';
+    input.addEventListener('input', function(){ setPath(homeContent, sectionKey + '.' + field.path, input.value); });
+    wrap.appendChild(input);
+    return wrap;
+  }
+
+  // ---------- media field: preview + drag-to-reposition + upload/URL ----------
+  function fileToBase64(file){
+    return new Promise(function(resolve, reject){
+      var reader = new FileReader();
+      reader.onload = function(){ resolve(String(reader.result).split(',')[1]); };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+  function compressImage(file, maxDim, quality){
+    return new Promise(function(resolve, reject){
+      var img = new Image();
+      var url = URL.createObjectURL(file);
+      img.onload = function(){
+        URL.revokeObjectURL(url);
+        var scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(function(blob){ blob ? resolve(blob) : reject(new Error('canvas failed')); }, 'image/jpeg', quality);
+      };
+      img.onerror = reject;
+      img.src = url;
+    });
+  }
+
+  function renderMediaField(field, sectionKey){
+    var mediaObj = getPath(homeContent, sectionKey + '.' + field.path) || { url: '', posX: 50, posY: 50 };
+    setPath(homeContent, sectionKey + '.' + field.path, mediaObj);
+    if (mediaObj.posX == null) mediaObj.posX = 50;
+    if (mediaObj.posY == null) mediaObj.posY = 50;
+
+    var wrap = document.createElement('div');
+    wrap.className = 'cms-field';
+    wrap.appendChild(makeLabel(field.label));
+
+    var preview = document.createElement('div');
+    preview.className = 'cms-media-preview' + (field.portrait ? ' is-portrait' : '');
+    var mediaEl = document.createElement(field.type === 'video' ? 'video' : 'img');
+    if (field.type === 'video') { mediaEl.muted = true; mediaEl.loop = true; mediaEl.playsInline = true; mediaEl.autoplay = true; }
+    if (mediaObj.url) mediaEl.src = mediaObj.url;
+    mediaEl.style.objectPosition = mediaObj.posX + '% ' + mediaObj.posY + '%';
+    preview.appendChild(mediaEl);
+    var marker = document.createElement('div');
+    marker.className = 'cms-media-marker';
+    marker.style.left = mediaObj.posX + '%';
+    marker.style.top = mediaObj.posY + '%';
+    preview.appendChild(marker);
+    wrap.appendChild(preview);
+
+    var hint = document.createElement('p');
+    hint.className = 'cms-media-hint';
+    hint.textContent = 'Tocá o arrastrá dentro de la foto/video para centrar la parte que querés mostrar.';
+    wrap.appendChild(hint);
+
+    function setPos(clientX, clientY){
+      var rect = preview.getBoundingClientRect();
+      var x = Math.max(0, Math.min(100, Math.round(((clientX - rect.left) / rect.width) * 100)));
+      var y = Math.max(0, Math.min(100, Math.round(((clientY - rect.top) / rect.height) * 100)));
+      mediaObj.posX = x; mediaObj.posY = y;
+      mediaEl.style.objectPosition = x + '% ' + y + '%';
+      marker.style.left = x + '%'; marker.style.top = y + '%';
+    }
+    var dragging = false;
+    preview.addEventListener('pointerdown', function(e){ dragging = true; preview.setPointerCapture(e.pointerId); setPos(e.clientX, e.clientY); });
+    preview.addEventListener('pointermove', function(e){ if (dragging) setPos(e.clientX, e.clientY); });
+    preview.addEventListener('pointerup', function(){ dragging = false; });
+    preview.addEventListener('pointercancel', function(){ dragging = false; });
+
+    var row = document.createElement('div');
+    row.className = 'cms-media-row';
+    var fileBtn = document.createElement('label');
+    fileBtn.className = 'cms-file-btn';
+    fileBtn.textContent = field.type === 'video' ? 'Subir video' : 'Subir foto';
+    var fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = field.type === 'video' ? 'video/*' : 'image/*';
+    fileBtn.appendChild(fileInput);
+    row.appendChild(fileBtn);
+
+    var urlInput = document.createElement('input');
+    urlInput.type = 'text';
+    urlInput.placeholder = 'o pegá una URL directa (para archivos grandes que ya subió Claude)';
+    urlInput.style.cssText = 'flex:1; min-width:220px; background:var(--paper-flat); border:1px solid var(--line-strong); color:var(--ink); padding:9px 12px; border-radius:9px; font-size:.82rem;';
+    urlInput.addEventListener('change', function(){
+      if (urlInput.value.trim()) {
+        mediaObj.url = urlInput.value.trim();
+        mediaEl.src = mediaObj.url;
+        status.textContent = 'URL actualizada.'; status.className = 'cms-media-status is-ok';
+      }
+    });
+    row.appendChild(urlInput);
+    wrap.appendChild(row);
+
+    var status = document.createElement('p');
+    status.className = 'cms-media-status';
+    wrap.appendChild(status);
+
+    fileInput.addEventListener('change', function(){
+      var file = fileInput.files[0];
+      if (!file) return;
+      status.className = 'cms-media-status';
+      status.textContent = 'Subiendo...';
+
+      var prep = Promise.resolve(file);
+      if (field.type !== 'video' && file.size > 700 * 1024) {
+        prep = compressImage(file, 1600, 0.82);
+      }
+
+      prep.then(function(fileOrBlob){
+        if (fileOrBlob.size > 3 * 1024 * 1024) {
+          throw new Error('El archivo pesa más de 3MB incluso comprimido. Pediselo a Claude para subir algo tan pesado, o pegá la URL directamente arriba.');
+        }
+        return fileToBase64(fileOrBlob).then(function(base64){
+          return fetch('/api/upload-media', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filename: file.name, contentType: field.type === 'video' ? file.type : 'image/jpeg', dataBase64: base64 })
+          });
+        });
+      })
+        .then(function(r){ return r.json().then(function(data){ return { ok: r.ok, data: data }; }); })
+        .then(function(res){
+          if (!res.ok) throw new Error(res.data.error || 'No se pudo subir el archivo.');
+          mediaObj.url = res.data.url;
+          mediaEl.src = mediaObj.url;
+          urlInput.value = '';
+          status.textContent = 'Listo — no te olvides de guardar los cambios.';
+          status.className = 'cms-media-status is-ok';
+        })
+        .catch(function(err){
+          status.textContent = err.message || 'Error al subir el archivo.';
+          status.className = 'cms-media-status is-error';
+        });
+    });
+
+    return wrap;
+  }
+
+  function renderStatsSection(){
+    var wrap = document.createElement('div');
+    wrap.className = 'cms-fields';
+    (homeContent.stats.items || []).forEach(function(item, i){
+      var group = document.createElement('div');
+      group.className = 'cms-subgroup';
+      var title = document.createElement('div');
+      title.className = 'cms-subgroup-title';
+      title.textContent = 'Número ' + (i + 1);
+      group.appendChild(title);
+
+      var numField = document.createElement('div');
+      numField.className = 'cms-field';
+      numField.appendChild(makeLabel('Número (ej: 3+, 100%)'));
+      var numInput = document.createElement('input'); numInput.type = 'text'; numInput.value = item.num || '';
+      numInput.addEventListener('input', function(){ item.num = numInput.value; });
+      numField.appendChild(numInput);
+      group.appendChild(numField);
+
+      var labelField = document.createElement('div');
+      labelField.className = 'cms-field';
+      labelField.appendChild(makeLabel('Descripción'));
+      var labelInput = document.createElement('input'); labelInput.type = 'text'; labelInput.value = item.label || '';
+      labelInput.addEventListener('input', function(){ item.label = labelInput.value; });
+      labelField.appendChild(labelInput);
+      group.appendChild(labelField);
+
+      wrap.appendChild(group);
+    });
+    wrap.appendChild(renderTextField({ path: 'flag', label: 'Etiqueta debajo de los números', type: 'text' }, 'stats'));
+    return wrap;
+  }
+
+  function renderQuehacemosSection(){
+    var wrap = document.createElement('div');
+    wrap.className = 'cms-fields';
+    (homeContent.quehacemos.items || []).forEach(function(item, i){
+      var group = document.createElement('div');
+      group.className = 'cms-subgroup';
+      var title = document.createElement('div');
+      title.className = 'cms-subgroup-title';
+      title.textContent = 'Ítem ' + (i + 1);
+      group.appendChild(title);
+
+      [['title', 'Título'], ['texto', 'Descripción'], ['tags', 'Etiquetas separadas por coma']].forEach(function(pair){
+        var f = document.createElement('div');
+        f.className = 'cms-field';
+        f.appendChild(makeLabel(pair[1]));
+        var input = (pair[0] === 'texto') ? document.createElement('textarea') : document.createElement('input');
+        if (pair[0] !== 'texto') input.type = 'text';
+        input.value = item[pair[0]] || '';
+        input.addEventListener('input', function(){ item[pair[0]] = input.value; });
+        f.appendChild(input);
+        group.appendChild(f);
+      });
+
+      wrap.appendChild(group);
+    });
+    return wrap;
+  }
+
+  function buildHomeCms(){
+    homeCmsBody.innerHTML = '';
+    SECTIONS.forEach(function(section){
+      var details = document.createElement('details');
+      details.className = 'cms-section';
+      var summary = document.createElement('summary');
+      summary.textContent = section.title;
+      details.appendChild(summary);
+
+      var body;
+      if (section.custom === 'stats') body = renderStatsSection();
+      else if (section.custom === 'quehacemos') body = renderQuehacemosSection();
+      else {
+        body = document.createElement('div');
+        body.className = 'cms-fields';
+        section.fields.forEach(function(field){
+          var el = (field.type === 'image' || field.type === 'video')
+            ? renderMediaField(field, section.key)
+            : renderTextField(field, section.key);
+          body.appendChild(el);
+        });
+      }
+      details.appendChild(body);
+      homeCmsBody.appendChild(details);
+    });
+
+    var savebar = document.createElement('div');
+    savebar.className = 'cms-savebar';
+    var saveBtn = document.createElement('button');
+    saveBtn.className = 'btn-primary'; saveBtn.type = 'button'; saveBtn.textContent = 'Guardar cambios';
+    var saveStatus = document.createElement('span');
+    saveStatus.className = 'cms-save-status';
+    savebar.appendChild(saveBtn);
+    savebar.appendChild(saveStatus);
+    homeCmsBody.appendChild(savebar);
+
+    saveBtn.addEventListener('click', function(){
+      saveBtn.disabled = true;
+      saveStatus.textContent = 'Guardando...'; saveStatus.className = 'cms-save-status';
+      fetch('/api/content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(homeContent)
+      })
+        .then(function(r){ return r.json().then(function(data){ return { ok: r.ok, data: data }; }); })
+        .then(function(res){
+          if (!res.ok) throw new Error(res.data.error || 'No se pudo guardar.');
+          saveStatus.textContent = 'Guardado. Ya está visible en la web.';
+          saveStatus.className = 'cms-save-status is-ok';
+        })
+        .catch(function(err){
+          saveStatus.textContent = err.message;
+          saveStatus.className = 'cms-save-status is-error';
+        })
+        .finally(function(){ saveBtn.disabled = false; });
+    });
+  }
+
+  function loadHomeContent(){
+    fetch('/api/content')
+      .then(function(r){ return r.json(); })
+      .then(function(data){ homeContent = data; buildHomeCms(); })
+      .catch(function(){ homeCmsBody.innerHTML = '<p class="state-msg">No se pudo cargar el contenido.</p>'; });
+  }
 
   // check for an existing session on load
   fetch('/api/consultas')
