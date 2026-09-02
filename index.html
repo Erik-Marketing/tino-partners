@@ -166,7 +166,13 @@
   .hero-media{
     position:relative; overflow:hidden; background:var(--paper-dim); min-height:340px;
   }
-  .hero-media img{ width:100%; height:100%; object-fit:cover; position:absolute; inset:0; }
+  .hero-media img{
+    width:100%; height:100%; object-fit:cover; position:absolute; inset:0;
+    object-position:var(--hero-img-pos, 50% 50%);
+  }
+  @media (max-width:900px){
+    .hero-media img{ object-position:var(--hero-img-pos-mobile, var(--hero-img-pos, 50% 50%)); }
+  }
   .hero-media::after{
     content:""; position:absolute; inset:0;
     background:linear-gradient(200deg, color-mix(in srgb, var(--v-500) 30%, transparent) 0%, transparent 45%, color-mix(in srgb, var(--pink-500) 22%, transparent) 100%);
@@ -514,7 +520,10 @@
       </div>
     </div>
     <div class="hero-media reveal">
-      <img id="cms-hero-img" src="https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/collage-02.jpg" alt="Producción real para la campaña Margen de NOBRAND">
+      <picture>
+        <source id="cms-hero-img-mobile-source" media="(max-width:900px)">
+        <img id="cms-hero-img" src="https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/collage-02.jpg" alt="Producción real para la campaña Margen de NOBRAND">
+      </picture>
       <span class="hero-fade-dots" id="cms-hero-fade" aria-hidden="true"></span>
     </div>
   </section>
@@ -944,7 +953,7 @@
   // already in the HTML above if the request fails or a field is unset).
   // Rich-text fields (edited with the admin's bold/underline/color/size
   // toolbar) are applied as HTML; plain fields as text.
-  fetch('/api/content').then(function(r){ return r.ok ? r.json() : null; }).then(function(c){
+  fetch('/api/content?t=' + Date.now()).then(function(r){ return r.ok ? r.json() : null; }).then(function(c){
     if (!c) return;
     function setText(id, val){ var el = document.getElementById(id); if (el && val != null && val !== '') el.textContent = val; }
     function setHtml(id, val){ var el = document.getElementById(id); if (el && val != null && val !== '') el.innerHTML = val; }
@@ -965,6 +974,30 @@
       var x = (media.posX != null ? media.posX : 50);
       var y = (media.posY != null ? media.posY : 50);
       el.style.objectPosition = x + '% ' + y + '%';
+    }
+    // hero photo has its own desktop + optional mobile source/crop (set as
+    // CSS custom properties so a plain media query picks the right one,
+    // instead of an inline object-position that would win over everything)
+    function setHeroImage(hero){
+      var img = document.getElementById('cms-hero-img');
+      var mobileSource = document.getElementById('cms-hero-img-mobile-source');
+      if (!img || !hero || !hero.image) return;
+      var media = hero.image;
+      if (media.url && img.getAttribute('src') !== media.url) img.src = media.url;
+      var x = (media.posX != null ? media.posX : 50);
+      var y = (media.posY != null ? media.posY : 50);
+      img.style.setProperty('--hero-img-pos', x + '% ' + y + '%');
+
+      var mobile = hero.mobileImage;
+      if (mobile && mobile.url) {
+        if (mobileSource) mobileSource.srcset = mobile.url;
+        var mx = (mobile.posX != null ? mobile.posX : 50);
+        var my = (mobile.posY != null ? mobile.posY : 50);
+        img.style.setProperty('--hero-img-pos-mobile', mx + '% ' + my + '%');
+      } else if (mobileSource) {
+        mobileSource.removeAttribute('srcset');
+        img.style.removeProperty('--hero-img-pos-mobile');
+      }
     }
     var VIDEO_CONTROLS_HTML =
       '<div class="video-controls">' +
@@ -1038,7 +1071,7 @@
       setHtml('cms-hero-post', c.hero.headlinePost);
       setHtml('cms-hero-lede', c.hero.lede);
       setHtml('cms-hero-cta', c.hero.ctaText);
-      setMedia(document.getElementById('cms-hero-img'), c.hero.image);
+      setHeroImage(c.hero);
       var fadeDots = document.getElementById('cms-hero-fade');
       if (fadeDots && c.hero.image) fadeDots.classList.toggle('is-off', c.hero.image.fadeBottom === false);
     }

@@ -95,13 +95,16 @@
   .brand-word span{ display:block; font-family:'IBM Plex Mono', monospace; font-size:.55rem; font-weight:600; letter-spacing:.22em; color:var(--ink-soft); text-transform:uppercase; margin-top:-2px; }
 
   .nav-toggle{
-    display:flex; flex-direction:column; gap:5px; background:none; border:none; cursor:pointer; padding:8px;
-    position:relative; z-index:42;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+    background:rgba(23,18,33,.45); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+    border:none; border-radius:10px; cursor:pointer; padding:11px;
+    position:relative; z-index:42; transition:background .2s ease;
   }
-  .nav-toggle span{ width:24px; height:2px; background:var(--ink); transition:transform .2s ease, opacity .2s ease; }
-  .nav-toggle.is-open span:nth-child(1){ transform:translateY(7px) rotate(45deg); }
+  .nav-toggle span{ width:22px; height:2.5px; border-radius:2px; background:#fff; transition:transform .2s ease, opacity .2s ease; }
+  .nav-toggle.is-open{ background:rgba(23,18,33,.65); }
+  .nav-toggle.is-open span:nth-child(1){ transform:translateY(8.5px) rotate(45deg); }
   .nav-toggle.is-open span:nth-child(2){ opacity:0; }
-  .nav-toggle.is-open span:nth-child(3){ transform:translateY(-7px) rotate(-45deg); }
+  .nav-toggle.is-open span:nth-child(3){ transform:translateY(-8.5px) rotate(-45deg); }
 
   .menu-panel{
     position:fixed; inset:0; z-index:41; background:var(--paper);
@@ -270,7 +273,7 @@
 
   function escapeAttr(str){ return String(str || '').replace(/"/g, '&quot;'); }
 
-  fetch('/api/content').then(function(r){ return r.ok ? r.json() : null; }).then(function(c){
+  fetch('/api/content?t=' + Date.now()).then(function(r){ return r.ok ? r.json() : null; }).then(function(c){
     if (!c || !c.blog) return;
     if (c.blog.heading) document.getElementById('blogHeading').textContent = (function(){ var d = document.createElement('div'); d.innerHTML = c.blog.heading; return d.textContent; })();
     if (c.blog.texto) document.getElementById('blogIntro').textContent = (function(){ var d = document.createElement('div'); d.innerHTML = c.blog.texto; return d.textContent; })();

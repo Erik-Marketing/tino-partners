@@ -531,7 +531,8 @@
         { path: 'headlinePost', label: 'Título — después de la parte destacada', type: 'text' },
         { path: 'lede', label: 'Bajada', type: 'textarea' },
         { path: 'ctaText', label: 'Texto del botón (la flecha → se agrega sola)', type: 'text' },
-        { path: 'image', label: 'Foto del hero', type: 'image', fadeToggle: true }
+        { path: 'image', label: 'Foto del hero (desktop)', type: 'image', fadeToggle: true },
+        { path: 'mobileImage', label: 'Foto del hero (mobile — opcional)', type: 'image', optional: true }
     ]},
     { key: 'proyectos', title: 'Nuestros proyectos', custom: 'proyectos' },
     { key: 'diferenciales', title: 'Lo que nos hace diferentes', fields: [
@@ -686,7 +687,7 @@
     if (field.type === 'image' || field.type === 'video') {
       var mediaObj = getPath(homeContent, sectionKey + '.' + field.path) || { url: '', posX: 50, posY: 50 };
       setPath(homeContent, sectionKey + '.' + field.path, mediaObj);
-      return renderMediaField(mediaObj, { type: field.type, portrait: field.portrait, label: field.label, fadeToggle: field.fadeToggle });
+      return renderMediaField(mediaObj, { type: field.type, portrait: field.portrait, label: field.label, fadeToggle: field.fadeToggle, optional: field.optional });
     }
     if (field.plain) return renderPlainField(field, sectionKey);
     return renderRichField(
@@ -747,7 +748,9 @@
 
     var hint = document.createElement('p');
     hint.className = 'cms-media-hint';
-    hint.textContent = 'Tocá o arrastrá dentro de la foto/video para centrar la parte que querés mostrar.';
+    hint.textContent = opts.optional
+      ? 'Opcional — si no subís nada acá, en mobile se usa la misma foto de desktop. Tocá o arrastrá para centrar.'
+      : 'Tocá o arrastrá dentro de la foto/video para centrar la parte que querés mostrar.';
     wrap.appendChild(hint);
 
     function setPos(clientX, clientY){
@@ -1088,7 +1091,7 @@
     pendingContentCallbacks.push(afterLoad);
     if (contentLoading) return; // a fetch is already in flight — queue behind it instead of racing a second one
     contentLoading = true;
-    fetch('/api/content')
+    fetch('/api/content?t=' + Date.now())
       .then(function(r){ return r.json(); })
       .then(function(data){
         homeContent = data;

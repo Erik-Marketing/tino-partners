@@ -15,6 +15,7 @@ const DEFAULT_CONTENT = {
     lede: 'Tino Partners une producción de contenido, planificación de medios y tecnología aplicada en un mismo equipo, para que cada decisión de marca esté tan bien apuntada como se ve.',
     ctaText: 'Contactanos',
     image: { url: 'https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/collage-02.jpg', posX: 50, posY: 50, fadeBottom: true },
+    mobileImage: null,
   },
   proyectos: {
     eyebrow: 'Nuestros proyectos',
@@ -158,6 +159,11 @@ function normalizeArticles(articles) {
 }
 
 module.exports = async function handler(req, res) {
+  // never let the browser or an edge/CDN cache this response — the content
+  // (including image/video URLs) changes whenever someone saves in the
+  // admin, and a stale cached copy was showing an old photo after a reload.
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+
   if (req.method === 'GET') {
     try {
       const result = await get(CONTENT_PATH, {
