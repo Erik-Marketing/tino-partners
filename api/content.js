@@ -124,6 +124,7 @@ module.exports = async function handler(req, res) {
         access: 'public',
         contentType: 'application/json',
         addRandomSuffix: false,
+        allowOverwrite: true,
         token: process.env.MEDIA_READ_WRITE_TOKEN,
       });
       return res.status(200).json({ ok: true });
