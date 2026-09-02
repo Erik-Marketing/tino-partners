@@ -175,6 +175,11 @@
   .cms-subgroup{ border:1px solid var(--line); border-radius:10px; padding:14px; display:flex; flex-direction:column; gap:12px; }
   .cms-subgroup + .cms-subgroup{ margin-top:2px; }
   .cms-subgroup-title{ font-family:'IBM Plex Mono',monospace; font-size:.72rem; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em; }
+  .cms-subgroup-title-input{
+    font-family:'IBM Plex Mono',monospace; font-size:.72rem; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em;
+    background:none; border:none; border-bottom:1px dashed var(--line-strong); padding:0 0 4px; width:auto; max-width:100%;
+  }
+  .cms-subgroup-title-input:focus{ outline:none; border-bottom-color:var(--v-500); color:var(--ink); }
 
   /* rich text field: small toolbar + contenteditable */
   .rt-toolbar{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-bottom:7px; }
@@ -533,6 +538,19 @@
 
   function makeLabel(text){ var l = document.createElement('label'); l.textContent = text; return l; }
 
+  // editable nickname for a list item (Número 1, Ítem 2, etc.) — admin-only
+  // organizing label, never shown on the public site.
+  function renderGroupTitleInput(item, defaultLabel){
+    if (!item.adminLabel) item.adminLabel = defaultLabel;
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'cms-subgroup-title-input';
+    input.value = item.adminLabel;
+    input.title = 'Nombre interno para identificar este bloque en el panel (no se ve en la web)';
+    input.addEventListener('input', function(){ item.adminLabel = input.value || defaultLabel; });
+    return input;
+  }
+
   function renderPlainField(field, sectionKey){
     var wrap = document.createElement('div');
     wrap.className = 'cms-field';
@@ -811,17 +829,42 @@
   function renderStatsSection(){
     var wrap = document.createElement('div');
     wrap.className = 'cms-fields';
-    (homeContent.stats.items || []).forEach(function(item, i){
-      var group = document.createElement('div');
-      group.className = 'cms-subgroup';
-      var title = document.createElement('div');
-      title.className = 'cms-subgroup-title';
-      title.textContent = 'Número ' + (i + 1);
-      group.appendChild(title);
-      group.appendChild(renderRichField({ label: 'Número (ej: 3+, 100%)', type: 'text' }, function(){ return item.num; }, function(v){ item.num = v; }));
-      group.appendChild(renderRichField({ label: 'Descripción', type: 'text' }, function(){ return item.label; }, function(v){ item.label = v; }));
-      wrap.appendChild(group);
+    var s = homeContent.stats;
+    if (!s.items) s.items = [];
+
+    var itemsWrap = document.createElement('div');
+    itemsWrap.style.cssText = 'display:flex; flex-direction:column; gap:14px; margin:4px 0;';
+
+    function renderItems(){
+      itemsWrap.innerHTML = '';
+      s.items.forEach(function(item, i){
+        var group = document.createElement('div');
+        group.className = 'cms-subgroup cms-list-item';
+        group.appendChild(renderGroupTitleInput(item, 'Número ' + (i + 1)));
+
+        if (s.items.length > 1) {
+          var removeBtn = document.createElement('button');
+          removeBtn.type = 'button'; removeBtn.className = 'cms-remove-btn'; removeBtn.textContent = '×'; removeBtn.title = 'Quitar este número';
+          removeBtn.addEventListener('click', function(){ s.items.splice(i, 1); renderItems(); });
+          group.appendChild(removeBtn);
+        }
+
+        group.appendChild(renderRichField({ label: 'Número (ej: 3+, 100%)', type: 'text' }, function(){ return item.num; }, function(v){ item.num = v; }));
+        group.appendChild(renderRichField({ label: 'Descripción', type: 'text' }, function(){ return item.label; }, function(v){ item.label = v; }));
+        itemsWrap.appendChild(group);
+      });
+    }
+    renderItems();
+    wrap.appendChild(itemsWrap);
+
+    var addBtn = document.createElement('button');
+    addBtn.type = 'button'; addBtn.className = 'cms-add-btn'; addBtn.textContent = '+ Agregar número';
+    addBtn.addEventListener('click', function(){
+      s.items.push({ num: '0', label: 'Descripción', adminLabel: 'Número ' + (s.items.length + 1) });
+      renderItems();
     });
+    wrap.appendChild(addBtn);
+
     wrap.appendChild(renderField({ path: 'flag', label: 'Etiqueta debajo de los números', type: 'text' }, 'stats'));
     return wrap;
   }
@@ -832,10 +875,7 @@
     (homeContent.quehacemos.items || []).forEach(function(item, i){
       var group = document.createElement('div');
       group.className = 'cms-subgroup';
-      var title = document.createElement('div');
-      title.className = 'cms-subgroup-title';
-      title.textContent = 'Ítem ' + (i + 1);
-      group.appendChild(title);
+      group.appendChild(renderGroupTitleInput(item, 'Ítem ' + (i + 1)));
       group.appendChild(renderRichField({ label: 'Título', type: 'text' }, function(){ return item.title; }, function(v){ item.title = v; }));
       group.appendChild(renderRichField({ label: 'Descripción', type: 'textarea' }, function(){ return item.texto; }, function(v){ item.texto = v; }));
       group.appendChild(renderPlainFieldFor({ label: 'Etiquetas separadas por coma', type: 'text' }, function(){ return item.tags; }, function(v){ item.tags = v; }));
@@ -875,10 +915,7 @@
       p.tiles.forEach(function(tile, i){
         var group = document.createElement('div');
         group.className = 'cms-subgroup cms-list-item';
-        var title = document.createElement('div');
-        title.className = 'cms-subgroup-title';
-        title.textContent = 'Proyecto ' + (i + 1);
-        group.appendChild(title);
+        group.appendChild(renderGroupTitleInput(tile, 'Proyecto ' + (i + 1)));
 
         if (p.tiles.length > 1) {
           var removeBtn = document.createElement('button');
@@ -934,10 +971,7 @@
       b.articles.forEach(function(art, i){
         var group = document.createElement('div');
         group.className = 'cms-subgroup cms-list-item';
-        var title = document.createElement('div');
-        title.className = 'cms-subgroup-title';
-        title.textContent = 'Artículo de ejemplo ' + (i + 1);
-        group.appendChild(title);
+        group.appendChild(renderGroupTitleInput(art, 'Artículo de ejemplo ' + (i + 1)));
 
         var removeBtn = document.createElement('button');
         removeBtn.type = 'button'; removeBtn.className = 'cms-remove-btn'; removeBtn.textContent = '×'; removeBtn.title = 'Quitar este artículo';

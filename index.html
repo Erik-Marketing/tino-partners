@@ -254,7 +254,7 @@
 
   /* ---- stats ---- */
   .stats{ padding:clamp(56px,8vh,88px) 0 clamp(72px,9vh,104px); text-align:center; }
-  .stats-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:clamp(20px,3vw,32px); }
+  .stats-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:clamp(20px,3vw,32px); }
   .stat-blob{ display:inline-block; width:52px; height:52px; margin:0 auto 14px; opacity:.9; }
   .stat-num{ font-family:'Big Shoulders Display',sans-serif; font-weight:800; font-size:clamp(2.2rem,4.4vw,3.2rem); }
   .stat-label{ margin-top:4px; font-size:.86rem; color:var(--ink-soft); }
@@ -591,26 +591,26 @@
 
   <section class="stats">
     <div class="section-inner">
-      <div class="stats-grid">
+      <div class="stats-grid" id="cms-stats-grid">
         <div class="reveal">
           <span class="stat-blob blob-shape blob-fill" style="position:relative;"></span>
-          <div class="stat-num" id="cms-stat-num-0">3+</div>
-          <div class="stat-label" id="cms-stat-label-0">Socios especialistas</div>
+          <div class="stat-num">3+</div>
+          <div class="stat-label">Socios especialistas</div>
         </div>
         <div class="reveal">
           <span class="stat-blob blob-shape blob-fill" style="position:relative;"></span>
-          <div class="stat-num" id="cms-stat-num-1">3</div>
-          <div class="stat-label" id="cms-stat-label-1">Disciplinas bajo un mismo equipo</div>
+          <div class="stat-num">3</div>
+          <div class="stat-label">Disciplinas bajo un mismo equipo</div>
         </div>
         <div class="reveal">
           <span class="stat-blob blob-shape blob-fill" style="position:relative;"></span>
-          <div class="stat-num" id="cms-stat-num-2">1+</div>
-          <div class="stat-label" id="cms-stat-label-2">Marcas trabajando con nosotros</div>
+          <div class="stat-num">1+</div>
+          <div class="stat-label">Marcas trabajando con nosotros</div>
         </div>
         <div class="reveal">
           <span class="stat-blob blob-shape blob-fill" style="position:relative;"></span>
-          <div class="stat-num" id="cms-stat-num-3">100%</div>
-          <div class="stat-label" id="cms-stat-label-3">Foco en resultados reales</div>
+          <div class="stat-num">100%</div>
+          <div class="stat-label">Foco en resultados reales</div>
         </div>
       </div>
       <div style="text-align:center;">
@@ -1047,10 +1047,21 @@
       setMedia(document.getElementById('cms-dif-video'), c.diferenciales.video);
     }
     if (c.stats) {
-      (c.stats.items || []).forEach(function(item, i){
-        setHtml('cms-stat-num-' + i, item.num);
-        setHtml('cms-stat-label-' + i, item.label);
-      });
+      var statsGrid = document.getElementById('cms-stats-grid');
+      if (statsGrid && c.stats.items && c.stats.items.length) {
+        statsGrid.innerHTML = '';
+        c.stats.items.forEach(function(item){
+          var el = document.createElement('div');
+          el.className = 'reveal';
+          el.innerHTML =
+            '<span class="stat-blob blob-shape blob-fill" style="position:relative;"></span>' +
+            '<div class="stat-num"></div><div class="stat-label"></div>';
+          el.querySelector('.stat-num').innerHTML = item.num || '';
+          el.querySelector('.stat-label').innerHTML = item.label || '';
+          statsGrid.appendChild(el);
+          io.observe(el);
+        });
+      }
       setHtml('cms-stats-flag', c.stats.flag);
     }
     if (c.quehacemos) {
