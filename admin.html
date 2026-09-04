@@ -205,6 +205,11 @@
   }
   .rt-editable.is-multiline{ min-height:78px; }
   .rt-editable:focus{ outline:2px solid var(--pink-500); outline-offset:1px; }
+  /* the size assigned via the "Tamaño" field is real data (saved and
+     applied on the live site) but stays invisible here — editing a huge
+     or tiny heading shouldn't turn this little box into an unreadable
+     mess. Only font-size is neutralized; bold/underline/color still show. */
+  .rt-editable [style*="font-size"]{ font-size:inherit !important; }
 
   .cms-list-item{ position:relative; }
   .cms-remove-btn{
@@ -715,6 +720,7 @@
           // no longer applies to it
           activeSizeSpan = null;
         }
+        updateSizeDisplay();
       });
     });
     function restoreRange(){
@@ -723,6 +729,28 @@
       sel.removeAllRanges();
       sel.addRange(lastRange);
       return true;
+    }
+
+    // walks up from a selection node looking for the nearest element with
+    // its OWN inline font-size (not the neutralized visual one — .style
+    // reads the real attribute regardless of the CSS override above), so
+    // the size field can always show what's actually assigned.
+    function findInlineFontSize(node){
+      var el = node && node.nodeType === 3 ? node.parentElement : node;
+      while (el && editable.contains(el)) {
+        if (el.style && el.style.fontSize) {
+          var px = parseInt(el.style.fontSize, 10);
+          if (px) return px;
+        }
+        el = el.parentElement;
+      }
+      return wholeFieldSpan() ? parseInt(wholeFieldSpan().style.fontSize, 10) || null : null;
+    }
+    function updateSizeDisplay(){
+      var sel = window.getSelection();
+      var node = (sel.rangeCount && editable.contains(sel.anchorNode)) ? sel.anchorNode : editable;
+      var px = findInlineFontSize(node);
+      sizeInput.value = px || '';
     }
 
     var sizeInput = document.createElement('input');
@@ -787,6 +815,7 @@
     sizeUnit.className = 'rt-size-unit';
     sizeUnit.textContent = 'px';
     toolbar.appendChild(sizeUnit);
+    updateSizeDisplay();
 
     RICH_COLORS.forEach(function(c){
       var b = document.createElement('button');
