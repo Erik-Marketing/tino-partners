@@ -158,14 +158,14 @@
 
   /* ---- hero: split 50/50, real photo on the right ---- */
   .hero-split{
-    position:relative; z-index:1; display:grid; grid-template-columns:1fr 1fr; align-items:stretch;
+    position:relative; z-index:1; display:grid; grid-template-columns:.85fr 1fr; align-items:stretch;
     min-height:100vh; min-height:100dvh; padding-top:0;
   }
   .hero-copy{
     display:flex; flex-direction:column; justify-content:center; gap:clamp(14px,2vh,22px);
     padding:calc(88px + 2vh) clamp(24px,5vw,72px) clamp(32px,4vh,56px);
   }
-  .hero-copy h1{ font-size:clamp(3.9rem, 6vw, 5.6rem); max-width:11.5ch; }
+  .hero-copy h1{ font-size:clamp(3.9rem, 6vw, 5.6rem); max-width:14ch; }
   .hero-copy .lede{ max-width:46ch; font-size:1.06rem; line-height:1.6; color:var(--ink-soft); }
   .hero-media{
     position:relative; overflow:hidden; background:var(--paper-dim); min-height:340px;
