@@ -1,0 +1,25 @@
+# Despliegue en el VPS. Se conecta a la red de Caddy (n8n_internal) para que
+# el reverse proxy lo alcance por el nombre del servicio.
+# Los datos (content.json, consultas, media subida) viven en el volumen
+# "tino_data", que persiste entre reinicios, rebuilds y actualizaciones.
+
+services:
+  tino-partners:
+    build: .
+    image: tino-partners:latest
+    container_name: tino-partners
+    restart: unless-stopped
+    environment:
+      DATA_DIR: "/data"
+      ADMIN_TOKEN: "${ADMIN_TOKEN}"
+    volumes:
+      - tino_data:/data
+
+volumes:
+  tino_data:
+
+# Misma red donde ya vive Caddy, así puede enrutar a "tino-partners:3000".
+networks:
+  default:
+    external: true
+    name: n8n_internal

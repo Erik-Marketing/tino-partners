@@ -1,6 +1,10 @@
 {
   "private": true,
+  "scripts": {
+    "start": "node server.js"
+  },
   "dependencies": {
-    "@vercel/blob": "^2.8.0"
+    "@vercel/blob": "^2.8.0",
+    "express": "^4.19.2"
   }
 }
