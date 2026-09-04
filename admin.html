@@ -188,10 +188,12 @@
   }
   .rt-btn.is-underline{ text-decoration:underline; }
   .rt-btn:hover{ border-color:var(--ink-soft); }
-  .rt-size-select{
+  .rt-size-input{
     background:var(--paper-flat); border:1px solid var(--line-strong); color:var(--ink);
-    height:30px; border-radius:7px; font-size:.72rem; font-family:'IBM Plex Mono',monospace; padding:0 6px;
+    height:30px; width:64px; border-radius:7px; font-size:.78rem; font-family:'IBM Plex Mono',monospace; padding:0 8px;
   }
+  .rt-size-input::-webkit-inner-spin-button, .rt-size-input::-webkit-outer-spin-button{ opacity:.6; }
+  .rt-size-unit{ font-family:'IBM Plex Mono',monospace; font-size:.68rem; color:var(--ink-soft); margin:0 2px 0 -4px; align-self:center; }
   .rt-color{
     width:22px; height:22px; border-radius:50%; border:2px solid var(--line-strong); cursor:pointer; padding:0;
   }
@@ -717,17 +719,26 @@
       return true;
     }
 
-    var sizeSelect = document.createElement('select');
-    sizeSelect.className = 'rt-size-select';
-    [['', 'Tamaño'], ['0.8em', 'Chico'], ['1em', 'Normal'], ['1.35em', 'Grande'], ['1.8em', 'Muy grande']].forEach(function(opt){
-      var o = document.createElement('option'); o.value = opt[0]; o.textContent = opt[1]; sizeSelect.appendChild(o);
-    });
-    sizeSelect.addEventListener('change', function(){
-      if (sizeSelect.value && restoreRange()) wrapSelectionStyle(editable, 'font-size:' + sizeSelect.value);
-      sizeSelect.value = '';
+    var sizeInput = document.createElement('input');
+    sizeInput.type = 'number';
+    sizeInput.className = 'rt-size-input';
+    sizeInput.placeholder = 'Tamaño';
+    sizeInput.min = '8';
+    sizeInput.max = '200';
+    sizeInput.title = 'Tamaño de letra en píxeles para el texto seleccionado';
+    function applySize(){
+      var px = parseInt(sizeInput.value, 10);
+      if (px && restoreRange()) wrapSelectionStyle(editable, 'font-size:' + px + 'px');
+      sizeInput.value = '';
       editable.dispatchEvent(new Event('input'));
-    });
-    toolbar.appendChild(sizeSelect);
+    }
+    sizeInput.addEventListener('change', applySize);
+    sizeInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') { e.preventDefault(); applySize(); } });
+    toolbar.appendChild(sizeInput);
+    var sizeUnit = document.createElement('span');
+    sizeUnit.className = 'rt-size-unit';
+    sizeUnit.textContent = 'px';
+    toolbar.appendChild(sizeUnit);
 
     RICH_COLORS.forEach(function(c){
       var b = document.createElement('button');
