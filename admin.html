@@ -732,9 +732,18 @@
     sizeInput.min = '8';
     sizeInput.max = '200';
     sizeInput.title = 'Tamaño de letra en píxeles — se aplica a la selección, o a todo el texto si no seleccionaste nada';
+    // if the field's entire content is already exactly one wrapping span
+    // (the result of a previous "whole field" size edit), reuse it instead
+    // of wrapping it again — otherwise every separate visit to this field
+    // (a page reload, a re-render) added one more nested layer on top of
+    // whatever was already there.
+    function wholeFieldSpan(){
+      var only = editable.childNodes.length === 1 ? editable.firstChild : null;
+      return (only && only.nodeType === 1 && only.tagName === 'SPAN') ? only : null;
+    }
     // applies live as you type each digit, instead of waiting for Enter/blur
     // (which gave no visible feedback and looked like it "didn't do
-    // anything"). The span created for this edit is reused on every
+    // anything"). The span touched by this edit is reused on every
     // keystroke so typing "4" then "0" doesn't nest a new span each time —
     // it's only re-selected fresh the next time this field gets focus.
     var activeSizeSpan = null;
@@ -746,10 +755,18 @@
         editable.dispatchEvent(new Event('input'));
         return;
       }
-      // if nothing was selected (or the selection was lost when this field
-      // took focus), fall back to sizing the whole field instead of quietly
-      // doing nothing
       if (!restoreRange()) {
+        // nothing was selected (or the selection was lost when this field
+        // took focus) — size the whole field instead of quietly doing
+        // nothing, reusing its existing wrapper span if it has one already
+        var existing = wholeFieldSpan();
+        if (existing) {
+          existing.style.fontSize = px + 'px';
+          activeSizeSpan = existing;
+          editable.dispatchEvent(new Event('input'));
+          sizeInput.focus();
+          return;
+        }
         var range = document.createRange();
         range.selectNodeContents(editable);
         var sel = window.getSelection();
