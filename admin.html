@@ -725,11 +725,21 @@
     sizeInput.placeholder = 'Tamaño';
     sizeInput.min = '8';
     sizeInput.max = '200';
-    sizeInput.title = 'Tamaño de letra en píxeles para el texto seleccionado';
+    sizeInput.title = 'Tamaño de letra en píxeles — se aplica a la selección, o a todo el texto si no seleccionaste nada';
     function applySize(){
       var px = parseInt(sizeInput.value, 10);
-      if (px && restoreRange()) wrapSelectionStyle(editable, 'font-size:' + px + 'px');
-      sizeInput.value = '';
+      if (!px) return;
+      // if nothing was selected (or the selection was lost when this field
+      // took focus), fall back to sizing the whole field instead of quietly
+      // doing nothing
+      if (!restoreRange()) {
+        var range = document.createRange();
+        range.selectNodeContents(editable);
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+      wrapSelectionStyle(editable, 'font-size:' + px + 'px');
       editable.dispatchEvent(new Event('input'));
     }
     sizeInput.addEventListener('change', applySize);
