@@ -37,6 +37,10 @@
 
   *{ box-sizing:border-box; }
   html{ scroll-behavior:smooth; scroll-padding-top:84px; overflow-x:hidden; }
+  /* per-field mobile font-size override, set from the admin panel's rich-text
+     size control — only kicks in when a field actually has one (see --rt-fs-m
+     on individual spans); everything else keeps its desktop size unchanged. */
+  @media (max-width: 900px) { [style*="--rt-fs-m"] { font-size: var(--rt-fs-m) !important; } }
   body{
     margin:0;
     background:var(--paper);
@@ -865,11 +869,6 @@
 </footer>
 
 <script>
-  // don't let the browser restore a previous scroll offset on reload — the
-  // hero's height can change between loads, so a stale offset lands mid-hero
-  // instead of at the top (only intentional #hash links should scroll down).
-  if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
-  if (!location.hash) { window.scrollTo(0, 0); }
 
   // nav scroll state — stays transparent through the whole hero (text + photo)
   // so the fixed nav never overlaps/hides part of the hero photo; only turns

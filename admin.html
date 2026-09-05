@@ -489,10 +489,35 @@
     viewLinks.forEach(function(a){ a.classList.toggle('active', a.dataset.view === name); });
     if (topbarTitle) topbarTitle.textContent = VIEW_TITLES[name] || 'Consultas';
     closeSidebar();
+    saveAdminViewState({ view: name });
   }
   viewLinks.forEach(function(a){
     a.addEventListener('click', function(e){ e.preventDefault(); showView(a.dataset.view); });
   });
+
+  // ---------- remember which view/section/scroll was open across an F5 ----------
+  // sessionStorage (not localStorage) on purpose — this is "where was I a
+  // moment ago", not something that should still apply days later or in a
+  // different tab.
+  var ADMIN_VIEW_KEY = 'tp_admin_view_state';
+  function saveAdminViewState(extra){
+    try {
+      var current = JSON.parse(sessionStorage.getItem(ADMIN_VIEW_KEY) || '{}');
+      sessionStorage.setItem(ADMIN_VIEW_KEY, JSON.stringify(Object.assign(current, extra)));
+    } catch (e) {}
+  }
+  var scrollSaveTimer = null;
+  window.addEventListener('scroll', function(){
+    clearTimeout(scrollSaveTimer);
+    scrollSaveTimer = setTimeout(function(){ saveAdminViewState({ scrollY: window.scrollY }); }, 150);
+  });
+  function restoreAdminScroll(y){
+    if (!y) return;
+    // a plain timeout instead of requestAnimationFrame — rAF doesn't fire
+    // (or fires much later) while the tab isn't the visible/foreground one,
+    // and there's no guarantee this runs while it is.
+    setTimeout(function(){ window.scrollTo(0, y); }, 60);
+  }
 
   function escapeHtml(str){
     var div = document.createElement('div');
@@ -768,20 +793,37 @@
       }
       return wholeFieldSpan() ? parseInt(wholeFieldSpan().style.fontSize, 10) || null : null;
     }
+    // same walk, but for the optional --rt-fs-m override (the mobile-only
+    // size). Absent means "no override — the public page falls back to the
+    // desktop font-size via CSS var(), nothing to show here either.
+    function findInlineMobileFontSize(node){
+      var el = node && node.nodeType === 3 ? node.parentElement : node;
+      while (el && editable.contains(el)) {
+        if (el.style && el.style.getPropertyValue('--rt-fs-m')) {
+          var px = parseInt(el.style.getPropertyValue('--rt-fs-m'), 10);
+          if (px) return px;
+        }
+        el = el.parentElement;
+      }
+      var whole = wholeFieldSpan();
+      return whole ? (parseInt(whole.style.getPropertyValue('--rt-fs-m'), 10) || null) : null;
+    }
     function updateSizeDisplay(){
       var sel = window.getSelection();
       var node = (sel.rangeCount && editable.contains(sel.anchorNode)) ? sel.anchorNode : editable;
       var px = findInlineFontSize(node);
       sizeInput.value = px || '';
+      var mpx = findInlineMobileFontSize(node);
+      sizeMobileInput.value = mpx || '';
     }
 
     var sizeInput = document.createElement('input');
     sizeInput.type = 'number';
     sizeInput.className = 'rt-size-input';
-    sizeInput.placeholder = 'Tamaño';
+    sizeInput.placeholder = 'Desktop';
     sizeInput.min = '8';
     sizeInput.max = '200';
-    sizeInput.title = 'Tamaño de letra en píxeles — se aplica a la selección, o a todo el texto si no seleccionaste nada';
+    sizeInput.title = 'Tamaño de letra en desktop, en píxeles — se aplica a la selección, o a todo el texto si no seleccionaste nada';
     // if the field's entire content is already exactly one wrapping span
     // (the result of a previous "whole field" size edit), reuse it instead
     // of wrapping it again — otherwise every separate visit to this field
@@ -837,6 +879,60 @@
     sizeUnit.className = 'rt-size-unit';
     sizeUnit.textContent = 'px';
     toolbar.appendChild(sizeUnit);
+
+    var sizeMobileInput = document.createElement('input');
+    sizeMobileInput.type = 'number';
+    sizeMobileInput.className = 'rt-size-input';
+    sizeMobileInput.placeholder = 'Mobile';
+    sizeMobileInput.min = '8';
+    sizeMobileInput.max = '200';
+    sizeMobileInput.title = 'Tamaño de letra en mobile, en píxeles — dejalo vacío para que use el mismo tamaño que desktop';
+    // targets the exact same span applySize() would use — reusing
+    // activeSizeSpan/wholeFieldSpan()/restoreRange() means a desktop-size
+    // edit and a mobile-size edit on the same field land on one span with
+    // both properties, instead of two separately-nested spans.
+    function applyMobileSize(){
+      var raw = sizeMobileInput.value;
+      if (raw === '') {
+        var target = (activeSizeSpan && activeSizeSpan.isConnected) ? activeSizeSpan : wholeFieldSpan();
+        if (target) { target.style.removeProperty('--rt-fs-m'); editable.dispatchEvent(new Event('input')); }
+        return;
+      }
+      var px = parseInt(raw, 10);
+      if (!px) return;
+      if (activeSizeSpan && activeSizeSpan.isConnected) {
+        activeSizeSpan.style.setProperty('--rt-fs-m', px + 'px');
+        editable.dispatchEvent(new Event('input'));
+        return;
+      }
+      if (!restoreRange()) {
+        var existing = wholeFieldSpan();
+        if (existing) {
+          existing.style.setProperty('--rt-fs-m', px + 'px');
+          activeSizeSpan = existing;
+          editable.dispatchEvent(new Event('input'));
+          sizeMobileInput.focus();
+          return;
+        }
+        var range = document.createRange();
+        range.selectNodeContents(editable);
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+      activeSizeSpan = wrapSelectionStyle(editable, '');
+      activeSizeSpan.style.setProperty('--rt-fs-m', px + 'px');
+      editable.dispatchEvent(new Event('input'));
+      sizeMobileInput.focus();
+    }
+    sizeMobileInput.addEventListener('input', applyMobileSize);
+    sizeMobileInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') { e.preventDefault(); sizeMobileInput.blur(); } });
+    toolbar.appendChild(sizeMobileInput);
+    var sizeMobileUnit = document.createElement('span');
+    sizeMobileUnit.className = 'rt-size-unit';
+    sizeMobileUnit.textContent = 'px';
+    toolbar.appendChild(sizeMobileUnit);
+
     updateSizeDisplay();
 
     RICH_COLORS.forEach(function(c){
@@ -1225,6 +1321,7 @@
 
   function selectHomeSection(key){
     activeSectionKey = key;
+    saveAdminViewState({ view: 'home-cms', section: key });
     Array.prototype.slice.call(homeSubnavEl.querySelectorAll('.sb-sublink')).forEach(function(a){
       a.classList.toggle('active', a.dataset.section === key);
     });
@@ -1522,6 +1619,7 @@
   }
 
   function renderBlogCms(){
+    saveAdminViewState({ view: 'blog-cms', sub: activeBlogView });
     if (activeBlogView === 'list') renderBlogList();
     else renderBlogNew();
   }
@@ -2011,6 +2109,7 @@
   }
 
   function renderPortfolioCms(){
+    saveAdminViewState({ view: 'portfolio-cms', sub: activePortfolioView });
     if (activePortfolioView === 'new') renderPortfolioNew();
     else if (activePortfolioView === 'list') renderPortfolioList();
     else renderPortfolioGeneral();
@@ -2155,9 +2254,54 @@
         loadContent(function(){
           if (lastConsultaItems) renderConsultas(lastConsultaItems);
         });
+        restoreAdminViewState();
       }
     })
     .catch(showLogin);
+
+  // puts the admin back where they left off before an F5 — same view,
+  // same submenu (Home's section / Blog's new-or-list / Portfolio's
+  // general-new-or-list), same scroll position.
+  function restoreAdminViewState(){
+    var state;
+    try { state = JSON.parse(sessionStorage.getItem(ADMIN_VIEW_KEY) || 'null'); } catch (e) { state = null; }
+    if (!state || !state.view || state.view === 'consultas' || !views[state.view]) {
+      restoreAdminScroll(state && state.scrollY);
+      return;
+    }
+    loadContent(function(){
+      if (state.view === 'home-cms') {
+        showView('home-cms');
+        buildHomeSidebar();
+        homeGroupToggle.classList.add('is-open');
+        homeSubnavEl.classList.add('is-open');
+        selectHomeSection(state.section || activeSectionKey);
+      } else if (state.view === 'blog-cms') {
+        activeBlogView = state.sub || 'new';
+        blogGroupToggle.classList.add('is-open');
+        blogSubnavEl.classList.add('is-open');
+        Array.prototype.slice.call(blogSubnavEl.querySelectorAll('.sb-sublink')).forEach(function(x){
+          x.classList.toggle('active', x.dataset.blogview === activeBlogView);
+        });
+        showView('blog-cms');
+        renderBlogCms();
+      } else if (state.view === 'portfolio-cms') {
+        activePortfolioView = state.sub || 'general';
+        portfolioGroupToggle.classList.add('is-open');
+        portfolioSubnavEl.classList.add('is-open');
+        Array.prototype.slice.call(portfolioSubnavEl.querySelectorAll('.sb-sublink')).forEach(function(x){
+          x.classList.toggle('active', x.dataset.portfolioview === activePortfolioView);
+        });
+        showView('portfolio-cms');
+        renderPortfolioCms();
+      } else {
+        showView(state.view);
+        var renderers = { 'menu-cms': renderMenuCms, 'form-cms': renderFormCms, 'nosotros-cms': renderNosotrosCms, 'seo-cms': renderSeoCms };
+        if (renderers[state.view]) renderers[state.view]();
+      }
+      restoreAdminScroll(state.scrollY);
+    });
+  }
 </script>
 </body>
 </html>
