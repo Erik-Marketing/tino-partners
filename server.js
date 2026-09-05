@@ -141,6 +141,12 @@ async function loadMergedContent() {
     merged.portfolio = Object.assign({}, DEFAULT_CONTENT.portfolio, saved.portfolio, {
       casos: normalizeCasos((saved.portfolio && saved.portfolio.casos) || DEFAULT_CONTENT.portfolio.casos),
     });
+    // shallow Object.assign at the top level means a page added to these
+    // two *after* content.json already had a `slugs`/`meta` key of its
+    // own would otherwise vanish entirely — merge one level deeper here
+    // so a newly-added key (e.g. "admin") always gets its default.
+    merged.slugs = Object.assign({}, DEFAULT_CONTENT.slugs, saved.slugs);
+    merged.meta = Object.assign({}, DEFAULT_CONTENT.meta, saved.meta);
     return merged;
   } catch (err) {
     return DEFAULT_CONTENT;
