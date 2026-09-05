@@ -6,8 +6,10 @@
 // the same request/response shape as the Vercel handlers means the
 // front-end (fetch calls in the HTML pages, admin.html) needed zero changes.
 const path = require('path');
+const os = require('os');
 const crypto = require('crypto');
 const fs = require('fs/promises');
+const { spawn } = require('child_process');
 const express = require('express');
 const rateLimit = require('express-rate-limit');
 const {
@@ -28,9 +30,29 @@ const PORT = process.env.PORT || 3000;
 process.on('unhandledRejection', (err) => console.error('unhandledRejection', err));
 process.on('uncaughtException', (err) => console.error('uncaughtException', err));
 
+const UPLOADS_DIR = path.join(MEDIA_DIR, 'uploads');
+
 async function ensureDirs() {
   await fs.mkdir(MEDIA_DIR, { recursive: true });
   await fs.mkdir(CONSULTAS_DIR, { recursive: true });
+  await fs.mkdir(UPLOADS_DIR, { recursive: true });
+}
+
+// covers leftovers from a request that crashed/restarted/timed-out mid-way —
+// the "commit" step for a compressed video is a same-directory fs.rename, so
+// a stray .tmp- file here always means something didn't finish cleanly.
+async function sweepStaleTempFiles() {
+  const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+  try {
+    const files = await fs.readdir(UPLOADS_DIR);
+    await Promise.all(files.filter((f) => f.startsWith('.tmp-')).map(async (f) => {
+      try {
+        const full = path.join(UPLOADS_DIR, f);
+        const stat = await fs.stat(full);
+        if (Date.now() - stat.mtimeMs > ONE_DAY_MS) await fs.unlink(full);
+      } catch (err) { /* already gone, or a race with a live upload — ignore */ }
+    }));
+  } catch (err) { /* UPLOADS_DIR not created yet on a very first boot — ignore */ }
 }
 
 function readCookie(req, name) {
@@ -55,6 +77,15 @@ function isAuthorized(req) {
   return Boolean(process.env.ADMIN_TOKEN) && safeEqual(sessionToken, process.env.ADMIN_TOKEN);
 }
 
+// as real middleware (not an inline check inside the handler) so it can run
+// BEFORE the body parser on routes with a large size limit — otherwise an
+// unauthenticated caller could force parsing of a huge body before ever
+// being told "no".
+function requireAdmin(req, res, next) {
+  if (!isAuthorized(req)) return res.status(401).json({ error: 'No autorizado' });
+  next();
+}
+
 // Caddy is the only thing that can reach this process, so its
 // X-Forwarded-For is trustworthy for one hop. Once Cloudflare is in front,
 // prefer its CF-Connecting-IP — but only after checking it looks like an
@@ -70,7 +101,9 @@ function getClientIp(req) {
 const app = express();
 app.set('trust proxy', 1);
 app.disable('x-powered-by');
-app.use(express.json({ limit: '20mb' }));
+// no global body parser — applied per route below, so a big limit for
+// uploads doesn't also apply to every other route (see requireAdmin above).
+const jsonBody = express.json({ limit: '20mb' });
 
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -167,7 +200,7 @@ app.get('/api/content', async (req, res) => {
   return res.status(200).json(merged);
 });
 
-app.post('/api/content', async (req, res) => {
+app.post('/api/content', jsonBody, async (req, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
   if (!isAuthorized(req)) return res.status(401).json({ error: 'No autorizado' });
 
@@ -193,7 +226,7 @@ const MAX_FIELDS = 30;
 const MAX_KEY_LENGTH = 60;
 const MAX_VALUE_LENGTH = 4000;
 
-app.post('/api/contact', contactLimiter, async (req, res) => {
+app.post('/api/contact', contactLimiter, jsonBody, async (req, res) => {
   const body = req.body;
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
     return res.status(400).json({ error: 'Faltan campos requeridos' });
@@ -256,7 +289,7 @@ app.get('/api/consultas', async (req, res) => {
 // ---------- /api/login, /api/logout ----------
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
-app.post('/api/login', loginLimiter, (req, res) => {
+app.post('/api/login', loginLimiter, jsonBody, (req, res) => {
   const { password } = req.body || {};
   if (!process.env.ADMIN_TOKEN || !safeEqual(password, process.env.ADMIN_TOKEN)) {
     return res.status(401).json({ error: 'Contraseña incorrecta' });
@@ -280,7 +313,14 @@ app.post('/api/logout', (req, res) => {
 });
 
 // ---------- /api/upload-media ----------
-const MAX_UPLOAD_BYTES = 3 * 1024 * 1024;
+const MAX_UPLOAD_BYTES = 3 * 1024 * 1024; // images — already client-compressed, stay small
+// Raw video, before compression. Kept conservatively under the ~100MB
+// request-body ceiling Cloudflare's Free/Pro plans have historically
+// enforced at the edge, once base64 inflates it (see videoJsonLimitBytes).
+const MAX_VIDEO_UPLOAD_BYTES = 80 * 1024 * 1024;
+// Derived from the byte constant above (not a separately-hardcoded string)
+// so the two can never drift out of sync with each other.
+const videoJsonLimitBytes = Math.ceil(MAX_VIDEO_UPLOAD_BYTES * 4 / 3) + 2 * 1024 * 1024;
 
 // Extension must match the declared contentType, and the file's own first
 // bytes must match that type's real signature — a renamed/mislabeled file
@@ -295,9 +335,64 @@ const ALLOWED_TYPES = {
   'video/webm': { ext: ['webm'], magic: (b) => b.length >= 4 && b.slice(0, 4).equals(Buffer.from([0x1a, 0x45, 0xdf, 0xa3])) },
 };
 
-app.post('/api/upload-media', async (req, res) => {
-  if (!isAuthorized(req)) return res.status(401).json({ error: 'No autorizado' });
+const uploadLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: getClientIp,
+  message: { error: 'Demasiadas subidas, probá de nuevo en un rato.' },
+});
 
+// Single Node process, no clustering — a plain in-memory counter is enough.
+// Only video jobs count against this (a plain image write is instant).
+// Checked AFTER express.json() below, since contentType only exists once
+// the body is parsed — a rejected request here still pays the parse cost,
+// but that's a rare, self-inflicted case (an admin firing several big
+// uploads at once), not something worth a header-based pre-parse trick for.
+let activeTranscodes = 0;
+const MAX_CONCURRENT_TRANSCODES = 2;
+function transcodeConcurrencyGuard(req, res, next) {
+  const contentType = String((req.body && req.body.contentType) || '');
+  if (contentType.toLowerCase().startsWith('video/') && activeTranscodes >= MAX_CONCURRENT_TRANSCODES) {
+    return res.status(429).json({ error: 'Ya hay compresiones de video en curso — esperá un momento y probá de nuevo.' });
+  }
+  next();
+}
+
+// Re-encodes to H.264/AAC mp4 regardless of the source container, so every
+// video on the site ends up in the one format every browser plays natively.
+// -threads 3 (not 4): this VPS also runs other live services, leave a core free.
+function runFfmpeg(inputPath, outputPath) {
+  return new Promise((resolve, reject) => {
+    const args = [
+      '-y', '-i', inputPath,
+      '-vf', "scale='min(1920,iw)':'min(1920,ih)':force_original_aspect_ratio=decrease:force_divisible_by=2",
+      '-c:v', 'libx264', '-preset', 'faster', '-crf', '26', '-threads', '3',
+      '-c:a', 'aac', '-b:a', '128k',
+      '-movflags', '+faststart',
+      outputPath,
+    ];
+    const proc = spawn('ffmpeg', args, { stdio: ['ignore', 'ignore', 'pipe'] });
+    let stderrTail = '';
+    // MUST drain stderr — ffmpeg writes continuous progress output there,
+    // and an undrained pipe fills within seconds for any real video,
+    // hanging the process until the timeout kills it. Every time, not rarely.
+    proc.stderr.on('data', (chunk) => {
+      stderrTail += chunk.toString();
+      if (stderrTail.length > 4000) stderrTail = stderrTail.slice(-4000);
+    });
+    const timer = setTimeout(() => { proc.kill('SIGKILL'); reject(new Error('timeout')); }, 4 * 60 * 1000);
+    proc.on('error', (err) => { clearTimeout(timer); reject(err); });
+    proc.on('close', (code) => {
+      clearTimeout(timer);
+      if (code === 0) resolve();
+      else reject(new Error('ffmpeg exited with code ' + code + ': ' + stderrTail.slice(-500)));
+    });
+  });
+}
+
+app.post('/api/upload-media', requireAdmin, uploadLimiter, express.json({ limit: videoJsonLimitBytes }), transcodeConcurrencyGuard, async (req, res) => {
   const { filename, contentType, dataBase64 } = req.body || {};
   if (!filename || !contentType || !dataBase64) {
     return res.status(400).json({ error: 'Faltan datos del archivo' });
@@ -307,28 +402,59 @@ app.post('/api/upload-media', async (req, res) => {
   if (!spec || !spec.ext.includes(declaredExt)) {
     return res.status(400).json({ error: 'Tipo de archivo no permitido' });
   }
+  const isVideo = String(contentType).toLowerCase().startsWith('video/');
 
   const buffer = Buffer.from(dataBase64, 'base64');
-  if (buffer.length > MAX_UPLOAD_BYTES) {
+  const maxBytes = isVideo ? MAX_VIDEO_UPLOAD_BYTES : MAX_UPLOAD_BYTES;
+  if (buffer.length > maxBytes) {
     return res.status(413).json({
-      error: 'El archivo es muy pesado para este uploader (máx ~3MB). Para fotos grandes o videos largos, pediselo a Claude para que lo comprima y lo suba.',
+      error: isVideo
+        ? 'El video es muy pesado (máx ~80MB antes de comprimir). Para algo más grande, pediselo a Claude directamente.'
+        : 'El archivo es muy pesado para este uploader (máx ~3MB). Para fotos grandes o videos largos, pediselo a Claude para que lo comprima y lo suba.',
     });
   }
   if (!spec.magic(buffer)) {
     return res.status(400).json({ error: 'El archivo no parece ser realmente del tipo declarado' });
   }
 
-  const safeName = String(filename).toLowerCase().replace(/[^a-z0-9.\-]+/g, '-').slice(-80);
-  const relPath = `uploads/${Date.now()}-${safeName}`;
-  const fullPath = path.join(MEDIA_DIR, relPath);
+  if (!isVideo) {
+    const safeName = String(filename).toLowerCase().replace(/[^a-z0-9.\-]+/g, '-').slice(-80);
+    const relPath = `uploads/${Date.now()}-${safeName}`;
+    const fullPath = path.join(MEDIA_DIR, relPath);
+    try {
+      await fs.writeFile(fullPath, buffer);
+      return res.status(200).json({ url: `/media/${relPath}` });
+    } catch (err) {
+      console.error('upload-media failed', err);
+      return res.status(500).json({ error: 'No se pudo subir el archivo' });
+    }
+  }
 
+  // video path: decode -> compress with ffmpeg -> commit, always ending up
+  // as .mp4 regardless of the source container (mov/webm normalize too).
+  const uid = crypto.randomUUID();
+  const tempInput = path.join(os.tmpdir(), `upload-${uid}.${declaredExt}`);
+  const tempOutput = path.join(UPLOADS_DIR, `.tmp-${uid}.mp4`); // same volume as the final path — fs.rename below must not cross filesystems
+  const finalRelPath = `uploads/${Date.now()}-${uid}.mp4`;
+  const finalFullPath = path.join(MEDIA_DIR, finalRelPath);
+
+  activeTranscodes += 1;
   try {
-    await fs.mkdir(path.dirname(fullPath), { recursive: true });
-    await fs.writeFile(fullPath, buffer);
-    return res.status(200).json({ url: `/media/${relPath}` });
+    await fs.writeFile(tempInput, buffer);
+    await runFfmpeg(tempInput, tempOutput);
+    const stat = await fs.stat(tempOutput).catch(() => null);
+    if (!stat || stat.size === 0) throw new Error('ffmpeg produced an empty file');
+    await fs.rename(tempOutput, finalFullPath);
+    if (res.headersSent) return; // client already gave up (e.g. a proxy timeout) — nothing to send
+    return res.status(200).json({ url: `/media/${finalRelPath}` });
   } catch (err) {
-    console.error('upload-media failed', err);
-    return res.status(500).json({ error: 'No se pudo subir el archivo' });
+    console.error('video compression failed', err);
+    if (res.headersSent) return;
+    return res.status(500).json({ error: 'No se pudo comprimir el video. Probá con un archivo más chico, o pediselo a Claude directamente.' });
+  } finally {
+    activeTranscodes -= 1;
+    await fs.unlink(tempInput).catch(() => {});
+    await fs.unlink(tempOutput).catch(() => {});
   }
 });
 
@@ -397,7 +523,13 @@ app.use((err, req, res, next) => {
 });
 
 ensureDirs().then(() => {
-  app.listen(PORT, '0.0.0.0', () => {
+  sweepStaleTempFiles();
+  const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`Tino Partners server listening on :${PORT} (DATA_DIR=${DATA_DIR})`);
   });
+  // a video compression request can legitimately run longer than any other
+  // route — make sure Node's own timeout doesn't cut it off before the
+  // in-app ffmpeg timeout (4 min) ever gets a chance to.
+  server.requestTimeout = 5 * 60 * 1000;
+  server.headersTimeout = 5 * 60 * 1000 + 5000;
 });

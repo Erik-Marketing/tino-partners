@@ -1070,7 +1070,7 @@
       var file = fileInput.files[0];
       if (!file) return;
       status.className = 'cms-media-status';
-      status.textContent = 'Subiendo...';
+      status.textContent = opts.type === 'video' ? 'Subiendo y comprimiendo el video — puede tardar un minuto...' : 'Subiendo...';
 
       var prep = Promise.resolve(file);
       if (opts.type !== 'video' && file.size > 700 * 1024) {
@@ -1078,8 +1078,11 @@
       }
 
       prep.then(function(fileOrBlob){
-        if (fileOrBlob.size > 3 * 1024 * 1024) {
-          throw new Error('El archivo pesa más de 3MB incluso comprimido. Pediselo a Claude para subir algo tan pesado, o pegá la URL directamente arriba.');
+        var maxBytes = opts.type === 'video' ? 80 * 1024 * 1024 : 3 * 1024 * 1024;
+        if (fileOrBlob.size > maxBytes) {
+          throw new Error(opts.type === 'video'
+            ? 'El video pesa más de 80MB. Pediselo a Claude para subir algo tan pesado, o pegá la URL directamente arriba.'
+            : 'El archivo pesa más de 3MB incluso comprimido. Pediselo a Claude para subir algo tan pesado, o pegá la URL directamente arriba.');
         }
         return fileToBase64(fileOrBlob).then(function(base64){
           return fetch('/api/upload-media', {
