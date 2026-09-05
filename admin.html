@@ -148,9 +148,19 @@
   .c-full .val{ color:var(--ink-soft); line-height:1.55; white-space:pre-wrap; }
 
   /* ---------- Kanban (Consultas) ---------- */
-  .kanban-row{ display:flex; gap:16px; overflow-x:auto; padding-bottom:10px; align-items:flex-start; }
+  /* Scrollbar hidden on purpose — panning is via wheel/click-drag
+     (wireBoardPan), not a visible scrollbar. Still a real overflow:auto
+     underneath so keyboard/programmatic scroll keeps working. */
+  .kanban-row{
+    display:flex; gap:16px; overflow-x:auto; padding-bottom:2px; align-items:stretch;
+    min-height:calc(100vh - 360px); cursor:grab;
+    scrollbar-width:none; -ms-overflow-style:none;
+  }
+  .kanban-row::-webkit-scrollbar{ display:none; }
+  .kanban-row.is-panning{ cursor:grabbing; }
+  .kanban-row.is-panning, .kanban-row.is-panning *{ user-select:none; }
   .kanban-column{
-    flex:none; width:280px; background:var(--paper-flat); border:1px solid var(--line); border-radius:var(--radius);
+    flex:1 1 260px; min-width:240px; background:var(--paper-flat); border:1px solid var(--line); border-radius:var(--radius);
     padding:12px; display:flex; flex-direction:column; gap:10px; transition:border-color .15s ease, box-shadow .15s ease;
   }
   .kanban-column.is-drop-target{ border-color:var(--pink-500); box-shadow:0 0 0 2px rgba(238,96,198,.25); }
@@ -165,7 +175,7 @@
   }
   .kanban-col-btn:hover{ color:var(--ink); border-color:var(--ink-soft); }
   .kanban-col-count{ font-family:'IBM Plex Mono',monospace; font-size:.68rem; color:var(--ink-soft); padding:0 2px; }
-  .kanban-cards{ display:flex; flex-direction:column; gap:10px; min-height:40px; }
+  .kanban-cards{ display:flex; flex-direction:column; gap:10px; min-height:40px; flex:1; }
   .kanban-card{ cursor:grab; touch-action:none; }
   .kanban-card.is-dragging{ opacity:.3; }
   .kanban-ghost{
@@ -661,6 +671,37 @@
     });
   }
 
+  // Deslizar el tablero cuando no entran todas las columnas — sin barra
+  // visible: rueda del mouse (vertical u horizontal, ej. el botón lateral
+  // de la rueda) y click-and-drag sobre el fondo del tablero. Se ignora si
+  // el mousedown arrancó sobre una tarjeta/input/botón para no pisar el
+  // arrastre de tarjetas (wireCardDrag) ni la edición de columnas.
+  function wireBoardPan(row){
+    row.addEventListener('wheel', function(e){
+      if (row.scrollWidth <= row.clientWidth + 1) return;
+      row.scrollLeft += (e.deltaY !== 0 ? e.deltaY : e.deltaX);
+      e.preventDefault();
+    }, { passive: false });
+
+    row.addEventListener('mousedown', function(e){
+      if (e.button !== 0) return;
+      if (e.target.closest('.kanban-card, .kanban-col-head, .kanban-add-col, button, input, a')) return;
+      var startX = e.clientX, startScroll = row.scrollLeft;
+      row.classList.add('is-panning');
+      e.preventDefault();
+      function onMove(ev){
+        row.scrollLeft = startScroll - (ev.clientX - startX);
+      }
+      function onUp(){
+        row.classList.remove('is-panning');
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+      }
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    });
+  }
+
   function ensureKanban(){
     // renderConsultas can run once right after login/bootstrap, before
     // loadContent() has populated homeContent for the first time (it's
@@ -691,6 +732,7 @@
     } else {
       var row = document.createElement('div');
       row.className = 'kanban-row';
+      wireBoardPan(row);
 
       columns.forEach(function(column, colIndex){
         var colItems = items.filter(function(it){ return it.columnId === column.id; });
