@@ -325,9 +325,19 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           Nosotros
         </a>
-        <a class="sb-link" href="#portfolio" data-view="portfolio-cms">
+        <button class="sb-link sb-group-toggle" type="button" id="sbPortfolioToggle">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
           Portfolio
+          <svg class="sb-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="sb-subnav" id="sbPortfolioSubnav">
+          <a class="sb-sublink" href="#" data-portfolioview="general">Contenido general</a>
+          <a class="sb-sublink" href="#" data-portfolioview="new">Nuevo caso</a>
+          <a class="sb-sublink" href="#" data-portfolioview="list">Casos</a>
+        </div>
+        <a class="sb-link" href="#seo" data-view="seo-cms">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          SEO
         </a>
       </div>
       <button class="sb-logout" id="logoutBtn">
@@ -417,13 +427,25 @@
 
         <div id="view-portfolio-cms" style="display:none;">
           <div class="main-head">
-            <h2>Portfolio</h2>
-            <p>Los textos de la página Portfolio: portada, tarjetas destacadas y el cierre.</p>
+            <h2 id="portfolioSectionTitle">Portfolio</h2>
+            <p id="portfolioSectionHint">Los textos de la página Portfolio: portada, tarjetas destacadas y el cierre.</p>
           </div>
           <div id="portfolioCmsBody"><p class="state-msg">Cargando...</p></div>
           <div class="cms-savebar" id="portfolioSavebar" style="display:none;">
             <button class="btn-primary" type="button" id="portfolioSaveBtn">Guardar cambios</button>
             <span class="cms-save-status" id="portfolioSaveStatus"></span>
+          </div>
+        </div>
+
+        <div id="view-seo-cms" style="display:none;">
+          <div class="main-head">
+            <h2>SEO</h2>
+            <p>Título y descripción de cada página, y la URL con la que se accede a cada una.</p>
+          </div>
+          <div id="seoCmsBody"><p class="state-msg">Cargando...</p></div>
+          <div class="cms-savebar" id="seoSavebar" style="display:none;">
+            <button class="btn-primary" type="button" id="seoSaveBtn">Guardar cambios</button>
+            <span class="cms-save-status" id="seoSaveStatus"></span>
           </div>
         </div>
       </main>
@@ -458,10 +480,10 @@
 
   // ---------- view switching (Consultas / Home) ----------
   var viewLinks = Array.prototype.slice.call(document.querySelectorAll('.sb-link[data-view]'));
-  var views = { consultas: document.getElementById('view-consultas'), 'home-cms': document.getElementById('view-home-cms'), 'blog-cms': document.getElementById('view-blog-cms'), 'menu-cms': document.getElementById('view-menu-cms'), 'form-cms': document.getElementById('view-form-cms'), 'nosotros-cms': document.getElementById('view-nosotros-cms'), 'portfolio-cms': document.getElementById('view-portfolio-cms') };
+  var views = { consultas: document.getElementById('view-consultas'), 'home-cms': document.getElementById('view-home-cms'), 'blog-cms': document.getElementById('view-blog-cms'), 'menu-cms': document.getElementById('view-menu-cms'), 'form-cms': document.getElementById('view-form-cms'), 'nosotros-cms': document.getElementById('view-nosotros-cms'), 'portfolio-cms': document.getElementById('view-portfolio-cms'), 'seo-cms': document.getElementById('view-seo-cms') };
   var topbarTitle = document.querySelector('.topbar-title');
   var homeCmsLoaded = false;
-  var VIEW_TITLES = { consultas: 'Consultas', 'home-cms': 'Home', 'blog-cms': 'Blog', 'menu-cms': 'Menú', 'form-cms': 'Form', 'nosotros-cms': 'Nosotros', 'portfolio-cms': 'Portfolio' };
+  var VIEW_TITLES = { consultas: 'Consultas', 'home-cms': 'Home', 'blog-cms': 'Blog', 'menu-cms': 'Menú', 'form-cms': 'Form', 'nosotros-cms': 'Nosotros', 'portfolio-cms': 'Portfolio', 'seo-cms': 'SEO' };
   function showView(name){
     Object.keys(views).forEach(function(k){ views[k].style.display = (k === name) ? 'block' : 'none'; });
     viewLinks.forEach(function(a){ a.classList.toggle('active', a.dataset.view === name); });
@@ -1285,6 +1307,7 @@
   wireSaveButton('formSaveBtn', 'formSaveStatus');
   wireSaveButton('nosotrosSaveBtn', 'nosotrosSaveStatus');
   wireSaveButton('portfolioSaveBtn', 'portfolioSaveStatus');
+  wireSaveButton('seoSaveBtn', 'seoSaveStatus');
 
   var contentLoading = false;
   var pendingContentCallbacks = [];
@@ -1755,6 +1778,8 @@
       memberGroup.appendChild(renderRichField({ label: 'Nombre', type: 'text' }, function(){ return m.name; }, function(v){ m.name = v; title.textContent = v || title.textContent; }));
       memberGroup.appendChild(renderRichField({ label: 'Rol', type: 'text' }, function(){ return m.role; }, function(v){ m.role = v; }));
       memberGroup.appendChild(renderRichField({ label: 'Bio', type: 'textarea' }, function(){ return m.bio; }, function(v){ m.bio = v; }));
+      if (!m.photo) m.photo = { url: '', posX: 50, posY: 50 };
+      memberGroup.appendChild(renderMediaField(m.photo, { type: 'image', label: 'Foto' }));
       equipoGroup.appendChild(memberGroup);
     });
     nosotrosCmsBody.appendChild(equipoGroup);
@@ -1781,10 +1806,17 @@
     else renderNosotrosCms();
   });
 
-  // ---------- Portfolio CMS ----------
+  // ---------- Portfolio CMS (Contenido general / Nuevo caso / Casos) ----------
   var portfolioCmsBody = document.getElementById('portfolioCmsBody');
+  var portfolioSectionTitleEl = document.getElementById('portfolioSectionTitle');
+  var portfolioSectionHintEl = document.getElementById('portfolioSectionHint');
+  var portfolioGroupToggle = document.getElementById('sbPortfolioToggle');
+  var portfolioSubnavEl = document.getElementById('sbPortfolioSubnav');
+  var activePortfolioView = 'general';
 
-  function renderPortfolioCms(){
+  function renderPortfolioGeneral(){
+    portfolioSectionTitleEl.textContent = 'Portfolio';
+    portfolioSectionHintEl.textContent = 'Los textos de la página Portfolio: portada, tarjetas destacadas y el cierre.';
     portfolioCmsBody.innerHTML = '';
     if (!homeContent.portfolio) homeContent.portfolio = {};
     var p = homeContent.portfolio;
@@ -1824,9 +1856,274 @@
     document.getElementById('portfolioSavebar').style.display = 'flex';
   }
 
-  document.querySelector('.sb-link[data-view="portfolio-cms"]').addEventListener('click', function(){
-    if (!homeCmsLoaded) loadContent(renderPortfolioCms);
-    else renderPortfolioCms();
+  // ---- Casos de cliente (mismo patrón que los artículos del Blog) ----
+  function uniqueCasoSlug(base, casos, skip){
+    var slug = base, n = 2;
+    while (casos.some(function(c){ return c !== skip && c.slug === slug; })) {
+      slug = base + '-' + n; n++;
+    }
+    return slug;
+  }
+
+  function renderCasoFields(caso, opts){
+    var wrap = document.createElement('div');
+    wrap.className = 'cms-fields';
+
+    var templateField = document.createElement('div');
+    templateField.className = 'cms-field';
+    templateField.appendChild(makeLabel('Plantilla'));
+    var select = document.createElement('select');
+    TEMPLATES.filter(function(t){ return t.value !== 'galeria'; }).forEach(function(t){
+      var o = document.createElement('option'); o.value = t.value; o.textContent = t.label;
+      if (caso.template === t.value) o.selected = true;
+      select.appendChild(o);
+    });
+    if (!caso.template) caso.template = 'estandar';
+    templateField.appendChild(select);
+    wrap.appendChild(templateField);
+
+    wrap.appendChild(renderPlainFieldFor({ label: 'Categoría (ej: Producción)', type: 'text' }, function(){ return caso.categoria; }, function(v){ caso.categoria = v; }));
+    wrap.appendChild(renderRichField({ label: 'Cliente', type: 'text' }, function(){ return caso.cliente; }, function(v){ caso.cliente = v; }));
+    wrap.appendChild(renderPlainFieldFor({ label: 'Detalle (ej: Campaña Margen — 2026)', type: 'text' }, function(){ return caso.meta; }, function(v){ caso.meta = v; }));
+    wrap.appendChild(renderRichField({ label: 'Resumen (se muestra en la tarjeta)', type: 'textarea' }, function(){ return caso.resumen; }, function(v){ caso.resumen = v; }));
+
+    var coverSlot = document.createElement('div');
+    function renderCover(){
+      coverSlot.innerHTML = '';
+      if (!caso.cover) caso.cover = { url: '', posX: 50, posY: 50 };
+      var isVideo = caso.template === 'video';
+      coverSlot.appendChild(renderMediaField(caso.cover, { type: isVideo ? 'video' : 'image', label: isVideo ? 'Video de portada' : 'Foto de portada' }));
+    }
+    renderCover();
+    wrap.appendChild(coverSlot);
+
+    wrap.appendChild(renderRichField({ label: 'Descripción', type: 'textarea' }, function(){ return caso.cuerpo; }, function(v){ caso.cuerpo = v; }));
+
+    var galleryWrap = document.createElement('div');
+    galleryWrap.style.cssText = 'display:flex; flex-direction:column; gap:12px; margin:4px 0;';
+    function renderGallery(){
+      galleryWrap.innerHTML = '';
+      if (!caso.gallery) caso.gallery = [];
+      caso.gallery.forEach(function(img, gi){
+        var row = document.createElement('div');
+        row.className = 'cms-subgroup cms-list-item';
+        var removeBtn = document.createElement('button');
+        removeBtn.type = 'button'; removeBtn.className = 'cms-remove-btn'; removeBtn.textContent = '×'; removeBtn.title = 'Quitar esta foto';
+        removeBtn.addEventListener('click', function(){ caso.gallery.splice(gi, 1); renderGallery(); });
+        row.appendChild(removeBtn);
+        row.appendChild(renderMediaField(img, { type: 'image', label: 'Foto ' + (gi + 1) }));
+        galleryWrap.appendChild(row);
+      });
+    }
+    renderGallery();
+    wrap.appendChild(galleryWrap);
+    var addImgBtn = document.createElement('button');
+    addImgBtn.type = 'button'; addImgBtn.className = 'cms-add-btn'; addImgBtn.textContent = '+ Agregar foto a la galería';
+    addImgBtn.addEventListener('click', function(){ caso.gallery = caso.gallery || []; caso.gallery.push({ url: '', posX: 50, posY: 50 }); renderGallery(); });
+    wrap.appendChild(addImgBtn);
+
+    select.addEventListener('change', function(){ caso.template = select.value; renderCover(); });
+
+    if (opts && opts.onRemove) {
+      var removeCasoBtn = document.createElement('button');
+      removeCasoBtn.type = 'button'; removeCasoBtn.className = 'cms-add-btn'; removeCasoBtn.textContent = 'Eliminar este caso';
+      removeCasoBtn.style.borderColor = 'var(--pink-500)'; removeCasoBtn.style.color = 'var(--pink-500)';
+      removeCasoBtn.addEventListener('click', opts.onRemove);
+      wrap.appendChild(removeCasoBtn);
+    }
+
+    return wrap;
+  }
+
+  function renderPortfolioNew(){
+    portfolioSectionTitleEl.textContent = 'Nuevo caso';
+    portfolioSectionHintEl.textContent = 'Creá la página de un cliente nuevo para Portfolio. Se ve en el sitio apenas la guardás.';
+    portfolioCmsBody.innerHTML = '';
+    if (!homeContent.portfolio) homeContent.portfolio = {};
+    if (!homeContent.portfolio.casos) homeContent.portfolio.casos = [];
+    var blank = { template: 'estandar', categoria: '', cliente: '', meta: '', resumen: '', cover: { url: '', posX: 50, posY: 50 }, cuerpo: '', gallery: [] };
+    var fieldsWrap = renderCasoFields(blank, null);
+    portfolioCmsBody.appendChild(fieldsWrap);
+
+    var publishBtn = document.createElement('button');
+    publishBtn.type = 'button'; publishBtn.className = 'btn-primary'; publishBtn.style.cssText = 'width:auto; padding:13px 26px; margin-top:6px;';
+    publishBtn.textContent = 'Publicar caso';
+    var publishStatus = document.createElement('span');
+    publishStatus.className = 'cms-save-status'; publishStatus.style.marginLeft = '14px';
+    portfolioCmsBody.appendChild(publishBtn);
+    portfolioCmsBody.appendChild(publishStatus);
+
+    publishBtn.addEventListener('click', function(){
+      if (!blank.cliente || !String(blank.cliente).replace(/<[^>]+>/g, '').trim()) {
+        publishStatus.textContent = 'Ponele un nombre de cliente antes de publicar.';
+        publishStatus.className = 'cms-save-status is-error';
+        return;
+      }
+      var plainCliente = (function(){ var d = document.createElement('div'); d.innerHTML = blank.cliente; return d.textContent; })();
+      blank.slug = uniqueCasoSlug(slugify(plainCliente), homeContent.portfolio.casos);
+      homeContent.portfolio.casos.push(blank);
+      publishStatus.textContent = 'Agregado — guardá los cambios para publicarlo.';
+      publishStatus.className = 'cms-save-status is-ok';
+      publishBtn.disabled = true;
+    });
+
+    document.getElementById('portfolioSavebar').style.display = 'flex';
+  }
+
+  function renderPortfolioList(){
+    portfolioSectionTitleEl.textContent = 'Casos';
+    portfolioSectionHintEl.textContent = 'Los casos de cliente ya publicados en Portfolio.';
+    portfolioCmsBody.innerHTML = '';
+    if (!homeContent.portfolio) homeContent.portfolio = {};
+    if (!homeContent.portfolio.casos) homeContent.portfolio.casos = [];
+    var casos = homeContent.portfolio.casos;
+
+    if (!casos.length) {
+      var empty = document.createElement('p');
+      empty.className = 'state-msg';
+      empty.textContent = 'Todavía no hay casos — creá uno desde "Nuevo caso".';
+      portfolioCmsBody.appendChild(empty);
+      document.getElementById('portfolioSavebar').style.display = 'none';
+      return;
+    }
+
+    casos.forEach(function(caso, i){
+      var details = document.createElement('details');
+      details.className = 'cms-section';
+      details.open = (i === 0);
+      var summary = document.createElement('summary');
+      var plainCliente = (function(){ var d = document.createElement('div'); d.innerHTML = caso.cliente || ''; return d.textContent; })();
+      summary.textContent = plainCliente || ('Caso ' + (i + 1));
+      details.appendChild(summary);
+
+      var fields = renderCasoFields(caso, {
+        onRemove: function(){
+          if (!confirm('¿Eliminar este caso? No se puede deshacer una vez que guardes.')) return;
+          casos.splice(i, 1);
+          renderPortfolioList();
+        }
+      });
+      details.appendChild(fields);
+      portfolioCmsBody.appendChild(details);
+    });
+
+    document.getElementById('portfolioSavebar').style.display = 'flex';
+  }
+
+  function renderPortfolioCms(){
+    if (activePortfolioView === 'new') renderPortfolioNew();
+    else if (activePortfolioView === 'list') renderPortfolioList();
+    else renderPortfolioGeneral();
+  }
+
+  Array.prototype.slice.call(portfolioSubnavEl.querySelectorAll('.sb-sublink')).forEach(function(a){
+    a.addEventListener('click', function(e){
+      e.preventDefault();
+      showView('portfolio-cms');
+      portfolioGroupToggle.classList.add('is-open');
+      portfolioSubnavEl.classList.add('is-open');
+      activePortfolioView = a.dataset.portfolioview;
+      Array.prototype.slice.call(portfolioSubnavEl.querySelectorAll('.sb-sublink')).forEach(function(x){
+        x.classList.toggle('active', x === a);
+      });
+      if (!homeCmsLoaded) loadContent(renderPortfolioCms);
+      else renderPortfolioCms();
+      closeSidebar();
+    });
+  });
+
+  portfolioGroupToggle.addEventListener('click', function(){
+    var willOpen = !portfolioGroupToggle.classList.contains('is-open');
+    portfolioGroupToggle.classList.toggle('is-open', willOpen);
+    portfolioSubnavEl.classList.toggle('is-open', willOpen);
+    if (willOpen) {
+      showView('portfolio-cms');
+      if (!homeCmsLoaded) loadContent(renderPortfolioCms);
+      else renderPortfolioCms();
+    }
+  });
+
+  // ---------- SEO CMS (títulos/descripciones + URLs personalizadas) ----------
+  var seoCmsBody = document.getElementById('seoCmsBody');
+  var SEO_PAGES = [
+    { key: 'home', label: 'Home', hasSlug: false },
+    { key: 'nosotros', label: 'Nosotros', hasSlug: true },
+    { key: 'portfolio', label: 'Portfolio', hasSlug: true },
+    { key: 'nobrand', label: 'NOBRAND', hasSlug: true },
+    { key: 'blog', label: 'Blog', hasSlug: true },
+    { key: 'terminos', label: 'Términos', hasSlug: true },
+    { key: 'privacidad', label: 'Privacidad', hasSlug: true },
+  ];
+
+  // lightweight browser-side copy of content-defaults.js's slugify() —
+  // duplicated on purpose (no build step to share it from), the server
+  // is the authoritative validator either way; this is just live preview.
+  function clientSlugify(text){
+    return String(text || '')
+      .toLowerCase()
+      .normalize('NFD').replace(/\p{Mark}/gu, '')
+      .replace(/[^a-z0-9\s-]/g, '')
+      .trim().replace(/\s+/g, '-');
+  }
+
+  function renderSlugField(key, label){
+    var wrap = document.createElement('div');
+    wrap.className = 'cms-field';
+    wrap.appendChild(makeLabel('URL de ' + label));
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.value = homeContent.slugs[key] || '';
+    var preview = document.createElement('p');
+    preview.className = 'cms-media-hint';
+    function updatePreview(){ preview.textContent = 'tinopartners.com/' + (input.value || ''); }
+    updatePreview();
+    input.addEventListener('input', function(){
+      var clean = clientSlugify(input.value);
+      input.value = clean;
+      homeContent.slugs[key] = clean;
+      updatePreview();
+    });
+    wrap.appendChild(input);
+    wrap.appendChild(preview);
+    return wrap;
+  }
+
+  function renderSeoCms(){
+    seoCmsBody.innerHTML = '';
+    if (!homeContent.meta) homeContent.meta = {};
+    if (!homeContent.slugs) homeContent.slugs = {};
+
+    var metaGroup = cmsSubgroup('Título y descripción (metadatos)');
+    SEO_PAGES.forEach(function(page){
+      if (!homeContent.meta[page.key]) homeContent.meta[page.key] = { title: '', description: '' };
+      var pageGroup = document.createElement('div');
+      pageGroup.className = 'cms-subgroup cms-list-item';
+      var title = document.createElement('div');
+      title.className = 'cms-subgroup-title';
+      title.textContent = page.label;
+      pageGroup.appendChild(title);
+      pageGroup.appendChild(renderField({ path: 'title', label: 'Título', type: 'text', plain: true }, 'meta.' + page.key));
+      pageGroup.appendChild(renderField({ path: 'description', label: 'Descripción (meta description)', type: 'textarea', plain: true }, 'meta.' + page.key));
+      metaGroup.appendChild(pageGroup);
+    });
+    seoCmsBody.appendChild(metaGroup);
+
+    var slugsGroup = cmsSubgroup('URLs personalizadas');
+    var slugsHint = document.createElement('p');
+    slugsHint.className = 'cms-media-hint';
+    slugsHint.textContent = 'La URL de siempre (' + '.html) sigue funcionando también — esto agrega una URL nueva, más linda, además de la anterior.';
+    slugsGroup.appendChild(slugsHint);
+    SEO_PAGES.filter(function(p){ return p.hasSlug; }).forEach(function(page){
+      slugsGroup.appendChild(renderSlugField(page.key, page.label));
+    });
+    seoCmsBody.appendChild(slugsGroup);
+
+    document.getElementById('seoSavebar').style.display = 'flex';
+  }
+
+  document.querySelector('.sb-link[data-view="seo-cms"]').addEventListener('click', function(){
+    if (!homeCmsLoaded) loadContent(renderSeoCms);
+    else renderSeoCms();
   });
 
   // check for an existing session on load

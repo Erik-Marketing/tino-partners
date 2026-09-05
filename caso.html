@@ -1,6 +1,6 @@
-<title>Blog — Tino Partners</title>
+<title>Portfolio — Tino Partners</title>
 <meta name="description" content="">
-<link rel="canonical" href="https://tinopartners.com/blog">
+<link rel="canonical" href="">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FFFFFF">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -48,7 +48,7 @@
   h1,h2,h3{
     font-family:'Big Shoulders Display', 'Arial Narrow', sans-serif;
     font-weight:800;
-    line-height:.94;
+    line-height:.98;
     text-transform:uppercase;
     letter-spacing:.005em;
     text-wrap:balance;
@@ -65,11 +65,6 @@
     text-transform:uppercase;
     color:var(--ink-soft);
   }
-  .example-flag{
-    display:inline-flex; align-items:center; gap:6px; margin-top:14px;
-    font-family:'IBM Plex Mono',monospace; font-size:.68rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
-    color:var(--v-500); border:1px solid var(--lime-fill); border-radius:var(--radius-pill); padding:6px 14px;
-  }
   .section-inner{ position:relative; z-index:1; max-width:var(--maxw); margin:0 auto; padding-inline:clamp(20px,5vw,64px); }
   img{ max-width:100%; display:block; }
 
@@ -79,7 +74,6 @@
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
-  /* ---- nav: logo + hamburger only, at every width — opens a full link panel ---- */
   .nav{
     position:fixed; top:0; left:0; right:0; z-index:42;
     display:flex; align-items:center; justify-content:space-between;
@@ -133,42 +127,45 @@
     box-shadow:var(--glow);
   }
 
-  .btn-ghost{
-    text-decoration:none; font-family:'IBM Plex Mono',monospace; font-size:.82rem; font-weight:600;
-    letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft);
-    border-bottom:1px solid var(--line-strong); padding-bottom:3px; transition:color .2s ease, border-color .2s ease;
-  }
-  .btn-ghost:hover{ color:var(--ink); border-color:var(--ink); }
-  .arrow-link{ display:inline-flex; align-items:center; gap:8px; text-decoration:none; color:var(--ink); font-weight:600; }
-  .arrow-link svg{ width:18px; height:18px; transition:transform .2s ease; }
-  .arrow-link:hover svg{ transform:translate(3px,-3px); }
+  .arrow-link{ display:inline-flex; align-items:center; gap:8px; text-decoration:none; color:var(--ink-soft); font-weight:600; font-family:'IBM Plex Mono',monospace; font-size:.78rem; letter-spacing:.05em; text-transform:uppercase; }
+  .arrow-link svg{ width:16px; height:16px; transition:transform .2s ease; transform:rotate(180deg); }
+  .arrow-link:hover{ color:var(--ink); }
+  .arrow-link:hover svg{ transform:rotate(180deg) translate(3px,-3px); }
 
   section{ position:relative; z-index:1; }
 
-  /* ---- blog hero ---- */
-  .blog-hero{ padding:calc(96px + 6vh) 0 clamp(40px,6vh,64px); }
-  .blog-hero h1{ font-size:clamp(2.6rem,6vw,4.4rem); margin-top:14px; max-width:14ch; }
-  .blog-hero p{ margin-top:18px; max-width:52ch; color:var(--ink-soft); font-size:1.05rem; line-height:1.6; }
+  /* ---- case shell ---- */
+  .post-head{ padding:calc(96px + 5vh) 0 clamp(28px,4vh,40px); max-width:74ch; margin:0 auto; }
+  .post-head h1{ font-size:clamp(2.2rem,5.2vw,3.6rem); margin-top:14px; }
+  .post-meta-line{ color:var(--ink-soft); font-size:.95rem; margin-top:10px; }
+  .post-cover{ max-width:960px; margin:0 auto clamp(32px,5vh,56px); padding:0 clamp(20px,5vw,64px); }
+  .post-cover-frame{ border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); background:var(--paper-dim); aspect-ratio:16/9; }
+  .post-cover-frame img, .post-cover-frame video{ width:100%; height:100%; object-fit:cover; display:block; }
+  .post-body{ max-width:70ch; margin:0 auto; padding:0 clamp(20px,5vw,64px) clamp(72px,10vh,110px); }
+  .post-body p{ color:var(--ink); font-size:1.05rem; line-height:1.75; margin-bottom:20px; }
+  .post-gallery{ display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:16px; margin:32px 0; }
+  .post-gallery img{ border-radius:var(--radius); aspect-ratio:4/3; object-fit:cover; width:100%; }
+  .post-back{ max-width:70ch; margin:0 auto; padding:0 clamp(20px,5vw,64px); }
+  .not-found{ max-width:60ch; margin:0 auto; padding:calc(96px + 8vh) clamp(20px,5vw,64px) clamp(72px,10vh,110px); text-align:center; }
+  .not-found h1{ font-size:clamp(2rem,5vw,3rem); margin-bottom:16px; }
+  .not-found p{ color:var(--ink-soft); margin-bottom:28px; }
 
-  /* ---- blog grid ---- */
-  .blog-list{ padding-bottom:clamp(80px,10vh,120px); }
-  .blog-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:24px; }
-  .blog-card{
-    display:flex; flex-direction:column; text-decoration:none; color:var(--ink);
-    background:var(--paper-flat); border:1px solid var(--line); border-radius:var(--radius);
-    overflow:hidden; box-shadow:var(--shadow); transition:transform .2s ease, box-shadow .2s ease;
+  /* ---- video-frame (shared component, video template only) ---- */
+  .video-frame{ position:relative; width:100%; height:100%; overflow:hidden; background:#000; }
+  .video-frame video{ width:100%; height:100%; object-fit:cover; display:block; }
+  .video-controls{ position:absolute; right:12px; bottom:12px; display:flex; gap:8px; z-index:3; }
+  .v-btn{
+    width:34px; height:34px; border-radius:50%; border:1px solid rgba(255,255,255,.35);
+    background:rgba(10,4,20,.55); -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); color:#fff;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0;
+    transition:background .2s ease, transform .2s ease;
   }
-  .blog-card:hover{ transform:translateY(-4px); box-shadow:0 30px 60px -24px rgba(74,49,112,.28); }
-  .blog-card-cover{ position:relative; aspect-ratio:16/10; overflow:hidden; background:var(--paper-dim); }
-  .blog-card-cover img, .blog-card-cover video{ width:100%; height:100%; object-fit:cover; display:block; }
-  .blog-card-body{ padding:20px 22px 24px; display:flex; flex-direction:column; gap:9px; flex:1; }
-  .blog-card-body .eyebrow{ color:var(--v-500); }
-  .blog-card-body h2{ font-size:1.25rem; text-transform:uppercase; line-height:1.15; }
-  .blog-card-body p{ color:var(--ink-soft); font-size:.92rem; line-height:1.55; }
-  .blog-card-body .arrow-link{ margin-top:auto; font-family:'IBM Plex Mono',monospace; font-size:.76rem; letter-spacing:.05em; text-transform:uppercase; }
-  .blog-empty-state{ border:1px dashed var(--line-strong); border-radius:var(--radius); padding:clamp(40px,6vw,64px); text-align:center; color:var(--ink-soft); }
+  .v-btn:hover{ background:rgba(10,4,20,.85); transform:translateY(-1px); }
+  .v-btn svg{ width:16px; height:16px; }
+  .v-btn .icon-off{ display:none; }
+  .video-frame.is-muted .v-mute .icon-on{ display:none; }
+  .video-frame.is-muted .v-mute .icon-off{ display:block; }
 
-  /* ---- footer ---- */
   .footer{
     display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
     padding:24px clamp(20px,5vw,64px); background:var(--v-900); color:rgba(255,255,255,.55);
@@ -177,10 +174,6 @@
   }
   .footer a{ text-decoration:none; color:inherit; }
   .footer a:hover{ color:var(--pink-300); }
-
-  .reveal{ opacity:0; transform:translateY(18px); transition:opacity .7s ease, transform .7s ease; }
-  .reveal.is-visible{ opacity:1; transform:none; }
-  @media (prefers-reduced-motion: reduce){ .reveal{ opacity:1; transform:none; transition:none; } }
 
   .wa-float{
     position:fixed; right:20px; bottom:20px; z-index:50;
@@ -226,28 +219,40 @@
   <a class="menu-link" href="index.html">Home</a>
   <a class="menu-link" href="nosotros.html">Nosotros</a>
   <a class="menu-link" href="index.html#trabajos" data-section>Trabajos</a>
-  <a class="menu-link" href="portfolio.html">Portfolio</a>
-  <a class="menu-link" href="blog.html" aria-current="page">Blog</a>
+  <a class="menu-link" href="portfolio.html" aria-current="page">Portfolio</a>
+  <a class="menu-link" href="blog.html">Blog</a>
   <a class="menu-cta" href="index.html#contacto">Contactanos →</a>
 </nav>
 
-<main>
-  <section class="blog-hero">
-    <div class="section-inner">
-      <p class="eyebrow">Contenido interesante</p>
-      <h1 id="blogHeading">Lo que estamos pensando.</h1>
-      <p id="blogIntro">Notas sobre estrategia, producción y tecnología aplicada a marcas.</p>
-    </div>
-  </section>
+<main id="mainContent">
+  <div class="not-found" id="notFoundState" style="display:none;">
+    <p class="eyebrow">Portfolio</p>
+    <h1>No encontramos este caso.</h1>
+    <p>Puede que se haya movido o ya no esté disponible.</p>
+    <a class="arrow-link" href="portfolio.html" style="justify-content:center;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg>
+      Volver a Portfolio
+    </a>
+  </div>
 
-  <section class="blog-list">
-    <div class="section-inner">
-      <div class="blog-grid" id="blogGrid"></div>
-      <div class="blog-empty-state" id="blogEmptyState" style="display:none;">
-        <p>Todavía no hay artículos publicados. Volvé pronto.</p>
+  <article id="articleState" style="display:none;">
+    <div class="post-head">
+      <div class="section-inner" style="padding:0;">
+        <p class="eyebrow" id="postTag">Portfolio</p>
+        <h1 id="postTitle"></h1>
+        <p class="post-meta-line" id="postMetaLine"></p>
       </div>
     </div>
-  </section>
+    <div class="post-cover" id="postCover"></div>
+    <div class="post-body" id="postBody"></div>
+    <div class="post-gallery section-inner" id="postGallery" style="padding:0 clamp(20px,5vw,64px);"></div>
+    <div class="post-back">
+      <a class="arrow-link" href="portfolio.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg>
+        Volver a Portfolio
+      </a>
+    </div>
+  </article>
 </main>
 
 <footer class="footer">
@@ -271,26 +276,33 @@
     });
   });
 
-  var io = new IntersectionObserver(function(entries){
-    entries.forEach(function(entry){
-      if (entry.isIntersecting){ entry.target.classList.add('is-visible'); io.unobserve(entry.target); }
-    });
-  }, { threshold: .15 });
+  function wireVideoFrame(frame){
+    var video = frame.querySelector('video');
+    var muteBtn = frame.querySelector('.v-mute');
+    var expandBtn = frame.querySelector('.v-expand');
+    frame.classList.toggle('is-muted', video.muted);
+    if (muteBtn) {
+      muteBtn.addEventListener('click', function(e){
+        e.preventDefault(); e.stopPropagation();
+        video.muted = !video.muted;
+        frame.classList.toggle('is-muted', video.muted);
+      });
+    }
+    if (expandBtn) {
+      expandBtn.addEventListener('click', function(e){
+        e.preventDefault(); e.stopPropagation();
+        if (frame.requestFullscreen) frame.requestFullscreen();
+        else if (video.webkitEnterFullscreen) video.webkitEnterFullscreen();
+      });
+    }
+    video.play().catch(function(){});
+  }
 
-  function escapeAttr(str){ return String(str || '').replace(/"/g, '&quot;'); }
+  var params = new URLSearchParams(location.search);
+  var slug = params.get('s');
 
   fetch('/api/content?t=' + Date.now()).then(function(r){ return r.ok ? r.json() : null; }).then(function(c){
-    if (!c) return;
-
-    if (c.meta && c.meta.blog) {
-      if (c.meta.blog.title) document.title = c.meta.blog.title;
-      var descEl = document.querySelector('meta[name="description"]');
-      if (descEl && c.meta.blog.description) descEl.setAttribute('content', c.meta.blog.description);
-    }
-    var canonEl = document.querySelector('link[rel="canonical"]');
-    if (canonEl) canonEl.setAttribute('href', location.origin + '/' + ((c.slugs && c.slugs.blog) || 'blog.html'));
-
-    if (c.menu && c.menu.items && c.menu.items.length) {
+    if (c && c.menu && c.menu.items && c.menu.items.length) {
       var menuNav = document.getElementById('siteMenu');
       if (menuNav) {
         var currentFile = location.pathname.split('/').pop() || 'index.html';
@@ -326,44 +338,69 @@
         });
       }
     }
-    if (!c.blog) return;
-    if (c.blog.heading) document.getElementById('blogHeading').textContent = (function(){ var d = document.createElement('div'); d.innerHTML = c.blog.heading; return d.textContent; })();
-    if (c.blog.texto) document.getElementById('blogIntro').textContent = (function(){ var d = document.createElement('div'); d.innerHTML = c.blog.texto; return d.textContent; })();
-
-    var grid = document.getElementById('blogGrid');
-    var articles = c.blog.articles || [];
-    if (!articles.length) {
-      document.getElementById('blogEmptyState').style.display = 'block';
+    var casos = (c && c.portfolio && c.portfolio.casos) || [];
+    var caso = casos.filter(function(cs){ return cs.slug === slug; })[0];
+    if (!caso) {
+      document.getElementById('notFoundState').style.display = 'block';
       return;
     }
-    articles.forEach(function(art){
-      var card = document.createElement('a');
-      card.className = 'blog-card reveal';
-      card.href = 'blog-post.html?s=' + encodeURIComponent(art.slug || '');
 
-      var coverHtml = '';
-      if (art.cover && art.cover.url) {
-        var pos = (art.cover.posX != null ? art.cover.posX : 50) + '% ' + (art.cover.posY != null ? art.cover.posY : 50) + '%';
-        if (art.template === 'video') {
-          coverHtml = '<div class="blog-card-cover"><video src="' + escapeAttr(art.cover.url) + '" style="object-position:' + pos + '" muted loop playsinline preload="metadata" autoplay></video></div>';
-        } else {
-          coverHtml = '<div class="blog-card-cover"><img src="' + escapeAttr(art.cover.url) + '" style="object-position:' + pos + '" alt=""></div>';
-        }
+    var plainCliente = (function(){ var d = document.createElement('div'); d.innerHTML = caso.cliente || ''; return d.textContent; })();
+    document.title = plainCliente + ' — Portfolio — Tino Partners';
+    var descEl = document.querySelector('meta[name="description"]');
+    if (descEl && caso.resumen) descEl.setAttribute('content', (function(){ var d = document.createElement('div'); d.innerHTML = caso.resumen; return d.textContent; })());
+    var canonEl = document.querySelector('link[rel="canonical"]');
+    if (canonEl) canonEl.setAttribute('href', location.origin + '/caso.html?s=' + encodeURIComponent(slug || ''));
+
+    document.getElementById('postTag').textContent = caso.categoria || 'Portfolio';
+    document.getElementById('postTitle').innerHTML = caso.cliente || '';
+    document.getElementById('postMetaLine').textContent = caso.meta || '';
+    document.getElementById('postBody').innerHTML = caso.cuerpo || '';
+
+    var coverEl = document.getElementById('postCover');
+    if (caso.cover && caso.cover.url) {
+      var pos = (caso.cover.posX != null ? caso.cover.posX : 50) + '% ' + (caso.cover.posY != null ? caso.cover.posY : 50) + '%';
+      var frame = document.createElement('div');
+      frame.className = 'post-cover-frame';
+      if (caso.template === 'video') {
+        frame.classList.add('video-frame');
+        frame.innerHTML =
+          '<video src="' + caso.cover.url.replace(/"/g, '&quot;') + '" style="object-position:' + pos + '" muted loop playsinline preload="metadata" data-video></video>' +
+          '<div class="video-controls">' +
+            '<button class="v-btn v-mute" type="button" aria-label="Activar sonido">' +
+              '<svg class="icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>' +
+              '<svg class="icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>' +
+            '</button>' +
+            '<button class="v-btn v-expand" type="button" aria-label="Ampliar video">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>' +
+            '</button>' +
+          '</div>';
+        coverEl.appendChild(frame);
+        wireVideoFrame(frame);
+      } else {
+        var img = document.createElement('img');
+        img.src = caso.cover.url;
+        img.style.objectPosition = pos;
+        img.alt = '';
+        frame.appendChild(img);
+        coverEl.appendChild(frame);
       }
+    }
 
-      card.innerHTML = coverHtml +
-        '<div class="blog-card-body">' +
-          '<span class="eyebrow"></span>' +
-          '<h2></h2>' +
-          '<p></p>' +
-          '<span class="arrow-link">Leer más <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg></span>' +
-        '</div>';
-      card.querySelector('.eyebrow').textContent = art.tag || '';
-      card.querySelector('h2').innerHTML = art.title || '';
-      card.querySelector('p').innerHTML = art.excerpt || '';
+    if (caso.gallery && caso.gallery.length) {
+      var galleryEl = document.getElementById('postGallery');
+      caso.gallery.forEach(function(img){
+        if (!img.url) return;
+        var el = document.createElement('img');
+        el.src = img.url;
+        el.style.objectPosition = (img.posX != null ? img.posX : 50) + '% ' + (img.posY != null ? img.posY : 50) + '%';
+        el.alt = '';
+        galleryEl.appendChild(el);
+      });
+    }
 
-      grid.appendChild(card);
-      io.observe(card);
-    });
-  }).catch(function(){});
+    document.getElementById('articleState').style.display = 'block';
+  }).catch(function(){
+    document.getElementById('notFoundState').style.display = 'block';
+  });
 </script>

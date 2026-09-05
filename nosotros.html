@@ -1,4 +1,6 @@
 <title>Nosotros — Tino Partners</title>
+<meta name="description" content="">
+<link rel="canonical" href="https://tinopartners.com/nosotros">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FFFFFF">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -180,6 +182,7 @@
     padding-top:clamp(28px,4vw,36px); border-top:1px solid var(--line);
   }
   .founder-photo{
+    position:relative;
     width:88px; height:88px; border-radius:50%; flex:none; margin-bottom:14px;
     display:flex; align-items:center; justify-content:center;
     border:1.5px dashed var(--line-strong);
@@ -187,6 +190,7 @@
     box-shadow:0 4px 14px -4px rgba(74,49,112,.4), 0 0 0 0 rgba(155,93,246,.35);
     animation:pillarPulse 3.2s ease-in-out infinite;
   }
+  .founder-photo-img{ position:absolute; inset:0; width:100%; height:100%; border-radius:50%; object-fit:cover; }
   @keyframes pillarPulse{
     0%,100%{ box-shadow:0 4px 14px -4px rgba(74,49,112,.4), 0 0 0 0 rgba(155,93,246,.35); }
     50%{ box-shadow:0 4px 14px -4px rgba(74,49,112,.4), 0 0 0 7px rgba(155,93,246,0); }
@@ -339,21 +343,21 @@
 
       <div class="team-grid">
         <div class="founder-card reveal" data-pillar="produccion">
-          <div class="founder-photo"><span>J</span></div>
+          <div class="founder-photo"><span>J</span><img id="cms-nos-juan-photo" class="founder-photo-img" alt=""></div>
           <h3 id="cms-nos-juan-name">Juan</h3>
           <p class="founder-role" id="cms-nos-juan-role">Producción &amp; Contenido</p>
           <p class="founder-bio" id="cms-nos-juan-bio">Dirige la producción audiovisual y la presencia en redes de cada cliente, de principio a fin.</p>
         </div>
 
         <div class="founder-card reveal" data-pillar="estrategia">
-          <div class="founder-photo"><span>F</span></div>
+          <div class="founder-photo"><span>F</span><img id="cms-nos-fran-photo" class="founder-photo-img" alt=""></div>
           <h3 id="cms-nos-fran-name">Fran</h3>
           <p class="founder-role" id="cms-nos-fran-role">Estrategia &amp; Medios</p>
           <p class="founder-bio" id="cms-nos-fran-bio">Lidera la estrategia de medios y las decisiones de marca de cada cuenta, con foco en resultados de negocio.</p>
         </div>
 
         <div class="founder-card reveal" data-pillar="tecnologia">
-          <div class="founder-photo"><span>E</span></div>
+          <div class="founder-photo"><span>E</span><img id="cms-nos-erik-photo" class="founder-photo-img" alt=""></div>
           <h3 id="cms-nos-erik-name">Erik</h3>
           <p class="founder-role" id="cms-nos-erik-role">Tecnología &amp; IA</p>
           <p class="founder-bio" id="cms-nos-erik-bio">Diseña y construye la infraestructura técnica y de automatización detrás de cada campaña, incluida esta misma web.</p>
@@ -417,9 +421,27 @@
   // above if the request fails.
   function setText(id, val){ var el = document.getElementById(id); if (el && val != null && val !== '') el.textContent = val; }
   function setHtml(id, val){ var el = document.getElementById(id); if (el && val != null && val !== '') el.innerHTML = val; }
+  function setMedia(el, media){
+    if (!el || !media) return;
+    if (media.url && el.getAttribute('src') !== media.url) {
+      el.src = media.url;
+      if (el.tagName === 'VIDEO') { try { el.load(); } catch(e){} }
+    }
+    var x = (media.posX != null ? media.posX : 50);
+    var y = (media.posY != null ? media.posY : 50);
+    el.style.objectPosition = x + '% ' + y + '%';
+  }
 
   fetch('/api/content?t=' + Date.now()).then(function(r){ return r.ok ? r.json() : null; }).then(function(c){
     if (!c) return;
+
+    if (c.meta && c.meta.nosotros) {
+      if (c.meta.nosotros.title) document.title = c.meta.nosotros.title;
+      var descEl = document.querySelector('meta[name="description"]');
+      if (descEl && c.meta.nosotros.description) descEl.setAttribute('content', c.meta.nosotros.description);
+    }
+    var canonEl = document.querySelector('link[rel="canonical"]');
+    if (canonEl) canonEl.setAttribute('href', location.origin + '/' + ((c.slugs && c.slugs.nosotros) || 'nosotros.html'));
 
     if (c.menu && c.menu.items && c.menu.items.length) {
       var currentFile = location.pathname.split('/').pop() || 'index.html';
@@ -471,6 +493,11 @@
           setHtml('cms-nos-' + m.key + '-name', m.name);
           setHtml('cms-nos-' + m.key + '-role', m.role);
           setHtml('cms-nos-' + m.key + '-bio', m.bio);
+          var photoEl = document.getElementById('cms-nos-' + m.key + '-photo');
+          if (photoEl) {
+            setMedia(photoEl, m.photo);
+            if (m.photo && m.photo.url && photoEl.previousElementSibling) photoEl.previousElementSibling.style.display = 'none';
+          }
         });
       }
       if (n.concept) {

@@ -1,4 +1,6 @@
 <title>Tino Partners</title>
+<meta name="description" content="">
+<link rel="canonical" href="https://tinopartners.com/">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FFFFFF">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1118,6 +1120,12 @@
         grid.appendChild(card);
         io.observe(card);
       });
+    }
+
+    if (c.meta && c.meta.home) {
+      if (c.meta.home.title) document.title = c.meta.home.title;
+      var descEl = document.querySelector('meta[name="description"]');
+      if (descEl && c.meta.home.description) descEl.setAttribute('content', c.meta.home.description);
     }
 
     if (c.hero) {

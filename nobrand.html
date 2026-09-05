@@ -1,4 +1,6 @@
 <title>NOBRAND — Portfolio — Tino Partners</title>
+<meta name="description" content="">
+<link rel="canonical" href="https://tinopartners.com/nobrand">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FFFFFF">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -558,7 +560,17 @@
   // menu links are editable from the admin panel — load and apply them,
   // falling back to the links already in the HTML above if this fails
   fetch('/api/content?t=' + Date.now()).then(function(r){ return r.ok ? r.json() : null; }).then(function(c){
-    if (!c || !c.menu || !c.menu.items || !c.menu.items.length) return;
+    if (!c) return;
+
+    if (c.meta && c.meta.nobrand) {
+      if (c.meta.nobrand.title) document.title = c.meta.nobrand.title;
+      var descEl = document.querySelector('meta[name="description"]');
+      if (descEl && c.meta.nobrand.description) descEl.setAttribute('content', c.meta.nobrand.description);
+    }
+    var canonEl = document.querySelector('link[rel="canonical"]');
+    if (canonEl) canonEl.setAttribute('href', location.origin + '/' + ((c.slugs && c.slugs.nobrand) || 'nobrand.html'));
+
+    if (!c.menu || !c.menu.items || !c.menu.items.length) return;
     var currentFile = location.pathname.split('/').pop() || 'index.html';
     menu.innerHTML = '';
     c.menu.items.forEach(function(item){

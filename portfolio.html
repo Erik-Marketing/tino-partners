@@ -1,4 +1,6 @@
 <title>Portfolio — Tino Partners</title>
+<meta name="description" content="">
+<link rel="canonical" href="https://tinopartners.com/portfolio">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FFFFFF">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -356,6 +358,25 @@
   .video-section{ background:var(--paper-dim); padding:clamp(64px,8vh,96px) 0; }
   .video-showcase-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(20px,3vw,28px); }
   .video-tile{ display:block; text-decoration:none; color:inherit; }
+
+  .casos-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:24px; }
+  .caso-card{
+    display:flex; flex-direction:column; text-decoration:none; color:inherit;
+    background:var(--paper-flat); border:1px solid var(--line); border-radius:var(--radius);
+    overflow:hidden; transition:transform .2s ease, box-shadow .2s ease;
+  }
+  .caso-card:hover{ transform:translateY(-4px); box-shadow:0 30px 60px -24px rgba(74,49,112,.28); }
+  .caso-card-cover{ position:relative; aspect-ratio:16/10; overflow:hidden; background:var(--paper-dim); }
+  .caso-card-cover img, .caso-card-cover video{ width:100%; height:100%; object-fit:cover; display:block; }
+  .caso-card-body{ padding:20px 22px 24px; display:flex; flex-direction:column; gap:9px; flex:1; }
+  .caso-card-body .eyebrow{ color:var(--v-500); }
+  .caso-card-body h3{ font-size:1.25rem; text-transform:uppercase; line-height:1.15; }
+  .caso-card-body p{ color:var(--ink-soft); font-size:.92rem; line-height:1.55; }
+  .arrow-link{ display:inline-flex; align-items:center; gap:8px; text-decoration:none; color:var(--ink-soft); font-weight:600; font-family:'IBM Plex Mono',monospace; font-size:.78rem; letter-spacing:.05em; text-transform:uppercase; }
+  .arrow-link svg{ width:16px; height:16px; transition:transform .2s ease; transform:rotate(180deg); }
+  .arrow-link:hover{ color:var(--ink); }
+  .arrow-link:hover svg{ transform:rotate(180deg) translate(3px,-3px); }
+  .caso-card-body .arrow-link{ margin-top:auto; font-family:'IBM Plex Mono',monospace; font-size:.76rem; letter-spacing:.05em; text-transform:uppercase; }
   .video-showcase-grid .video-frame{ aspect-ratio:9/16; }
   .video-frame--empty{
     display:flex; align-items:flex-start; justify-content:flex-start; padding:14px;
@@ -766,6 +787,16 @@
     </div>
   </section>
 
+  <section class="casos-section" id="casosSection" style="display:none;">
+    <div class="section-inner">
+      <div class="section-head reveal">
+        <p class="eyebrow-badge">Más clientes</p>
+        <h2>Otros trabajos que hicimos.</h2>
+      </div>
+      <div class="casos-grid" id="casosGrid"></div>
+    </div>
+  </section>
+
   <section class="cta-band">
     <div class="section-inner">
       <p class="eyebrow reveal" id="cms-port-cta-eyebrow">¿Hablamos?</p>
@@ -813,6 +844,14 @@
 
   fetch('/api/content?t=' + Date.now()).then(function(r){ return r.ok ? r.json() : null; }).then(function(c){
     if (!c) return;
+
+    if (c.meta && c.meta.portfolio) {
+      if (c.meta.portfolio.title) document.title = c.meta.portfolio.title;
+      var descEl = document.querySelector('meta[name="description"]');
+      if (descEl && c.meta.portfolio.description) descEl.setAttribute('content', c.meta.portfolio.description);
+    }
+    var canonEl = document.querySelector('link[rel="canonical"]');
+    if (canonEl) canonEl.setAttribute('href', location.origin + '/' + ((c.slugs && c.slugs.portfolio) || 'portfolio.html'));
 
     if (c.menu && c.menu.items && c.menu.items.length) {
       var currentFile = location.pathname.split('/').pop() || 'index.html';
@@ -867,6 +906,43 @@
         setHtml('cms-port-cta-eyebrow', p.cta.eyebrow);
         setHtml('cms-port-cta-heading', p.cta.heading);
         setHtml('cms-port-cta-texto', p.cta.texto);
+      }
+
+      var casos = p.casos || [];
+      if (casos.length) {
+        var casosGrid = document.getElementById('casosGrid');
+        casos.forEach(function(caso){
+          var card = document.createElement('a');
+          card.className = 'caso-card reveal';
+          card.href = 'caso.html?s=' + encodeURIComponent(caso.slug || '');
+
+          if (caso.cover && caso.cover.url) {
+            var pos = (caso.cover.posX != null ? caso.cover.posX : 50) + '% ' + (caso.cover.posY != null ? caso.cover.posY : 50) + '%';
+            var coverWrap = document.createElement('div');
+            coverWrap.className = 'caso-card-cover';
+            var mediaEl = document.createElement(caso.template === 'video' ? 'video' : 'img');
+            mediaEl.src = caso.cover.url;
+            mediaEl.style.objectPosition = pos;
+            if (caso.template === 'video') { mediaEl.muted = true; mediaEl.loop = true; mediaEl.playsInline = true; mediaEl.autoplay = true; }
+            else mediaEl.alt = '';
+            coverWrap.appendChild(mediaEl);
+            card.appendChild(coverWrap);
+          }
+
+          var body = document.createElement('div');
+          body.className = 'caso-card-body';
+          var tag = document.createElement('span'); tag.className = 'eyebrow'; tag.textContent = caso.categoria || '';
+          var h3 = document.createElement('h3'); h3.innerHTML = caso.cliente || '';
+          var resumen = document.createElement('p'); resumen.innerHTML = caso.resumen || '';
+          var link = document.createElement('span'); link.className = 'arrow-link';
+          link.innerHTML = 'Ver caso <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg>';
+          body.appendChild(tag); body.appendChild(h3); body.appendChild(resumen); body.appendChild(link);
+          card.appendChild(body);
+
+          casosGrid.appendChild(card);
+          io.observe(card);
+        });
+        document.getElementById('casosSection').style.display = 'block';
       }
     }
   }).catch(function(){});

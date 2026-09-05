@@ -10,7 +10,9 @@ const crypto = require('crypto');
 const fs = require('fs/promises');
 const express = require('express');
 const rateLimit = require('express-rate-limit');
-const { DEFAULT_CONTENT, normalizeArticles } = require('./content-defaults');
+const {
+  DEFAULT_CONTENT, normalizeArticles, normalizeCasos, validateSlugs, SLUG_PAGE_FILES,
+} = require('./content-defaults');
 
 const ROOT = __dirname;
 const DATA_DIR = process.env.DATA_DIR || path.join(ROOT, 'data');
@@ -93,6 +95,7 @@ const contactLimiter = rateLimit({
 const PAGES = [
   'index.html', 'nosotros.html', 'portfolio.html', 'nobrand.html',
   'blog.html', 'blog-post.html', 'terminos.html', 'privacidad.html', 'admin.html',
+  'caso.html',
 ];
 app.get('/', (req, res) => res.sendFile(path.join(ROOT, 'index.html')));
 PAGES.forEach((page) => {
@@ -104,8 +107,9 @@ PAGES.forEach((page) => {
 app.use('/media', express.static(MEDIA_DIR, { maxAge: '30d' }));
 
 // ---------- /api/content ----------
-app.get('/api/content', async (req, res) => {
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+// shared by the API route and the custom-slug page route below, so both
+// always see the same DEFAULT_CONTENT-merged, self-healed view of the data.
+async function loadMergedContent() {
   try {
     const text = await fs.readFile(CONTENT_FILE, 'utf8');
     const saved = JSON.parse(text);
@@ -113,10 +117,19 @@ app.get('/api/content', async (req, res) => {
     merged.blog = Object.assign({}, DEFAULT_CONTENT.blog, saved.blog, {
       articles: normalizeArticles((saved.blog && saved.blog.articles) || DEFAULT_CONTENT.blog.articles),
     });
-    return res.status(200).json(merged);
+    merged.portfolio = Object.assign({}, DEFAULT_CONTENT.portfolio, saved.portfolio, {
+      casos: normalizeCasos((saved.portfolio && saved.portfolio.casos) || DEFAULT_CONTENT.portfolio.casos),
+    });
+    return merged;
   } catch (err) {
-    return res.status(200).json(DEFAULT_CONTENT);
+    return DEFAULT_CONTENT;
   }
+}
+
+app.get('/api/content', async (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+  const merged = await loadMergedContent();
+  return res.status(200).json(merged);
 });
 
 app.post('/api/content', async (req, res) => {
@@ -125,6 +138,11 @@ app.post('/api/content', async (req, res) => {
 
   const body = req.body;
   if (!body || typeof body !== 'object') return res.status(400).json({ error: 'Contenido inválido' });
+
+  if (body.slugs) {
+    const slugErrors = validateSlugs(body.slugs);
+    if (slugErrors.length) return res.status(400).json({ error: slugErrors.join(' ') });
+  }
 
   try {
     await fs.writeFile(CONTENT_FILE, JSON.stringify(body));
@@ -277,6 +295,22 @@ app.post('/api/upload-media', async (req, res) => {
     console.error('upload-media failed', err);
     return res.status(500).json({ error: 'No se pudo subir el archivo' });
   }
+});
+
+// ---------- custom page slugs ----------
+// Registered last (after every literal route above) so it never shadows
+// them and so the 9 existing pages keep resolving by exact match without
+// paying for a content.json read. Purely additive: the literal /*.html
+// routes above keep working forever — this only adds an extra path that
+// serves the same file when its slug matches the one saved in content.json.
+app.get('/:seg', async (req, res, next) => {
+  const seg = String(req.params.seg || '');
+  if (!seg) return next();
+  const content = await loadMergedContent();
+  const slugs = content.slugs || {};
+  const matchKey = Object.keys(SLUG_PAGE_FILES).find((k) => slugs[k] === seg);
+  if (!matchKey) return next();
+  return res.sendFile(path.join(ROOT, SLUG_PAGE_FILES[matchKey]));
 });
 
 // Global error handler (4 args — Express only calls this shape for

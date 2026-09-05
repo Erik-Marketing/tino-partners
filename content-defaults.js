@@ -160,9 +160,9 @@ const DEFAULT_CONTENT = {
       headingLine1: 'Un mismo partner.',
       headingLine2: 'Distintas especialidades.',
       members: [
-        { key: 'juan', name: 'Juan', role: 'Producción &amp; Contenido', bio: 'Dirige la producción audiovisual y la presencia en redes de cada cliente, de principio a fin.' },
-        { key: 'fran', name: 'Fran', role: 'Estrategia &amp; Medios', bio: 'Lidera la estrategia de medios y las decisiones de marca de cada cuenta, con foco en resultados de negocio.' },
-        { key: 'erik', name: 'Erik', role: 'Tecnología &amp; IA', bio: 'Diseña y construye la infraestructura técnica y de automatización detrás de cada campaña, incluida esta misma web.' },
+        { key: 'juan', name: 'Juan', role: 'Producción &amp; Contenido', bio: 'Dirige la producción audiovisual y la presencia en redes de cada cliente, de principio a fin.', photo: { url: '', posX: 50, posY: 50 } },
+        { key: 'fran', name: 'Fran', role: 'Estrategia &amp; Medios', bio: 'Lidera la estrategia de medios y las decisiones de marca de cada cuenta, con foco en resultados de negocio.', photo: { url: '', posX: 50, posY: 50 } },
+        { key: 'erik', name: 'Erik', role: 'Tecnología &amp; IA', bio: 'Diseña y construye la infraestructura técnica y de automatización detrás de cada campaña, incluida esta misma web.', photo: { url: '', posX: 50, posY: 50 } },
       ],
     },
     concept: {
@@ -190,13 +190,72 @@ const DEFAULT_CONTENT = {
       { key: 'tile2', status: 'Ejemplo', category: 'Estrategia', title: 'Marca Ejemplo 02', meta: 'Campaña de lanzamiento — 2026' },
       { key: 'tile3', status: 'Ejemplo', category: 'Tecnología', title: 'Marca Ejemplo 03', meta: 'Automatización &amp; medición — 2026' },
     ],
+    casos: [],
     cta: {
       eyebrow: '¿Hablamos?',
       heading: 'Sé parte del primer caso real acá.',
       texto: 'Una primera charla no tiene costo ni compromiso. Si hay fit de los dos lados, tu proyecto puede ser el primero en reemplazar estos ejemplos.',
     },
   },
+  slugs: {
+    nosotros: 'nosotros',
+    portfolio: 'portfolio',
+    nobrand: 'nobrand',
+    blog: 'blog',
+    terminos: 'terminos',
+    privacidad: 'privacidad',
+  },
+  meta: {
+    home: { title: 'Tino Partners', description: '' },
+    nosotros: { title: 'Nosotros — Tino Partners', description: '' },
+    portfolio: { title: 'Portfolio — Tino Partners', description: '' },
+    nobrand: { title: 'NOBRAND — Portfolio — Tino Partners', description: '' },
+    blog: { title: 'Blog — Tino Partners', description: '' },
+    terminos: { title: 'Términos y condiciones — Tino Partners', description: '' },
+    privacidad: { title: 'Política de privacidad — Tino Partners', description: '' },
+  },
 };
+
+// pages whose URL segment can be customized from the admin panel; keys
+// here are also used as the reserved-word/collision list for validation.
+const SLUG_PAGE_FILES = {
+  nosotros: 'nosotros.html',
+  portfolio: 'portfolio.html',
+  nobrand: 'nobrand.html',
+  blog: 'blog.html',
+  terminos: 'terminos.html',
+  privacidad: 'privacidad.html',
+};
+const RESERVED_SLUGS = ['admin', 'api', 'media', 'blog-post', 'caso', 'index', ''];
+const SLUG_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+
+// returns an array of error messages (empty = valid). Never throws —
+// callers decide what to do with a non-empty result.
+function validateSlugs(candidate) {
+  const errors = [];
+  if (!candidate || typeof candidate !== 'object') return errors;
+  const keys = Object.keys(SLUG_PAGE_FILES);
+  const seen = new Map();
+  keys.forEach((key) => {
+    const value = candidate[key];
+    if (value == null) return; // not being changed
+    const v = String(value);
+    if (!SLUG_RE.test(v)) {
+      errors.push(`"${v}" (${key}) solo puede tener minúsculas, números y guiones.`);
+      return;
+    }
+    if (RESERVED_SLUGS.includes(v) || (keys.includes(v) && v !== key)) {
+      errors.push(`"${v}" (${key}) es una palabra reservada o el nombre de otra página.`);
+      return;
+    }
+    if (seen.has(v)) {
+      errors.push(`"${v}" se repite en ${seen.get(v)} y ${key}.`);
+      return;
+    }
+    seen.set(v, key);
+  });
+  return errors;
+}
 
 function slugify(text) {
   const plain = String(text || '').replace(/<[^>]+>/g, '');
@@ -232,4 +291,29 @@ function normalizeArticles(articles) {
   });
 }
 
-module.exports = { DEFAULT_CONTENT, slugify, normalizeArticles };
+// same self-healing purpose as normalizeArticles, for portfolio.casos.
+function normalizeCasos(casos) {
+  if (!Array.isArray(casos)) return [];
+  const usedSlugs = new Set();
+  return casos.map((caso) => {
+    const next = Object.assign({ template: 'estandar', cover: null, cuerpo: '', gallery: [] }, caso);
+    if (!next.slug) {
+      let base = slugify(next.cliente);
+      let slug = base;
+      let n = 2;
+      while (usedSlugs.has(slug)) { slug = `${base}-${n}`; n += 1; }
+      next.slug = slug;
+    }
+    usedSlugs.add(next.slug);
+    return next;
+  });
+}
+
+module.exports = {
+  DEFAULT_CONTENT,
+  slugify,
+  normalizeArticles,
+  normalizeCasos,
+  validateSlugs,
+  SLUG_PAGE_FILES,
+};
