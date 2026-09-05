@@ -3,13 +3,15 @@
 # Despliegue en el VPS. Hace todo:
 #   - genera el .env con ADMIN_TOKEN (si falta)
 #   - construye la imagen y levanta el contenedor
-#   - agrega la ruta en Caddy y recarga (con HTTPS automático)
+#   - recarga Caddy (la ruta de tinopartners.com se agregó a mano una
+#     sola vez, con el bloque cloudflare_only — este script solo avisa
+#     si no la encuentra, nunca la agrega ni la toca)
 # Es idempotente: se puede correr varias veces sin romper nada.
 # ─────────────────────────────────────────────────────────────
 set -e
 cd "$(dirname "$0")"
 
-DOMAIN="tinopartners.178.105.4.83.sslip.io"
+DOMAIN="tinopartners.com"
 CADDY="/opt/n8n/Caddyfile"
 CADDY_CONTAINER="n8n-caddy-1"
 
@@ -30,18 +32,13 @@ fi
 echo "==> [2/4] Construyendo imagen y levantando"
 $DC up -d --build
 
-echo "==> [3/4] Configurando ruta en Caddy"
+echo "==> [3/4] Verificando ruta en Caddy"
 if grep -q "$DOMAIN" "$CADDY" 2>/dev/null; then
-  echo "    La ruta ya estaba en el Caddyfile, no se toca."
+  echo "    La ruta ya está en el Caddyfile, no se toca."
 else
-  cp "$CADDY" "$CADDY.bak.$(date +%s)"
-  cat >> "$CADDY" <<EOF
-
-$DOMAIN {
-        reverse_proxy tino-partners:3000
-}
-EOF
-  echo "    Ruta agregada (backup guardado)."
+  echo "    ATENCIÓN: no encontré $DOMAIN en el Caddyfile."
+  echo "    Este script ya no la agrega solo (necesita el bloque"
+  echo "    'import cloudflare_only' a mano) — revisar manualmente."
 fi
 
 echo "==> [4/4] Recargando Caddy"
