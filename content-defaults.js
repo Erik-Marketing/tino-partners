@@ -47,7 +47,7 @@ const DEFAULT_CONTENT = {
     eyebrow: 'Lo que nos hace diferentes',
     heading: 'Un mismo equipo, de punta a punta.',
     texto: 'No coordinamos entre tres proveedores distintos: producimos el contenido, armamos la estrategia de medios y construimos la tecnología de medición bajo un mismo techo. Eso significa menos idas y vueltas, y decisiones que consideran el negocio completo, no solo la pieza que le toca a cada uno.',
-    video: { url: 'https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/margen-camp-002.mp4', posX: 50, posY: 50 },
+    video: { url: '/media/nobrand/backstage-margen.mp4', posX: 50, posY: 50 },
   },
   stats: {
     items: [
