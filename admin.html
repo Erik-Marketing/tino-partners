@@ -147,6 +147,38 @@
   .consulta-card .val{ font-size:.92rem; word-break:break-word; }
   .c-full .val{ color:var(--ink-soft); line-height:1.55; white-space:pre-wrap; }
 
+  /* ---------- Kanban (Consultas) ---------- */
+  .kanban-row{ display:flex; gap:16px; overflow-x:auto; padding-bottom:10px; align-items:flex-start; }
+  .kanban-column{
+    flex:none; width:280px; background:var(--paper-flat); border:1px solid var(--line); border-radius:var(--radius);
+    padding:12px; display:flex; flex-direction:column; gap:10px; transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  .kanban-column.is-drop-target{ border-color:var(--pink-500); box-shadow:0 0 0 2px rgba(238,96,198,.25); }
+  .kanban-col-head{ display:flex; align-items:center; gap:5px; }
+  .kanban-col-head input{
+    flex:1; min-width:0; background:var(--paper-dim); border:1px solid var(--line-strong); color:var(--ink);
+    padding:7px 9px; border-radius:7px; font-size:.85rem; font-weight:700; font-family:inherit;
+  }
+  .kanban-col-btn{
+    background:none; border:1px solid var(--line-strong); color:var(--ink-soft); width:26px; height:26px;
+    border-radius:7px; cursor:pointer; flex:none; display:flex; align-items:center; justify-content:center; font-size:.8rem; padding:0;
+  }
+  .kanban-col-btn:hover{ color:var(--ink); border-color:var(--ink-soft); }
+  .kanban-col-count{ font-family:'IBM Plex Mono',monospace; font-size:.68rem; color:var(--ink-soft); padding:0 2px; }
+  .kanban-cards{ display:flex; flex-direction:column; gap:10px; min-height:40px; }
+  .kanban-card{ cursor:grab; touch-action:none; }
+  .kanban-card.is-dragging{ opacity:.3; }
+  .kanban-ghost{
+    position:fixed; z-index:200; pointer-events:none; opacity:.94; transform:rotate(1.5deg);
+    box-shadow:0 24px 48px -18px rgba(74,49,112,.45); width:256px;
+  }
+  .kanban-add-col{
+    flex:none; width:220px; align-self:flex-start; background:none; border:1.5px dashed var(--line-strong); color:var(--ink-soft);
+    border-radius:var(--radius); padding:14px; cursor:pointer; font-family:'IBM Plex Mono',monospace; font-size:.78rem;
+    text-transform:uppercase; letter-spacing:.04em;
+  }
+  .kanban-add-col:hover{ color:var(--ink); border-color:var(--ink-soft); }
+
   /* ---------- Home CMS ---------- */
   .cms-section{
     background:var(--paper-dim); border:1px solid var(--line); border-radius:var(--radius);
@@ -358,11 +390,15 @@
         <div id="view-consultas">
           <div class="main-head">
             <h2>Consultas</h2>
-            <p>Mensajes recibidos desde el formulario de contacto del sitio.</p>
+            <p>Mensajes recibidos desde el formulario de contacto del sitio. Arrastrá una tarjeta para cambiarla de columna — se guarda sola. Para editar las columnas (nombre, orden, alta, baja), usá "Guardar cambios".</p>
             <span class="stat-pill" id="countPill">— consultas</span>
             <span class="stat-pill live-pill"><span class="live-dot"></span>En vivo</span>
           </div>
           <div id="content"></div>
+          <div class="cms-savebar" id="consultasSavebar" style="display:none;">
+            <button class="btn-primary" type="button" id="consultasSaveBtn">Guardar cambios</button>
+            <span class="cms-save-status" id="consultasSaveStatus"></span>
+          </div>
         </div>
 
         <div id="view-home-cms" style="display:none;">
@@ -542,25 +578,207 @@
     return key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ');
   }
 
+  // Kanban board — columns come from homeContent.kanban.columns (structural,
+  // saved via the normal "Guardar cambios" button); which column a card sits
+  // in (item.columnId) is per-consulta data that auto-saves on every move,
+  // via POST /api/consultas/:id/column.
+  function cardBodyHtml(item){
+    var fecha = item.fecha ? new Date(item.fecha).toLocaleString('es-AR', { dateStyle:'medium', timeStyle:'short' }) : '—';
+    var html = '<div><span class="lbl">Fecha</span><span class="val mono">' + escapeHtml(fecha) + '</span></div>';
+    Object.keys(item).forEach(function(key){
+      if (key === 'fecha' || key === '_id' || key === 'columnId') return;
+      var value = item[key];
+      var isLong = String(value || '').length > 60;
+      html += '<div' + (isLong ? ' class="c-full"' : '') + '><span class="lbl">' + escapeHtml(labelForKey(key)) + '</span><span class="val">' + escapeHtml(value || '—') + '</span></div>';
+    });
+    return html;
+  }
+
+  function moveCardToColumn(id, columnId){
+    fetch('/api/consultas/' + encodeURIComponent(id) + '/column', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ columnId: columnId })
+    }).catch(function(){});
+  }
+
+  // Custom pointer-based drag (same pattern as the media-crop marker in
+  // renderMediaField) instead of native HTML5 drag&drop — that API doesn't
+  // work on touch and gives an ugly default preview; this gives full control
+  // over both, and "preview while dragging" was explicitly asked for.
+  function wireCardDrag(cardEl, item){
+    var ghost = null, startX = 0, startY = 0, dragging = false, dropTarget = null;
+
+    cardEl.addEventListener('pointerdown', function(e){
+      if (e.button != null && e.button !== 0) return;
+      startX = e.clientX; startY = e.clientY;
+      dragging = false;
+      cardEl.setPointerCapture(e.pointerId);
+
+      function onMove(ev){
+        if (!dragging) {
+          if (Math.abs(ev.clientX - startX) < 4 && Math.abs(ev.clientY - startY) < 4) return;
+          dragging = true;
+          cardEl.classList.add('is-dragging');
+          ghost = cardEl.cloneNode(true);
+          ghost.className = 'kanban-card consulta-card kanban-ghost';
+          document.body.appendChild(ghost);
+        }
+        if (!ghost) return;
+        ghost.style.left = (ev.clientX + 14) + 'px';
+        ghost.style.top = (ev.clientY + 14) + 'px';
+        ghost.style.pointerEvents = 'none';
+        var wasHidden = ghost.style.display;
+        ghost.style.display = 'none';
+        var under = document.elementFromPoint(ev.clientX, ev.clientY);
+        ghost.style.display = wasHidden || '';
+        var col = under && under.closest ? under.closest('.kanban-column') : null;
+        if (col !== dropTarget) {
+          if (dropTarget) dropTarget.classList.remove('is-drop-target');
+          dropTarget = col;
+          if (dropTarget) dropTarget.classList.add('is-drop-target');
+        }
+      }
+      function onUp(ev){
+        cardEl.releasePointerCapture(e.pointerId);
+        document.removeEventListener('pointermove', onMove);
+        document.removeEventListener('pointerup', onUp);
+        document.removeEventListener('pointercancel', onUp);
+        if (ghost) { ghost.remove(); ghost = null; }
+        cardEl.classList.remove('is-dragging');
+        if (dropTarget) dropTarget.classList.remove('is-drop-target');
+        if (dragging && dropTarget && dropTarget.dataset.columnId && dropTarget.dataset.columnId !== item.columnId) {
+          item.columnId = dropTarget.dataset.columnId;
+          moveCardToColumn(item._id, item.columnId);
+          try { lastSignature = JSON.stringify(lastConsultaItems); } catch (err) {}
+          renderConsultas(lastConsultaItems);
+        }
+        dropTarget = null;
+      }
+      document.addEventListener('pointermove', onMove);
+      document.addEventListener('pointerup', onUp);
+      document.addEventListener('pointercancel', onUp);
+    });
+  }
+
+  function ensureKanban(){
+    // renderConsultas can run once right after login/bootstrap, before
+    // loadContent() has populated homeContent for the first time (it's
+    // still null at that point) — fall back to an empty board rather than
+    // throwing; the loadContent callback re-renders with the real columns
+    // moments later.
+    if (!homeContent) homeContent = {};
+    if (!homeContent.kanban) homeContent.kanban = { columns: [] };
+    if (!homeContent.kanban.columns) homeContent.kanban.columns = [];
+    return homeContent.kanban;
+  }
+
+  function uniqueColumnId(base){
+    var columns = ensureKanban().columns;
+    var id = base || 'columna', n = 2;
+    while (columns.some(function(c){ return c.id === id; })) { id = base + '-' + n; n++; }
+    return id;
+  }
+
   function renderConsultas(items){
     lastConsultaItems = items;
-    if (!items.length){
-      content.innerHTML = '<p class="state-msg">Todavía no hay consultas.</p>';
-      countPill.textContent = '0 consultas';
-      return;
-    }
     countPill.textContent = items.length + (items.length === 1 ? ' consulta' : ' consultas');
-    content.innerHTML = '<div class="consulta-list">' + items.map(function(item){
-      var fecha = item.fecha ? new Date(item.fecha).toLocaleString('es-AR', { dateStyle:'medium', timeStyle:'short' }) : '—';
-      var html = '<div><span class="lbl">Fecha</span><span class="val mono">' + escapeHtml(fecha) + '</span></div>';
-      Object.keys(item).forEach(function(key){
-        if (key === 'fecha') return;
-        var value = item[key];
-        var isLong = String(value || '').length > 60;
-        html += '<div' + (isLong ? ' class="c-full"' : '') + '><span class="lbl">' + escapeHtml(labelForKey(key)) + '</span><span class="val">' + escapeHtml(value || '—') + '</span></div>';
+    var kanban = ensureKanban();
+    var columns = kanban.columns;
+
+    if (!columns.length){
+      content.innerHTML = '<p class="state-msg">No hay columnas — agregá la primera.</p>';
+    } else {
+      var row = document.createElement('div');
+      row.className = 'kanban-row';
+
+      columns.forEach(function(column, colIndex){
+        var colItems = items.filter(function(it){ return it.columnId === column.id; });
+
+        var colEl = document.createElement('div');
+        colEl.className = 'kanban-column';
+        colEl.dataset.columnId = column.id;
+
+        var head = document.createElement('div');
+        head.className = 'kanban-col-head';
+        var nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.value = column.label;
+        nameInput.addEventListener('input', function(){ column.label = nameInput.value; });
+        head.appendChild(nameInput);
+
+        var leftBtn = document.createElement('button');
+        leftBtn.type = 'button'; leftBtn.className = 'kanban-col-btn'; leftBtn.title = 'Mover a la izquierda'; leftBtn.textContent = '◀';
+        leftBtn.disabled = colIndex === 0;
+        leftBtn.addEventListener('click', function(){
+          columns.splice(colIndex - 1, 0, columns.splice(colIndex, 1)[0]);
+          renderConsultas(lastConsultaItems);
+        });
+        head.appendChild(leftBtn);
+
+        var rightBtn = document.createElement('button');
+        rightBtn.type = 'button'; rightBtn.className = 'kanban-col-btn'; rightBtn.title = 'Mover a la derecha'; rightBtn.textContent = '▶';
+        rightBtn.disabled = colIndex === columns.length - 1;
+        rightBtn.addEventListener('click', function(){
+          columns.splice(colIndex + 1, 0, columns.splice(colIndex, 1)[0]);
+          renderConsultas(lastConsultaItems);
+        });
+        head.appendChild(rightBtn);
+
+        var delBtn = document.createElement('button');
+        delBtn.type = 'button'; delBtn.className = 'kanban-col-btn'; delBtn.title = 'Eliminar columna'; delBtn.textContent = '×';
+        delBtn.addEventListener('click', function(){
+          if (colItems.length) {
+            var remaining = columns.filter(function(c){ return c.id !== column.id; });
+            if (!remaining.length) { alert('No podés borrar la única columna que queda.'); return; }
+            var target = remaining[0];
+            if (!confirm('Esta columna tiene ' + colItems.length + ' consulta(s). Se van a mover a "' + target.label + '". ¿Continuar?')) return;
+            colItems.forEach(function(it){ it.columnId = target.id; moveCardToColumn(it._id, target.id); });
+          }
+          columns.splice(colIndex, 1);
+          try { lastSignature = JSON.stringify(lastConsultaItems); } catch (err) {}
+          renderConsultas(lastConsultaItems);
+        });
+        head.appendChild(delBtn);
+        colEl.appendChild(head);
+
+        var count = document.createElement('div');
+        count.className = 'kanban-col-count';
+        count.textContent = colItems.length + (colItems.length === 1 ? ' consulta' : ' consultas');
+        colEl.appendChild(count);
+
+        var cardsWrap = document.createElement('div');
+        cardsWrap.className = 'kanban-cards';
+        colItems.forEach(function(item){
+          var cardEl = document.createElement('div');
+          cardEl.className = 'kanban-card consulta-card';
+          cardEl.innerHTML = cardBodyHtml(item);
+          wireCardDrag(cardEl, item);
+          cardsWrap.appendChild(cardEl);
+        });
+        colEl.appendChild(cardsWrap);
+
+        row.appendChild(colEl);
       });
-      return '<div class="consulta-card">' + html + '</div>';
-    }).join('') + '</div>';
+
+      var addColBtn = document.createElement('button');
+      addColBtn.type = 'button'; addColBtn.className = 'kanban-add-col'; addColBtn.textContent = '+ Agregar columna';
+      addColBtn.addEventListener('click', function(){
+        var label = prompt('Nombre de la columna nueva:');
+        if (!label || !label.trim()) return;
+        columns.push({ id: uniqueColumnId(slugify(label)), label: label.trim() });
+        renderConsultas(lastConsultaItems);
+      });
+      row.appendChild(addColBtn);
+
+      content.innerHTML = '';
+      content.appendChild(row);
+    }
+
+    // guard against the brief window right after login where this can
+    // render once before loadContent() has ever populated homeContent —
+    // saving then would POST a near-empty object and wipe content.json.
+    document.getElementById('consultasSavebar').style.display = homeCmsLoaded ? 'flex' : 'none';
   }
 
   // showLoading=true for the first load (shows a "Cargando..." placeholder);
@@ -1408,6 +1626,7 @@
   wireSaveButton('nosotrosSaveBtn', 'nosotrosSaveStatus');
   wireSaveButton('portfolioSaveBtn', 'portfolioSaveStatus');
   wireSaveButton('seoSaveBtn', 'seoSaveStatus');
+  wireSaveButton('consultasSaveBtn', 'consultasSaveStatus');
 
   var contentLoading = false;
   var pendingContentCallbacks = [];

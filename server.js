@@ -259,18 +259,31 @@ app.post('/api/contact', contactLimiter, jsonBody, async (req, res) => {
 });
 
 // ---------- /api/consultas ----------
+// filenames are always "<timestamp>-<random-base36>.json" (see /api/contact
+// below) — anything not matching this exact shape is never trusted enough
+// to build a file path from, whether read here or in the move-column route.
+const CONSULTA_ID_RE = /^[0-9]+-[a-z0-9]+$/;
+
 app.get('/api/consultas', async (req, res) => {
   const queryToken = req.query.token;
   const authorized = isAuthorized(req) || (Boolean(process.env.ADMIN_TOKEN) && queryToken === process.env.ADMIN_TOKEN);
   if (!authorized) return res.status(401).json({ error: 'No autorizado' });
 
   try {
+    const content = await loadMergedContent();
+    const columns = (content.kanban && content.kanban.columns) || [];
+    const defaultColumnId = columns[0] && columns[0].id;
+
     const files = await fs.readdir(CONSULTAS_DIR);
     const items = (await Promise.all(
       files.filter((f) => f.endsWith('.json')).map(async (f) => {
         try {
           const text = await fs.readFile(path.join(CONSULTAS_DIR, f), 'utf8');
-          return JSON.parse(text);
+          const parsed = JSON.parse(text);
+          // _id (underscore, like _savedAt elsewhere) so it can never collide
+          // with a real form field key — those come from admin-typed labels,
+          // never starting with an underscore.
+          return Object.assign({ columnId: defaultColumnId }, parsed, { _id: f.slice(0, -'.json'.length) });
         } catch (err) {
           console.error('failed to read', f, err);
           return null;
@@ -283,6 +296,30 @@ app.get('/api/consultas', async (req, res) => {
   } catch (err) {
     console.error('list consultas failed', err);
     return res.status(500).json({ error: 'No se pudieron obtener las consultas' });
+  }
+});
+
+// ---------- /api/consultas/:id/column (move a card between kanban columns) ----------
+app.post('/api/consultas/:id/column', jsonBody, async (req, res) => {
+  if (!isAuthorized(req)) return res.status(401).json({ error: 'No autorizado' });
+
+  const id = String(req.params.id || '');
+  if (!CONSULTA_ID_RE.test(id)) return res.status(400).json({ error: 'Id inválido' });
+
+  const columnId = String((req.body && req.body.columnId) || '');
+  if (!columnId) return res.status(400).json({ error: 'Falta la columna' });
+
+  const filePath = path.join(CONSULTAS_DIR, id + '.json');
+  try {
+    const text = await fs.readFile(filePath, 'utf8');
+    const entry = JSON.parse(text);
+    entry.columnId = columnId;
+    await fs.writeFile(filePath, JSON.stringify(entry));
+    return res.status(200).json({ ok: true });
+  } catch (err) {
+    if (err.code === 'ENOENT') return res.status(404).json({ error: 'No se encontró la consulta' });
+    console.error('move consulta column failed', err);
+    return res.status(500).json({ error: 'No se pudo mover la consulta' });
   }
 });
 

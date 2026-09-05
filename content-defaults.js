@@ -216,6 +216,18 @@ const DEFAULT_CONTENT = {
     terminos: { title: 'Términos y condiciones — Tino Partners', description: '' },
     privacidad: { title: 'Política de privacidad — Tino Partners', description: '' },
   },
+  kanban: {
+    // a column's `id` is generated once and never changes even if its
+    // `label` is renamed later — consultas reference columns by id, so a
+    // rename must never silently move every card.
+    columns: [
+      { id: 'recibida', label: 'Consulta recibida' },
+      { id: 'contactado', label: 'Contactado' },
+      { id: 'negociacion', label: 'Negociación' },
+      { id: 'cerrado', label: 'Cerrado' },
+      { id: 'perdido', label: 'Perdido' },
+    ],
+  },
 };
 
 // pages whose URL segment can be customized from the admin panel; keys
