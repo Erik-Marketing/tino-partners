@@ -334,6 +334,47 @@
     video.play().catch(function(){});
   }
 
+  // No login needed to like a post — "already liked" is only tracked
+  // per-browser via localStorage (a heart that just stays filled), the
+  // server enforces nothing beyond a per-IP rate limit. Good enough for a
+  // simple engagement signal on a marketing blog, not a voting system.
+  function wireLikeButton(article){
+    var row = document.getElementById('postLikeRow');
+    var btn = document.getElementById('postLikeBtn');
+    var countEl = document.getElementById('postLikeCount');
+    if (!article.slug) return;
+    countEl.textContent = article.likes || 0;
+    row.style.display = 'flex';
+
+    var likedKey = 'tp_liked_' + article.slug;
+    var alreadyLiked = false;
+    try { alreadyLiked = localStorage.getItem(likedKey) === '1'; } catch (e) {}
+    if (alreadyLiked) {
+      btn.classList.add('is-liked');
+      btn.disabled = true;
+    }
+
+    btn.addEventListener('click', function(){
+      if (btn.disabled) return;
+      btn.disabled = true;
+      btn.classList.add('is-liked');
+      countEl.textContent = (parseInt(countEl.textContent, 10) || 0) + 1;
+      fetch('/api/blog/' + encodeURIComponent(article.slug) + '/like', { method: 'POST' })
+        .then(function(r){ return r.ok ? r.json() : Promise.reject(); })
+        .then(function(data){
+          if (data && typeof data.likes === 'number') countEl.textContent = data.likes;
+          try { localStorage.setItem(likedKey, '1'); } catch (e) {}
+        })
+        .catch(function(){
+          // couldn't confirm with the server — let them try again rather
+          // than leave the button stuck in a state that didn't actually save
+          btn.disabled = false;
+          btn.classList.remove('is-liked');
+          countEl.textContent = article.likes || 0;
+        });
+    });
+  }
+
   var params = new URLSearchParams(location.search);
   var slug = params.get('s');
 

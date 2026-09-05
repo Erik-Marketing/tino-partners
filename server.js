@@ -21,6 +21,7 @@ const DATA_DIR = process.env.DATA_DIR || path.join(ROOT, 'data');
 const MEDIA_DIR = path.join(DATA_DIR, 'media');
 const CONSULTAS_DIR = path.join(DATA_DIR, 'consultas');
 const CONTENT_FILE = path.join(DATA_DIR, 'content.json');
+const LIKES_FILE = path.join(DATA_DIR, 'likes.json');
 const COOKIE_NAME = 'tp_admin';
 const PORT = process.env.PORT || 3000;
 
@@ -53,6 +54,43 @@ async function sweepStaleTempFiles() {
       } catch (err) { /* already gone, or a race with a live upload — ignore */ }
     }));
   } catch (err) { /* UPLOADS_DIR not created yet on a very first boot — ignore */ }
+}
+
+// Blog likes live in their own small file, never in content.json — a like
+// click is a single-visitor, no-login action that can happen dozens of
+// times a minute, and content.json is only ever meant to be rewritten
+// whole by the admin's "Guardar cambios" flow (see POST /api/content).
+// Mixing the two would mean a stale admin tab saving unrelated content
+// could silently revert real like counts back to whatever they were when
+// that tab last loaded — a bug class this project has already hit once
+// with content.json itself.
+async function readLikes() {
+  try {
+    const text = await fs.readFile(LIKES_FILE, 'utf8');
+    const parsed = JSON.parse(text);
+    return (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) ? parsed : {};
+  } catch (err) {
+    return {};
+  }
+}
+// Single Node process, no clustering — a read-modify-write against one
+// shared file still needs its own writes serialized, or two likes arriving
+// in the same tick could both read the same count and one increment would
+// be silently lost. `mutate` receives the current map, mutates it in
+// place, and returns whatever value the caller wants back.
+let likesWriteQueue = Promise.resolve();
+function queueLikesWrite(mutate) {
+  const result = likesWriteQueue.then(async () => {
+    const likes = await readLikes();
+    const value = mutate(likes);
+    await fs.writeFile(LIKES_FILE, JSON.stringify(likes));
+    return value;
+  });
+  // the queue itself must never stay rejected, or every write after a
+  // single failed one would be skipped forever — the caller still gets
+  // the real error via `result`.
+  likesWriteQueue = result.catch(() => {});
+  return result;
 }
 
 function readCookie(req, name) {
@@ -172,26 +210,35 @@ app.use('/media', express.static(MEDIA_DIR, { maxAge: '30d' }));
 // shared by the API route and the custom-slug page route below, so both
 // always see the same DEFAULT_CONTENT-merged, self-healed view of the data.
 async function loadMergedContent() {
+  // `saved` stays {} (not caught-and-returned-early) when content.json
+  // doesn't exist yet or is corrupt, so the rest of this function — likes
+  // included — always runs the same way instead of a fresh install seeing
+  // real like counts vanish until the first save. It also means this never
+  // hands back the literal DEFAULT_CONTENT object itself, which nothing
+  // mutates today but would otherwise be one shared, permanently-mutable
+  // singleton if something ever did.
+  let saved = {};
   try {
-    const text = await fs.readFile(CONTENT_FILE, 'utf8');
-    const saved = JSON.parse(text);
-    const merged = Object.assign({}, DEFAULT_CONTENT, saved);
-    merged.blog = Object.assign({}, DEFAULT_CONTENT.blog, saved.blog, {
-      articles: normalizeArticles((saved.blog && saved.blog.articles) || DEFAULT_CONTENT.blog.articles),
-    });
-    merged.portfolio = Object.assign({}, DEFAULT_CONTENT.portfolio, saved.portfolio, {
-      casos: normalizeCasos((saved.portfolio && saved.portfolio.casos) || DEFAULT_CONTENT.portfolio.casos),
-    });
-    // shallow Object.assign at the top level means a page added to these
-    // two *after* content.json already had a `slugs`/`meta` key of its
-    // own would otherwise vanish entirely — merge one level deeper here
-    // so a newly-added key (e.g. "admin") always gets its default.
-    merged.slugs = Object.assign({}, DEFAULT_CONTENT.slugs, saved.slugs);
-    merged.meta = Object.assign({}, DEFAULT_CONTENT.meta, saved.meta);
-    return merged;
+    saved = JSON.parse(await fs.readFile(CONTENT_FILE, 'utf8'));
   } catch (err) {
-    return DEFAULT_CONTENT;
+    saved = {};
   }
+  const merged = Object.assign({}, DEFAULT_CONTENT, saved);
+  const likes = await readLikes();
+  merged.blog = Object.assign({}, DEFAULT_CONTENT.blog, saved.blog, {
+    articles: normalizeArticles((saved.blog && saved.blog.articles) || DEFAULT_CONTENT.blog.articles)
+      .map((a) => Object.assign({}, a, { likes: Number(likes[a.slug]) || 0 })),
+  });
+  merged.portfolio = Object.assign({}, DEFAULT_CONTENT.portfolio, saved.portfolio, {
+    casos: normalizeCasos((saved.portfolio && saved.portfolio.casos) || DEFAULT_CONTENT.portfolio.casos),
+  });
+  // shallow Object.assign at the top level means a page added to these
+  // two *after* content.json already had a `slugs`/`meta` key of its
+  // own would otherwise vanish entirely — merge one level deeper here
+  // so a newly-added key (e.g. "admin") always gets its default.
+  merged.slugs = Object.assign({}, DEFAULT_CONTENT.slugs, saved.slugs);
+  merged.meta = Object.assign({}, DEFAULT_CONTENT.meta, saved.meta);
+  return merged;
 }
 
 app.get('/api/content', async (req, res) => {
@@ -210,6 +257,14 @@ app.post('/api/content', jsonBody, async (req, res) => {
   if (body.slugs) {
     const slugErrors = validateSlugs(body.slugs);
     if (slugErrors.length) return res.status(400).json({ error: slugErrors.join(' ') });
+  }
+
+  // Likes live in their own file (see readLikes/queueLikesWrite above),
+  // never in content.json — strip any copy a client happens to be
+  // carrying so a save here can never revert real like counts back to
+  // whatever they were when that tab last loaded /api/content.
+  if (body.blog && Array.isArray(body.blog.articles)) {
+    body.blog.articles.forEach((a) => { if (a && typeof a === 'object') delete a.likes; });
   }
 
   try {
@@ -320,6 +375,60 @@ app.post('/api/consultas/:id/column', jsonBody, async (req, res) => {
     if (err.code === 'ENOENT') return res.status(404).json({ error: 'No se encontró la consulta' });
     console.error('move consulta column failed', err);
     return res.status(500).json({ error: 'No se pudo mover la consulta' });
+  }
+});
+
+// ---------- /api/blog/:slug/like, /api/blog/:slug/set-likes ----------
+// Same slug shape the admin already validates in content-defaults.js
+// (SLUG_RE) — kept as a local copy rather than importing it, since a like
+// only ever needs the shape check, never the reserved-word/collision
+// rules that make sense for a *page* slug.
+const BLOG_SLUG_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+const MAX_LIKES = 10000000;
+
+const likeLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: getClientIp,
+  message: { error: 'Demasiados likes, probá de nuevo en un rato.' },
+});
+
+// Public, no login — anyone can like a post once per browser (enforced
+// client-side via localStorage; this endpoint itself just increments, rate
+// limited per IP so it can't be hammered into a fake number in seconds).
+app.post('/api/blog/:slug/like', likeLimiter, async (req, res) => {
+  const slug = String(req.params.slug || '');
+  if (!BLOG_SLUG_RE.test(slug)) return res.status(400).json({ error: 'Artículo inválido' });
+  try {
+    const likes = await queueLikesWrite((map) => {
+      map[slug] = Math.min(MAX_LIKES, (Number(map[slug]) || 0) + 1);
+      return map[slug];
+    });
+    return res.status(200).json({ likes });
+  } catch (err) {
+    console.error('like failed', err);
+    return res.status(500).json({ error: 'No se pudo registrar el like' });
+  }
+});
+
+// Admin-only — lets Erik set the displayed like count for an article
+// directly (e.g. to reflect real engagement seen elsewhere, or just to
+// seed a new post) instead of only ever incrementing by one.
+app.post('/api/blog/:slug/set-likes', requireAdmin, jsonBody, async (req, res) => {
+  const slug = String(req.params.slug || '');
+  if (!BLOG_SLUG_RE.test(slug)) return res.status(400).json({ error: 'Artículo inválido' });
+  const count = Math.round(Number(req.body && req.body.count));
+  if (!Number.isFinite(count) || count < 0 || count > MAX_LIKES) {
+    return res.status(400).json({ error: 'Número de likes inválido' });
+  }
+  try {
+    await queueLikesWrite((map) => { map[slug] = count; });
+    return res.status(200).json({ ok: true, likes: count });
+  } catch (err) {
+    console.error('set-likes failed', err);
+    return res.status(500).json({ error: 'No se pudo guardar' });
   }
 });
 

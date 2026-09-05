@@ -1797,6 +1797,48 @@
     templateField.appendChild(select);
     wrap.appendChild(templateField);
 
+    // Likes live in their own file on the server (data/likes.json), not in
+    // content.json — this writes immediately on change, the same way
+    // moving a Kanban card auto-saves, instead of waiting for "Guardar
+    // cambios". Only makes sense once the article has a real slug to
+    // attach a like count to (a brand-new unpublished draft doesn't).
+    if (article.slug) {
+      var likesField = document.createElement('div');
+      likesField.className = 'cms-field';
+      likesField.appendChild(makeLabel('Likes mostrados en la web (público, sin login para dar like)'));
+      var likesRow = document.createElement('div');
+      likesRow.style.cssText = 'display:flex; align-items:center; gap:12px;';
+      var likesInput = document.createElement('input');
+      likesInput.type = 'number'; likesInput.min = '0'; likesInput.step = '1';
+      likesInput.value = article.likes || 0;
+      likesInput.style.cssText = 'max-width:130px;';
+      var likesStatus = document.createElement('span');
+      likesStatus.className = 'cms-save-status';
+      likesRow.appendChild(likesInput);
+      likesRow.appendChild(likesStatus);
+      likesField.appendChild(likesRow);
+      wrap.appendChild(likesField);
+
+      likesInput.addEventListener('change', function(){
+        var n = Math.max(0, Math.round(Number(likesInput.value) || 0));
+        likesInput.value = n;
+        likesStatus.textContent = 'Guardando…';
+        likesStatus.className = 'cms-save-status';
+        fetch('/api/blog/' + encodeURIComponent(article.slug) + '/set-likes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ count: n }),
+        }).then(function(r){ return r.ok ? r.json() : Promise.reject(); }).then(function(){
+          article.likes = n;
+          likesStatus.textContent = 'Guardado ✓';
+          likesStatus.className = 'cms-save-status is-ok';
+        }).catch(function(){
+          likesStatus.textContent = 'No se pudo guardar';
+          likesStatus.className = 'cms-save-status is-error';
+        });
+      });
+    }
+
     wrap.appendChild(renderPlainFieldFor({ label: 'Etiqueta (ej: Estrategia)', type: 'text' }, function(){ return article.tag; }, function(v){ article.tag = v; }));
     wrap.appendChild(renderRichField({ label: 'Título', type: 'text' }, function(){ return article.title; }, function(v){ article.title = v; }));
     wrap.appendChild(renderRichField({ label: 'Bajada (se muestra en las tarjetas)', type: 'textarea' }, function(){ return article.excerpt; }, function(v){ article.excerpt = v; }));
@@ -1910,7 +1952,7 @@
       details.open = (i === 0);
       var summary = document.createElement('summary');
       var plainTitle = (function(){ var d = document.createElement('div'); d.innerHTML = article.title || ''; return d.textContent; })();
-      summary.textContent = plainTitle || ('Artículo ' + (i + 1));
+      summary.textContent = (plainTitle || ('Artículo ' + (i + 1))) + (article.slug ? '  ·  ♥ ' + (article.likes || 0) : '');
       details.appendChild(summary);
 
       var fields = renderArticleFields(article, {
