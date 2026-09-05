@@ -1100,13 +1100,18 @@
       });
     }
 
-    function renderBlogArticles(articles){
+    function renderBlogArticles(articles, limit){
       var grid = document.getElementById('cms-blog-articles');
       var emptyBox = document.getElementById('cms-blog-empty');
       if (!grid || !articles || !articles.length) return;
       if (emptyBox) emptyBox.style.display = 'none';
       grid.innerHTML = '';
-      articles.forEach(function(art){
+      // Newest articles are appended at the end (see admin.html's "Publicar
+      // artículo"), so the most recent N are the last N — shown newest
+      // first here, oldest quietly rolling off as new ones get added. The
+      // full /blog page is untouched and still lists every article.
+      var n = Number(limit) > 0 ? Number(limit) : 8;
+      articles.slice(-n).reverse().forEach(function(art){
         var card = document.createElement('a');
         card.className = 'blog-card reveal';
         card.href = 'blog-post.html?s=' + encodeURIComponent(art.slug || '');
@@ -1211,7 +1216,7 @@
     if (c.blog) {
       setHtml('cms-blog-heading', c.blog.heading);
       setHtml('cms-blog-texto', c.blog.texto);
-      renderBlogArticles(c.blog.articles);
+      renderBlogArticles(c.blog.articles, c.blog.homeLimit);
     }
     if (c.form && c.form.fields && c.form.fields.length) {
       var fieldsContainer = document.getElementById('contactFields');

@@ -1595,6 +1595,18 @@
     wrap.appendChild(renderField({ path: 'heading', label: 'Título de la sección en el Home', type: 'text' }, 'blog'));
     wrap.appendChild(renderField({ path: 'texto', label: 'Texto de introducción en el Home', type: 'textarea' }, 'blog'));
 
+    var limitField = document.createElement('div');
+    limitField.className = 'cms-field';
+    limitField.appendChild(makeLabel('Cuántos artículos mostrar en el Home (los más nuevos primero — los viejos se corren solos)'));
+    var limitInput = document.createElement('input');
+    limitInput.type = 'number'; limitInput.min = '1'; limitInput.max = '24'; limitInput.step = '1';
+    limitInput.value = homeContent.blog.homeLimit || 8;
+    limitInput.addEventListener('input', function(){
+      homeContent.blog.homeLimit = Math.max(1, Math.round(Number(limitInput.value) || 8));
+    });
+    limitField.appendChild(limitInput);
+    wrap.appendChild(limitField);
+
     var note = document.createElement('p');
     note.className = 'example-note';
     note.textContent = 'Los artículos en sí (título, portada, contenido) se crean y editan desde la sección "Blog" del menú, más abajo.';

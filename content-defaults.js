@@ -87,6 +87,11 @@ const DEFAULT_CONTENT = {
   blog: {
     heading: 'Lo que estamos pensando.',
     texto: 'Estamos armando el blog de Tino Partners. Cuando esté listo, vas a encontrar acá notas sobre estrategia, producción y tecnología aplicada a marcas — por ahora, seguinos en Instagram para lo último.',
+    // How many posts the Home page's "Contenido interesante" teaser shows
+    // at once — the grid there is designed for a fixed row count, so this
+    // caps it instead of growing forever as articles pile up. The full
+    // /blog listing page is unaffected; it always shows every article.
+    homeLimit: 8,
     articles: [
       {
         slug: 'como-armar-un-plan-de-medios-que-no-dependa-de-un-solo-canal',
