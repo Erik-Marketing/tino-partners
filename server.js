@@ -6,8 +6,10 @@
 // the same request/response shape as the Vercel handlers means the
 // front-end (fetch calls in the HTML pages, admin.html) needed zero changes.
 const path = require('path');
+const crypto = require('crypto');
 const fs = require('fs/promises');
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const { DEFAULT_CONTENT, normalizeArticles } = require('./content-defaults');
 
 const ROOT = __dirname;
@@ -17,6 +19,12 @@ const CONSULTAS_DIR = path.join(DATA_DIR, 'consultas');
 const CONTENT_FILE = path.join(DATA_DIR, 'content.json');
 const COOKIE_NAME = 'tp_admin';
 const PORT = process.env.PORT || 3000;
+
+// Crash-only-that-request instead of crash-the-whole-process: log and keep
+// serving other requests. Docker's "restart: unless-stopped" is the real
+// safety net if something manages to bring the process down anyway.
+process.on('unhandledRejection', (err) => console.error('unhandledRejection', err));
+process.on('uncaughtException', (err) => console.error('uncaughtException', err));
 
 async function ensureDirs() {
   await fs.mkdir(MEDIA_DIR, { recursive: true });
@@ -30,14 +38,55 @@ function readCookie(req, name) {
   return match ? decodeURIComponent(match.slice(name.length + 1)) : null;
 }
 
+// Constant-time compare so a wrong guess can't be timed byte-by-byte.
+// Buffers of different lengths are just "not equal", never passed into
+// timingSafeEqual (which throws on a length mismatch).
+function safeEqual(a, b) {
+  const bufA = Buffer.from(String(a == null ? '' : a), 'utf8');
+  const bufB = Buffer.from(String(b == null ? '' : b), 'utf8');
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
+}
+
 function isAuthorized(req) {
   const sessionToken = readCookie(req, COOKIE_NAME);
-  return Boolean(process.env.ADMIN_TOKEN) && sessionToken === process.env.ADMIN_TOKEN;
+  return Boolean(process.env.ADMIN_TOKEN) && safeEqual(sessionToken, process.env.ADMIN_TOKEN);
+}
+
+// Caddy is the only thing that can reach this process, so its
+// X-Forwarded-For is trustworthy for one hop. Once Cloudflare is in front,
+// prefer its CF-Connecting-IP — but only after checking it looks like an
+// actual IP, since we never trust a header's content for a security
+// decision without validating its shape first.
+const IP_RE = /^[0-9a-fA-F:.]+$/;
+function getClientIp(req) {
+  const cf = req.headers['cf-connecting-ip'];
+  if (typeof cf === 'string' && IP_RE.test(cf.trim())) return cf.trim();
+  return req.ip;
 }
 
 const app = express();
+app.set('trust proxy', 1);
 app.disable('x-powered-by');
 app.use(express.json({ limit: '20mb' }));
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: getClientIp,
+  message: { error: 'Demasiados intentos, probá de nuevo en un rato.' },
+});
+
+const contactLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: getClientIp,
+  message: { error: 'Demasiados envíos, probá de nuevo en un rato.' },
+});
 
 // ---------- static pages (explicit allowlist — never serve server.js,
 // package.json, .env, etc. even though they live in the same folder) ----------
@@ -91,7 +140,7 @@ const MAX_FIELDS = 30;
 const MAX_KEY_LENGTH = 60;
 const MAX_VALUE_LENGTH = 4000;
 
-app.post('/api/contact', async (req, res) => {
+app.post('/api/contact', contactLimiter, async (req, res) => {
   const body = req.body;
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
     return res.status(400).json({ error: 'Faltan campos requeridos' });
@@ -154,9 +203,9 @@ app.get('/api/consultas', async (req, res) => {
 // ---------- /api/login, /api/logout ----------
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
-app.post('/api/login', (req, res) => {
+app.post('/api/login', loginLimiter, (req, res) => {
   const { password } = req.body || {};
-  if (!process.env.ADMIN_TOKEN || password !== process.env.ADMIN_TOKEN) {
+  if (!process.env.ADMIN_TOKEN || !safeEqual(password, process.env.ADMIN_TOKEN)) {
     return res.status(401).json({ error: 'Contraseña incorrecta' });
   }
   const isHttps = req.headers['x-forwarded-proto'] === 'https';
@@ -180,6 +229,19 @@ app.post('/api/logout', (req, res) => {
 // ---------- /api/upload-media ----------
 const MAX_UPLOAD_BYTES = 3 * 1024 * 1024;
 
+// Extension must match the declared contentType, and the file's own first
+// bytes must match that type's real signature — a renamed/mislabeled file
+// (e.g. an .html file declared as image/png) is rejected either way.
+const ALLOWED_TYPES = {
+  'image/jpeg': { ext: ['jpg', 'jpeg'], magic: (b) => b.length >= 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff },
+  'image/png': { ext: ['png'], magic: (b) => b.length >= 8 && b.slice(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) },
+  'image/gif': { ext: ['gif'], magic: (b) => b.length >= 3 && b.slice(0, 3).toString('ascii') === 'GIF' },
+  'image/webp': { ext: ['webp'], magic: (b) => b.length >= 12 && b.slice(0, 4).toString('ascii') === 'RIFF' && b.slice(8, 12).toString('ascii') === 'WEBP' },
+  'video/mp4': { ext: ['mp4'], magic: (b) => b.length >= 8 && b.slice(4, 8).toString('ascii') === 'ftyp' },
+  'video/quicktime': { ext: ['mov'], magic: (b) => b.length >= 8 && b.slice(4, 8).toString('ascii') === 'ftyp' },
+  'video/webm': { ext: ['webm'], magic: (b) => b.length >= 4 && b.slice(0, 4).equals(Buffer.from([0x1a, 0x45, 0xdf, 0xa3])) },
+};
+
 app.post('/api/upload-media', async (req, res) => {
   if (!isAuthorized(req)) return res.status(401).json({ error: 'No autorizado' });
 
@@ -187,8 +249,10 @@ app.post('/api/upload-media', async (req, res) => {
   if (!filename || !contentType || !dataBase64) {
     return res.status(400).json({ error: 'Faltan datos del archivo' });
   }
-  if (!/^(image|video)\//.test(contentType)) {
-    return res.status(400).json({ error: 'Solo se aceptan imágenes o videos' });
+  const spec = ALLOWED_TYPES[String(contentType).toLowerCase()];
+  const declaredExt = String(filename).toLowerCase().split('.').pop();
+  if (!spec || !spec.ext.includes(declaredExt)) {
+    return res.status(400).json({ error: 'Tipo de archivo no permitido' });
   }
 
   const buffer = Buffer.from(dataBase64, 'base64');
@@ -196,6 +260,9 @@ app.post('/api/upload-media', async (req, res) => {
     return res.status(413).json({
       error: 'El archivo es muy pesado para este uploader (máx ~3MB). Para fotos grandes o videos largos, pediselo a Claude para que lo comprima y lo suba.',
     });
+  }
+  if (!spec.magic(buffer)) {
+    return res.status(400).json({ error: 'El archivo no parece ser realmente del tipo declarado' });
   }
 
   const safeName = String(filename).toLowerCase().replace(/[^a-z0-9.\-]+/g, '-').slice(-80);
@@ -210,6 +277,16 @@ app.post('/api/upload-media', async (req, res) => {
     console.error('upload-media failed', err);
     return res.status(500).json({ error: 'No se pudo subir el archivo' });
   }
+});
+
+// Global error handler (4 args — Express only calls this shape for
+// errors). Catches things like express.json() choking on malformed JSON,
+// which would otherwise fall through to Express's default handler and,
+// outside NODE_ENV=production, leak a full stack trace to the client.
+app.use((err, req, res, next) => {
+  console.error('unhandled request error', err);
+  if (res.headersSent) return next(err);
+  res.status(400).json({ error: 'Solicitud inválida' });
 });
 
 ensureDirs().then(() => {
