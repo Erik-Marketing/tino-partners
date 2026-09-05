@@ -2046,7 +2046,7 @@
   // ---------- SEO CMS (títulos/descripciones + URLs personalizadas) ----------
   var seoCmsBody = document.getElementById('seoCmsBody');
   var SEO_PAGES = [
-    { key: 'home', label: 'Home', hasSlug: false },
+    { key: 'home', label: 'Home', hasSlug: true },
     { key: 'nosotros', label: 'Nosotros', hasSlug: true },
     { key: 'portfolio', label: 'Portfolio', hasSlug: true },
     { key: 'nobrand', label: 'NOBRAND', hasSlug: true },
@@ -2073,6 +2073,7 @@
     var input = document.createElement('input');
     input.type = 'text';
     input.value = homeContent.slugs[key] || '';
+    if (key === 'home') input.placeholder = '(vacío = solo la raíz, tinopartners.com/)';
     var preview = document.createElement('p');
     preview.className = 'cms-media-hint';
     function updatePreview(){ preview.textContent = 'tinopartners.com/' + (input.value || ''); }
@@ -2111,7 +2112,7 @@
     var slugsGroup = cmsSubgroup('URLs personalizadas');
     var slugsHint = document.createElement('p');
     slugsHint.className = 'cms-media-hint';
-    slugsHint.textContent = 'La URL de siempre (' + '.html) sigue funcionando también — esto agrega una URL nueva, más linda, además de la anterior.';
+    slugsHint.textContent = 'La URL vieja (la que termina en .html) redirige sola a esta — nunca se rompe un link, solo cambia lo que se ve en la barra de direcciones.';
     slugsGroup.appendChild(slugsHint);
     SEO_PAGES.filter(function(p){ return p.hasSlug; }).forEach(function(page){
       slugsGroup.appendChild(renderSlugField(page.key, page.label));

@@ -98,8 +98,26 @@ const PAGES = [
   'caso.html',
 ];
 app.get('/', (req, res) => res.sendFile(path.join(ROOT, 'index.html')));
-PAGES.forEach((page) => {
+
+// pages whose .html path is also reachable through a custom slug (see
+// SLUG_PAGE_FILES/content-defaults.js) redirect to whatever that slug
+// currently is — so the address bar never shows "/nosotros.html", always
+// "/nosotros" (or Erik's custom word), even when nothing's been changed
+// from the default. Everything else is served directly, as before.
+const SLUGGED_FILES = new Set(Object.values(SLUG_PAGE_FILES));
+PAGES.filter((page) => !SLUGGED_FILES.has(page)).forEach((page) => {
   app.get('/' + page, (req, res) => res.sendFile(path.join(ROOT, page)));
+});
+
+Object.keys(SLUG_PAGE_FILES).forEach((key) => {
+  const file = SLUG_PAGE_FILES[key];
+  app.get('/' + file, async (req, res) => {
+    const content = await loadMergedContent();
+    const current = (content.slugs || {})[key];
+    const target = key === 'home' ? (current ? '/' + current : '/') : '/' + (current || key);
+    const qs = req.url.includes('?') ? '?' + req.url.split('?')[1] : '';
+    return res.redirect(301, target + qs);
+  });
 });
 
 // uploaded media, served same-origin so content.json can reference plain

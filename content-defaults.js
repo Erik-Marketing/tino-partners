@@ -198,6 +198,7 @@ const DEFAULT_CONTENT = {
     },
   },
   slugs: {
+    home: '',
     nosotros: 'nosotros',
     portfolio: 'portfolio',
     nobrand: 'nobrand',
@@ -218,7 +219,10 @@ const DEFAULT_CONTENT = {
 
 // pages whose URL segment can be customized from the admin panel; keys
 // here are also used as the reserved-word/collision list for validation.
+// "home" is special: '' means "no extra path, just use /" (the root
+// always works regardless), so it's the only key allowed to be empty.
 const SLUG_PAGE_FILES = {
+  home: 'index.html',
   nosotros: 'nosotros.html',
   portfolio: 'portfolio.html',
   nobrand: 'nobrand.html',
@@ -226,7 +230,7 @@ const SLUG_PAGE_FILES = {
   terminos: 'terminos.html',
   privacidad: 'privacidad.html',
 };
-const RESERVED_SLUGS = ['admin', 'api', 'media', 'blog-post', 'caso', 'index', ''];
+const RESERVED_SLUGS = ['admin', 'api', 'media', 'blog-post', 'caso', 'index'];
 const SLUG_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 // returns an array of error messages (empty = valid). Never throws —
@@ -240,6 +244,11 @@ function validateSlugs(candidate) {
     const value = candidate[key];
     if (value == null) return; // not being changed
     const v = String(value);
+    if (v === '') {
+      if (key === 'home') return; // home may be blank — falls back to just "/"
+      errors.push(`"${key}" no puede quedar vacío.`);
+      return;
+    }
     if (!SLUG_RE.test(v)) {
       errors.push(`"${v}" (${key}) solo puede tener minúsculas, números y guiones.`);
       return;
