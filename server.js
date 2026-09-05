@@ -97,7 +97,15 @@ const PAGES = [
   'blog.html', 'blog-post.html', 'terminos.html', 'privacidad.html', 'admin.html',
   'caso.html',
 ];
-app.get('/', (req, res) => res.sendFile(path.join(ROOT, 'index.html')));
+// bare "/" redirects to the custom home slug too, once one is set — so
+// there's exactly one working address for home, not two. Only serves
+// index.html directly here when no custom slug has been chosen yet.
+app.get('/', async (req, res) => {
+  const content = await loadMergedContent();
+  const homeSlug = (content.slugs || {}).home;
+  if (homeSlug) return res.redirect(301, '/' + homeSlug);
+  return res.sendFile(path.join(ROOT, 'index.html'));
+});
 
 // pages whose .html path is also reachable through a custom slug (see
 // SLUG_PAGE_FILES/content-defaults.js) redirect to whatever that slug
