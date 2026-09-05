@@ -332,6 +332,44 @@ app.post('/api/upload-media', async (req, res) => {
   }
 });
 
+// ---------- sitemap.xml / robots.txt ----------
+// Excludes terminos/privacidad (already noindex) and admin (its whole point
+// is not being discoverable — robots.txt is public, so its real path must
+// never appear here). Blog articles and portfolio casos are listed
+// individually since crawlers won't otherwise find pages reachable only via
+// a client-side fetch + ?s= lookup.
+app.get('/sitemap.xml', async (req, res) => {
+  const content = await loadMergedContent();
+  const slugs = content.slugs || {};
+  const origin = req.protocol + '://' + req.get('host');
+  const urls = [];
+  urls.push(slugs.home || '');
+  ['nosotros', 'portfolio', 'nobrand', 'blog'].forEach((key) => urls.push(slugs[key] || key));
+  ((content.blog && content.blog.articles) || []).forEach((a) => {
+    if (a.slug) urls.push('blog-post.html?s=' + encodeURIComponent(a.slug));
+  });
+  ((content.portfolio && content.portfolio.casos) || []).forEach((c) => {
+    if (c.slug) urls.push('caso.html?s=' + encodeURIComponent(c.slug));
+  });
+  const body = '<?xml version="1.0" encoding="UTF-8"?>\n' +
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+    urls.map((u) => '  <url><loc>' + origin + '/' + u + '</loc></url>').join('\n') +
+    '\n</urlset>\n';
+  res.setHeader('Content-Type', 'application/xml');
+  res.send(body);
+});
+
+app.get('/robots.txt', async (req, res) => {
+  const origin = req.protocol + '://' + req.get('host');
+  res.setHeader('Content-Type', 'text/plain');
+  res.send(
+    'User-agent: *\n' +
+    'Allow: /\n' +
+    'Disallow: /api/\n' +
+    'Sitemap: ' + origin + '/sitemap.xml\n'
+  );
+});
+
 // ---------- custom page slugs ----------
 // Registered last (after every literal route above) so it never shadows
 // them and so the 9 existing pages keep resolving by exact match without
