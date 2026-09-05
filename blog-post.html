@@ -141,8 +141,39 @@
   .post-cover-frame img, .post-cover-frame video{ width:100%; height:100%; object-fit:cover; display:block; }
   .post-body{ max-width:70ch; margin:0 auto; padding:0 clamp(20px,5vw,64px) clamp(72px,10vh,110px); }
   .post-body p{ color:var(--ink); font-size:1.05rem; line-height:1.75; margin-bottom:20px; }
+  .post-body .post-sources{ margin-top:12px; padding-top:28px; border-top:1px solid var(--line); }
+  .post-body .post-sources p{ font-size:.82rem; color:var(--ink-soft); margin-bottom:8px; }
+  .post-body .post-sources .eyebrow{ display:block; margin-bottom:14px; }
+  .post-body .post-sources a{ color:var(--v-500); text-decoration:underline; text-underline-offset:2px; }
   .post-gallery{ display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:16px; margin:32px 0; }
   .post-gallery img{ border-radius:var(--radius); aspect-ratio:4/3; object-fit:cover; width:100%; }
+
+  /* ---- template: lateral — cover image beside the text instead of on top ---- */
+  .post-layout--lateral{
+    max-width:var(--maxw); margin:0 auto; padding:0 clamp(20px,5vw,64px) clamp(72px,10vh,110px);
+    display:grid; grid-template-columns:minmax(0,.9fr) minmax(0,1.3fr); gap:clamp(28px,4vw,64px); align-items:start;
+  }
+  .post-layout--lateral .post-cover{ margin:0; padding:0; max-width:none; position:sticky; top:100px; }
+  .post-layout--lateral .post-cover-frame{ aspect-ratio:3/4; }
+  .post-layout--lateral .post-body{ margin:0; padding:0; max-width:none; }
+  @media (max-width:900px){
+    .post-layout--lateral{ grid-template-columns:1fr; padding:0 clamp(20px,5vw,64px) clamp(56px,8vh,88px); }
+    .post-layout--lateral .post-cover{ position:static; margin-bottom:28px; }
+    .post-layout--lateral .post-cover-frame{ aspect-ratio:16/9; }
+  }
+  .post-like-row{ display:flex; justify-content:center; max-width:70ch; margin:0 auto; padding:0 clamp(20px,5vw,64px) clamp(28px,4vh,44px); }
+  .post-like-btn{
+    display:inline-flex; align-items:center; gap:10px; cursor:pointer; appearance:none;
+    background:var(--paper-dim); border:1.5px solid var(--line-strong); color:var(--ink);
+    font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:.82rem; letter-spacing:.04em; text-transform:uppercase;
+    padding:13px 24px; border-radius:999px; transition:transform .15s ease, border-color .15s ease, background .2s ease, color .2s ease;
+  }
+  .post-like-btn:hover{ border-color:var(--v-500); transform:translateY(-1px); }
+  .post-like-btn:disabled{ cursor:default; }
+  .post-like-btn .heart{ width:19px; height:19px; flex:none; fill:none; stroke:var(--ink-soft); stroke-width:2; transition:fill .2s ease, stroke .2s ease, transform .2s ease; }
+  .post-like-btn.is-liked{ background:var(--gradient-vivid); border-color:transparent; color:#fff; }
+  .post-like-btn.is-liked .heart{ fill:#fff; stroke:#fff; transform:scale(1.15); }
+
   .post-back{ max-width:70ch; margin:0 auto; padding:0 clamp(20px,5vw,64px); }
   .not-found{ max-width:60ch; margin:0 auto; padding:calc(96px + 8vh) clamp(20px,5vw,64px) clamp(72px,10vh,110px); text-align:center; }
   .not-found h1{ font-size:clamp(2rem,5vw,3rem); margin-bottom:16px; }
@@ -240,9 +271,17 @@
         <h1 id="postTitle"></h1>
       </div>
     </div>
-    <div class="post-cover" id="postCover"></div>
-    <div class="post-body" id="postBody"></div>
+    <div class="post-layout" id="postLayout">
+      <div class="post-cover" id="postCover"></div>
+      <div class="post-body" id="postBody"></div>
+    </div>
     <div class="post-gallery section-inner" id="postGallery" style="padding:0 clamp(20px,5vw,64px);"></div>
+    <div class="post-like-row" id="postLikeRow" style="display:none;">
+      <button type="button" class="post-like-btn" id="postLikeBtn">
+        <svg class="heart" viewBox="0 0 24 24"><path d="M12 21s-7.6-4.6-10.2-9.4C.2 7.9 1.7 4.2 5.3 3.3 7.9 2.6 10.3 3.7 12 6 13.7 3.7 16.1 2.6 18.7 3.3c3.6.9 5.1 4.6 3.5 8.3C19.6 16.4 12 21 12 21z"/></svg>
+        <span><b id="postLikeCount">0</b> Me gusta</span>
+      </button>
+    </div>
     <div class="post-back">
       <a class="arrow-link" href="blog.html">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg>
@@ -346,6 +385,8 @@
     document.getElementById('postTag').textContent = article.tag || 'Blog';
     document.getElementById('postTitle').innerHTML = article.title || '';
     document.getElementById('postBody').innerHTML = article.body || '';
+    document.getElementById('postLayout').classList.toggle('post-layout--lateral', article.template === 'lateral');
+    wireLikeButton(article);
 
     var coverEl = document.getElementById('postCover');
     if (article.cover && article.cover.url) {
