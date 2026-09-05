@@ -189,6 +189,18 @@
   }
   .kanban-add-col:hover{ color:var(--ink); border-color:var(--ink-soft); }
 
+  #consultasBoard{ position:relative; }
+  .kanban-more{
+    position:absolute; top:50%; right:6px; transform:translateY(-50%);
+    display:none; align-items:center; gap:6px; pointer-events:none;
+    background:var(--gradient-vivid); color:#fff; font-family:'IBM Plex Mono',monospace;
+    font-size:.68rem; font-weight:600; letter-spacing:.04em; text-transform:uppercase;
+    padding:9px 14px; border-radius:999px; box-shadow:0 12px 26px -12px rgba(74,49,112,.55);
+    z-index:5; white-space:nowrap;
+  }
+  .kanban-more.show{ display:flex; }
+  .kanban-more svg{ width:13px; height:13px; flex:none; }
+
   /* ---------- Home CMS ---------- */
   .cms-section{
     background:var(--paper-dim); border:1px solid var(--line); border-radius:var(--radius);
@@ -307,6 +319,10 @@
     .topbar{ display:none; }
     .main-wrap{ margin-left:var(--sidebar-w); }
     .main{ padding:40px 44px 60px; max-width:1100px; }
+    /* Consultas needs the Kanban board to use the real screen width, unlike
+       every other CMS view (forms read better narrower) — toggled by
+       showView() adding/removing this class, never applied by default. */
+    .main.is-wide{ max-width:none; }
   }
   @media (max-width: 480px){
     .consulta-card{ grid-template-columns:1fr; }
@@ -404,7 +420,10 @@
             <span class="stat-pill" id="countPill">— consultas</span>
             <span class="stat-pill live-pill"><span class="live-dot"></span>En vivo</span>
           </div>
-          <div id="content"></div>
+          <div id="consultasBoard">
+            <div id="content"></div>
+            <div class="kanban-more" id="kanbanMore"><span>Deslizar más</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+          </div>
           <div class="cms-savebar" id="consultasSavebar" style="display:none;">
             <button class="btn-primary" type="button" id="consultasSaveBtn">Guardar cambios</button>
             <span class="cms-save-status" id="consultasSaveStatus"></span>
@@ -508,6 +527,7 @@
   var backdrop = document.getElementById('backdrop');
   var content = document.getElementById('content');
   var countPill = document.getElementById('countPill');
+  var mainEl = document.querySelector('.main');
 
   function showLogin(){
     loginView.style.display = 'flex';
@@ -534,6 +554,9 @@
     Object.keys(views).forEach(function(k){ views[k].style.display = (k === name) ? 'block' : 'none'; });
     viewLinks.forEach(function(a){ a.classList.toggle('active', a.dataset.view === name); });
     if (topbarTitle) topbarTitle.textContent = VIEW_TITLES[name] || 'Consultas';
+    // Only Consultas needs the full screen width for the Kanban board —
+    // every other CMS view reads better at the normal, narrower max-width.
+    if (mainEl) mainEl.classList.toggle('is-wide', name === 'consultas');
     closeSidebar();
     saveAdminViewState({ view: name });
   }
@@ -676,7 +699,24 @@
   // de la rueda) y click-and-drag sobre el fondo del tablero. Se ignora si
   // el mousedown arrancó sobre una tarjeta/input/botón para no pisar el
   // arrastre de tarjetas (wireCardDrag) ni la edición de columnas.
+  //
+  // "Deslizar más": marca visualmente que hay columnas fuera de la vista,
+  // igual que el resto del tablero (sin barra de scroll visible) — se
+  // recalcula en cada scroll/pan del tablero y en cada resize de ventana.
+  function updateKanbanMoreIndicator(row){
+    var moreEl = document.getElementById('kanbanMore');
+    if (!moreEl || !row) return;
+    var hasOverflow = row.scrollWidth - row.clientWidth > 4;
+    var atEnd = row.scrollLeft + row.clientWidth >= row.scrollWidth - 4;
+    moreEl.classList.toggle('show', hasOverflow && !atEnd);
+  }
+  window.addEventListener('resize', function(){
+    updateKanbanMoreIndicator(document.querySelector('.kanban-row'));
+  });
+
   function wireBoardPan(row){
+    row.addEventListener('scroll', function(){ updateKanbanMoreIndicator(row); });
+
     row.addEventListener('wheel', function(e){
       if (row.scrollWidth <= row.clientWidth + 1) return;
       row.scrollLeft += (e.deltaY !== 0 ? e.deltaY : e.deltaX);
@@ -729,6 +769,8 @@
 
     if (!columns.length){
       content.innerHTML = '<p class="state-msg">No hay columnas — agregá la primera.</p>';
+      var moreElEmpty = document.getElementById('kanbanMore');
+      if (moreElEmpty) moreElEmpty.classList.remove('show');
     } else {
       var row = document.createElement('div');
       row.className = 'kanban-row';
@@ -815,6 +857,9 @@
 
       content.innerHTML = '';
       content.appendChild(row);
+      // measured after the row is actually in the document — scrollWidth/
+      // clientWidth are both 0 on a detached element.
+      updateKanbanMoreIndicator(row);
     }
 
     // guard against the brief window right after login where this can
@@ -2530,6 +2575,11 @@
     var state;
     try { state = JSON.parse(sessionStorage.getItem(ADMIN_VIEW_KEY) || 'null'); } catch (e) { state = null; }
     if (!state || !state.view || state.view === 'consultas' || !views[state.view]) {
+      // Consultas is already the default visible view in the markup, so
+      // showView('consultas') never runs here to add this class — set it
+      // directly, or the Kanban board would be capped at the narrow
+      // max-width every other CMS view uses.
+      if (mainEl) mainEl.classList.add('is-wide');
       restoreAdminScroll(state && state.scrollY);
       return;
     }
