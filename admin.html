@@ -2046,13 +2046,14 @@
   // ---------- SEO CMS (títulos/descripciones + URLs personalizadas) ----------
   var seoCmsBody = document.getElementById('seoCmsBody');
   var SEO_PAGES = [
-    { key: 'home', label: 'Home', hasSlug: true },
-    { key: 'nosotros', label: 'Nosotros', hasSlug: true },
-    { key: 'portfolio', label: 'Portfolio', hasSlug: true },
-    { key: 'nobrand', label: 'NOBRAND', hasSlug: true },
-    { key: 'blog', label: 'Blog', hasSlug: true },
-    { key: 'terminos', label: 'Términos', hasSlug: true },
-    { key: 'privacidad', label: 'Privacidad', hasSlug: true },
+    { key: 'home', label: 'Home', hasSlug: true, hasMeta: true },
+    { key: 'nosotros', label: 'Nosotros', hasSlug: true, hasMeta: true },
+    { key: 'portfolio', label: 'Portfolio', hasSlug: true, hasMeta: true },
+    { key: 'nobrand', label: 'NOBRAND', hasSlug: true, hasMeta: true },
+    { key: 'blog', label: 'Blog', hasSlug: true, hasMeta: true },
+    { key: 'terminos', label: 'Términos', hasSlug: true, hasMeta: true },
+    { key: 'privacidad', label: 'Privacidad', hasSlug: true, hasMeta: true },
+    { key: 'admin', label: 'Panel de administración', hasSlug: true, hasMeta: false },
   ];
 
   // lightweight browser-side copy of content-defaults.js's slugify() —
@@ -2095,7 +2096,7 @@
     if (!homeContent.slugs) homeContent.slugs = {};
 
     var metaGroup = cmsSubgroup('Título y descripción (metadatos)');
-    SEO_PAGES.forEach(function(page){
+    SEO_PAGES.filter(function(p){ return p.hasMeta; }).forEach(function(page){
       if (!homeContent.meta[page.key]) homeContent.meta[page.key] = { title: '', description: '' };
       var pageGroup = document.createElement('div');
       pageGroup.className = 'cms-subgroup cms-list-item';
@@ -2114,10 +2115,19 @@
     slugsHint.className = 'cms-media-hint';
     slugsHint.textContent = 'La URL vieja (la que termina en .html) redirige sola a esta — nunca se rompe un link, solo cambia lo que se ve en la barra de direcciones.';
     slugsGroup.appendChild(slugsHint);
-    SEO_PAGES.filter(function(p){ return p.hasSlug; }).forEach(function(page){
+    SEO_PAGES.filter(function(p){ return p.hasSlug && p.key !== 'admin'; }).forEach(function(page){
       slugsGroup.appendChild(renderSlugField(page.key, page.label));
     });
     seoCmsBody.appendChild(slugsGroup);
+
+    var adminGroup = cmsSubgroup('Acceso al panel (privado)');
+    var adminWarning = document.createElement('p');
+    adminWarning.className = 'cms-media-hint';
+    adminWarning.style.color = 'var(--pink-500)';
+    adminWarning.textContent = 'Esta es la única forma de entrar al panel — a diferencia de las demás, esta URL NO tiene un atajo viejo (admin.html deja de funcionar). Anotá el link nuevo antes de guardar, si lo cambiás.';
+    adminGroup.appendChild(adminWarning);
+    adminGroup.appendChild(renderSlugField('admin', 'Panel de administración'));
+    seoCmsBody.appendChild(adminGroup);
 
     document.getElementById('seoSavebar').style.display = 'flex';
   }

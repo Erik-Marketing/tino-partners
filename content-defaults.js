@@ -134,7 +134,7 @@ const DEFAULT_CONTENT = {
   },
   menu: {
     items: [
-      { label: 'Home', url: 'index.html#home' },
+      { label: 'Home', url: 'index.html' },
       { label: 'Nosotros', url: 'nosotros.html' },
       { label: 'Qué hacemos', url: 'index.html#servicios' },
       { label: 'Clientes', url: 'index.html#trabajos' },
@@ -205,6 +205,7 @@ const DEFAULT_CONTENT = {
     blog: 'blog',
     terminos: 'terminos',
     privacidad: 'privacidad',
+    admin: 'equipo-tino',
   },
   meta: {
     home: { title: 'Tino Partners', description: '' },
@@ -221,6 +222,10 @@ const DEFAULT_CONTENT = {
 // here are also used as the reserved-word/collision list for validation.
 // "home" is special: '' means "no extra path, just use /" (the root
 // always works regardless), so it's the only key allowed to be empty.
+// "admin" is special too: unlike the others, its literal admin.html path
+// is never redirected anywhere (server.js just 404s it) — redirecting
+// would leak the real secret path in the Location header, defeating the
+// point of hiding it.
 const SLUG_PAGE_FILES = {
   home: 'index.html',
   nosotros: 'nosotros.html',
@@ -229,6 +234,7 @@ const SLUG_PAGE_FILES = {
   blog: 'blog.html',
   terminos: 'terminos.html',
   privacidad: 'privacidad.html',
+  admin: 'admin.html',
 };
 const RESERVED_SLUGS = ['admin', 'api', 'media', 'blog-post', 'caso', 'index'];
 const SLUG_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;

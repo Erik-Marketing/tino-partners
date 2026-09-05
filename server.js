@@ -109,7 +109,10 @@ PAGES.filter((page) => !SLUGGED_FILES.has(page)).forEach((page) => {
   app.get('/' + page, (req, res) => res.sendFile(path.join(ROOT, page)));
 });
 
-Object.keys(SLUG_PAGE_FILES).forEach((key) => {
+// admin.html gets no redirect route at all (see the comment on
+// SLUG_PAGE_FILES) — a direct request for it just falls through to the
+// normal 404, same as any other made-up path.
+Object.keys(SLUG_PAGE_FILES).filter((key) => key !== 'admin').forEach((key) => {
   const file = SLUG_PAGE_FILES[key];
   app.get('/' + file, async (req, res) => {
     const content = await loadMergedContent();
