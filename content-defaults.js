@@ -22,7 +22,7 @@ const DEFAULT_CONTENT = {
     tiles: [
       {
         title: 'NOBRAND', status: 'Cliente', category: 'Producción', link: 'nobrand.html',
-        video: { url: 'https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/trailer-vertical.mp4', posX: 50, posY: 50 },
+        video: { url: '/media/nobrand/trailer-vertical.mp4', posX: 50, posY: 50 },
         adminLabel: 'Proyecto 1',
       },
       {
