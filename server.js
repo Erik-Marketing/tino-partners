@@ -14,6 +14,7 @@ const express = require('express');
 const rateLimit = require('express-rate-limit');
 const {
   DEFAULT_CONTENT, normalizeArticles, normalizeCasos, validateSlugs, SLUG_PAGE_FILES,
+  CONTENT_PATHS, DEFAULT_ROLES,
 } = require('./content-defaults');
 
 const ROOT = __dirname;
@@ -22,6 +23,8 @@ const MEDIA_DIR = path.join(DATA_DIR, 'media');
 const CONSULTAS_DIR = path.join(DATA_DIR, 'consultas');
 const CONTENT_FILE = path.join(DATA_DIR, 'content.json');
 const LIKES_FILE = path.join(DATA_DIR, 'likes.json');
+const USERS_FILE = path.join(DATA_DIR, 'users.json');
+const SESSION_SECRET_FILE = path.join(DATA_DIR, '.session-secret');
 const COOKIE_NAME = 'tp_admin';
 const PORT = process.env.PORT || 3000;
 
@@ -56,6 +59,31 @@ async function sweepStaleTempFiles() {
   } catch (err) { /* UPLOADS_DIR not created yet on a very first boot — ignore */ }
 }
 
+// Single Node process, no clustering — a read-modify-write against one
+// shared JSON file still needs its own writes serialized per-file, or two
+// requests arriving in the same tick could both read the same on-disk
+// state and one of their changes would be silently lost. `mutate` receives
+// whatever `readFn()` resolved to, mutates it in place (or returns a fresh
+// value — either is written back), and whatever `mutate` returns is handed
+// back to the caller of the write. One queue per file, never shared across
+// files, so a slow write to one never blocks a write to another.
+function makeFileWriteQueue(filePath, readFn) {
+  let queue = Promise.resolve();
+  return function queueWrite(mutate) {
+    const result = queue.then(async () => {
+      const data = await readFn();
+      const value = mutate(data);
+      await fs.writeFile(filePath, JSON.stringify(data));
+      return value;
+    });
+    // the queue itself must never stay rejected, or every write after a
+    // single failed one would be skipped forever — the caller still gets
+    // the real error via `result`.
+    queue = result.catch(() => {});
+    return result;
+  };
+}
+
 // Blog likes live in their own small file, never in content.json — a like
 // click is a single-visitor, no-login action that can happen dozens of
 // times a minute, and content.json is only ever meant to be rewritten
@@ -66,31 +94,44 @@ async function sweepStaleTempFiles() {
 // with content.json itself.
 async function readLikes() {
   try {
-    const text = await fs.readFile(LIKES_FILE, 'utf8');
-    const parsed = JSON.parse(text);
+    const parsed = JSON.parse(await fs.readFile(LIKES_FILE, 'utf8'));
     return (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) ? parsed : {};
   } catch (err) {
     return {};
   }
 }
-// Single Node process, no clustering — a read-modify-write against one
-// shared file still needs its own writes serialized, or two likes arriving
-// in the same tick could both read the same count and one increment would
-// be silently lost. `mutate` receives the current map, mutates it in
-// place, and returns whatever value the caller wants back.
-let likesWriteQueue = Promise.resolve();
-function queueLikesWrite(mutate) {
-  const result = likesWriteQueue.then(async () => {
-    const likes = await readLikes();
-    const value = mutate(likes);
-    await fs.writeFile(LIKES_FILE, JSON.stringify(likes));
-    return value;
-  });
-  // the queue itself must never stay rejected, or every write after a
-  // single failed one would be skipped forever — the caller still gets
-  // the real error via `result`.
-  likesWriteQueue = result.catch(() => {});
-  return result;
+const queueLikesWrite = makeFileWriteQueue(LIKES_FILE, readLikes);
+
+// Users/roles — same one-file-one-queue reasoning as likes.json above.
+// Shape: { users: [...], roles: [...] }. A read/parse failure (missing
+// file on a fresh install, or corruption) falls back to an empty user
+// list plus just the seeded owner role — never throws, so a broken file
+// fails closed (nobody can log in) rather than crashing the process.
+async function readUsersData() {
+  try {
+    const parsed = JSON.parse(await fs.readFile(USERS_FILE, 'utf8'));
+    const users = Array.isArray(parsed && parsed.users) ? parsed.users : [];
+    const roles = Array.isArray(parsed && parsed.roles) ? parsed.roles : DEFAULT_ROLES.slice();
+    return { users, roles };
+  } catch (err) {
+    return { users: [], roles: DEFAULT_ROLES.slice() };
+  }
+}
+const queueUsersWrite = makeFileWriteQueue(USERS_FILE, readUsersData);
+
+function findRole(roles, roleId) {
+  return (roles || []).find((r) => r.id === roleId) || null;
+}
+// A missing/deleted role (shouldn't happen via the UI — role deletion is
+// blocked while any user is still assigned to it — but data can outlive
+// the UI's guarantees) degrades to "no access" rather than throwing.
+function permissionsOf(role) {
+  if (!role) return { allAccess: false, permissions: [] };
+  return { allAccess: Boolean(role.allAccess), permissions: Array.isArray(role.permissions) ? role.permissions : [] };
+}
+function roleHasPermission(role, key) {
+  const p = permissionsOf(role);
+  return p.allAccess || p.permissions.includes(key);
 }
 
 function readCookie(req, name) {
@@ -110,18 +151,233 @@ function safeEqual(a, b) {
   return crypto.timingSafeEqual(bufA, bufB);
 }
 
-function isAuthorized(req) {
-  const sessionToken = readCookie(req, COOKIE_NAME);
-  return Boolean(process.env.ADMIN_TOKEN) && safeEqual(sessionToken, process.env.ADMIN_TOKEN);
+// ---------- passwords ----------
+// scrypt (Node built-in, no new dependency) instead of bcrypt, which would
+// need native compilation — this project has zero native deps on purpose.
+function hashPassword(password) {
+  return new Promise((resolve, reject) => {
+    const salt = crypto.randomBytes(16);
+    crypto.scrypt(String(password), salt, 64, (err, derivedKey) => {
+      if (err) return reject(err);
+      resolve(`scrypt$${salt.toString('hex')}$${derivedKey.toString('hex')}`);
+    });
+  });
+}
+function verifyPassword(password, stored) {
+  return new Promise((resolve) => {
+    const parts = String(stored || '').split('$');
+    if (parts.length !== 3 || parts[0] !== 'scrypt') return resolve(false);
+    const salt = Buffer.from(parts[1], 'hex');
+    const expected = Buffer.from(parts[2], 'hex');
+    crypto.scrypt(String(password), salt, 64, (err, derivedKey) => {
+      if (err || derivedKey.length !== expected.length) return resolve(false);
+      resolve(crypto.timingSafeEqual(derivedKey, expected));
+    });
+  });
 }
 
-// as real middleware (not an inline check inside the handler) so it can run
-// BEFORE the body parser on routes with a large size limit — otherwise an
-// unauthenticated caller could force parsing of a huge body before ever
-// being told "no".
-function requireAdmin(req, res, next) {
-  if (!isAuthorized(req)) return res.status(401).json({ error: 'No autorizado' });
+// ---------- signed session/pending tokens ----------
+// Replaces "the cookie value IS the shared secret" — the cookie is now an
+// opaque, revocable token: base64url(userId).base64url(issuedAtMs).base64url(hmac),
+// signed with a secret generated once at boot and persisted to
+// SESSION_SECRET_FILE (see the bootstrap section at the bottom of this
+// file) so sessions survive a restart/redeploy instead of everyone getting
+// logged out. `purpose` distinguishes a real session token from the
+// short-lived pre-2FA `pendingToken`, so one can never be replayed as the
+// other even though both are signed with the same secret.
+let SESSION_SECRET = null; // set once at boot, before the server starts listening
+const SESSION_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+const PENDING_2FA_MAX_AGE_MS = 5 * 60 * 1000; // 5 minutes
+
+function b64url(input) {
+  return Buffer.from(input).toString('base64url');
+}
+function signToken(payload) {
+  const body = b64url(JSON.stringify(payload));
+  const sig = crypto.createHmac('sha256', SESSION_SECRET).update(body).digest('base64url');
+  return `${body}.${sig}`;
+}
+// Returns the parsed payload only if the signature is valid AND
+// `purpose` matches — otherwise null. Never throws.
+function verifyToken(token, expectedPurpose, maxAgeMs) {
+  if (typeof token !== 'string' || !token.includes('.')) return null;
+  const dot = token.lastIndexOf('.');
+  const body = token.slice(0, dot);
+  const sig = token.slice(dot + 1);
+  const expectedSig = crypto.createHmac('sha256', SESSION_SECRET).update(body).digest('base64url');
+  const sigBuf = Buffer.from(sig, 'utf8');
+  const expectedBuf = Buffer.from(expectedSig, 'utf8');
+  if (sigBuf.length !== expectedBuf.length || !crypto.timingSafeEqual(sigBuf, expectedBuf)) return null;
+  let payload;
+  try {
+    payload = JSON.parse(Buffer.from(body, 'base64url').toString('utf8'));
+  } catch (err) {
+    return null;
+  }
+  if (!payload || payload.purpose !== expectedPurpose) return null;
+  const now = Date.now();
+  if (typeof payload.iat !== 'number' || payload.iat > now || now - payload.iat > maxAgeMs) return null;
+  return payload;
+}
+
+function signSessionToken(userId) {
+  return signToken({ purpose: 'session', userId, iat: Date.now() });
+}
+function signPendingTotpToken(userId) {
+  return signToken({ purpose: '2fa', userId, iat: Date.now() });
+}
+
+function setSessionCookie(res, req, token) {
+  const isHttps = req.headers['x-forwarded-proto'] === 'https';
+  const cookie = [
+    `${COOKIE_NAME}=${token}`,
+    'Path=/',
+    'HttpOnly',
+    'SameSite=Lax',
+    `Max-Age=${Math.floor(SESSION_MAX_AGE_MS / 1000)}`,
+    isHttps ? 'Secure' : '',
+  ].filter(Boolean).join('; ');
+  res.setHeader('Set-Cookie', cookie);
+}
+
+// Looks up the current user fresh from users.json on every call (not just
+// once at token-issue time) — this is what makes disabling/deleting a user
+// take effect immediately on their very next request, without a
+// server-side revocation list. A read/parse failure or a missing
+// user/role fails closed (treated as "not authorized"), never crashes.
+async function getRequestUser(req) {
+  const token = readCookie(req, COOKIE_NAME);
+  const payload = token ? verifyToken(token, 'session', SESSION_MAX_AGE_MS) : null;
+  if (!payload) return null;
+  try {
+    const { users, roles } = await readUsersData();
+    const user = users.find((u) => u.id === payload.userId);
+    if (!user || user.disabled) return null;
+    const role = findRole(roles, user.roleId);
+    return { user, role };
+  } catch (err) {
+    return null;
+  }
+}
+
+// Real middleware (not an inline check inside the handler) so it can run
+// BEFORE the body parser — an unauthenticated caller should never pay the
+// cost of a large body being parsed before being told "no".
+async function requireAuth(req, res, next) {
+  const found = await getRequestUser(req);
+  if (!found) return res.status(401).json({ error: 'No autorizado' });
+  req.currentUser = found.user;
+  req.currentRole = found.role;
   next();
+}
+function requirePermission(key) {
+  return async (req, res, next) => {
+    const found = await getRequestUser(req);
+    if (!found) return res.status(401).json({ error: 'No autorizado' });
+    if (!roleHasPermission(found.role, key)) return res.status(403).json({ error: 'No tenés permiso para esto' });
+    req.currentUser = found.user;
+    req.currentRole = found.role;
+    next();
+  };
+}
+
+// ---------- TOTP (RFC 6238/4226), hand-rolled on Node's built-in crypto —
+// no new dependency, matches this project's zero-native-deps stance.
+// Verified against the official RFC 6238 Appendix B test vectors before
+// being wired in here. ----------
+const TOTP_STEP_SECONDS = 30;
+const TOTP_DIGITS = 6;
+const BASE32_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+
+function base32Encode(buffer) {
+  let bits = 0, value = 0, output = '';
+  for (let i = 0; i < buffer.length; i++) {
+    value = (value << 8) | buffer[i];
+    bits += 8;
+    while (bits >= 5) {
+      output += BASE32_ALPHABET[(value >>> (bits - 5)) & 31];
+      bits -= 5;
+    }
+  }
+  if (bits > 0) output += BASE32_ALPHABET[(value << (5 - bits)) & 31];
+  return output;
+}
+// Tolerant of the ways a human actually copies a secret out of an
+// authenticator app or types it back in: mixed case, spaces, "=" padding.
+function base32Decode(input) {
+  const clean = String(input || '').toUpperCase().replace(/[^A-Z2-7]/g, '');
+  let bits = 0, value = 0;
+  const bytes = [];
+  for (let i = 0; i < clean.length; i++) {
+    const idx = BASE32_ALPHABET.indexOf(clean[i]);
+    if (idx === -1) continue;
+    value = (value << 5) | idx;
+    bits += 5;
+    if (bits >= 8) {
+      bytes.push((value >>> (bits - 8)) & 0xff);
+      bits -= 8;
+    }
+  }
+  return Buffer.from(bytes);
+}
+function generateTotpSecret() {
+  return base32Encode(crypto.randomBytes(20)); // 160 bits, RFC 4226's recommended minimum
+}
+function hotp(secretBuffer, counter, digits) {
+  const counterBuf = Buffer.alloc(8);
+  counterBuf.writeUInt32BE(Math.floor(counter / 0x100000000), 0);
+  counterBuf.writeUInt32BE(counter % 0x100000000, 4);
+  const hmac = crypto.createHmac('sha1', secretBuffer).update(counterBuf).digest();
+  const offset = hmac[hmac.length - 1] & 0x0f;
+  // mask with 0x7fffffff (clear the sign bit) before the modulo — the
+  // classic hand-rolled-TOTP bug is skipping this and getting negatives.
+  const binary = ((hmac[offset] & 0x7f) << 24) | ((hmac[offset + 1] & 0xff) << 16)
+    | ((hmac[offset + 2] & 0xff) << 8) | (hmac[offset + 3] & 0xff);
+  const code = binary % (10 ** digits);
+  return String(code).padStart(digits, '0');
+}
+function totpStepForTime(timeMs) {
+  return Math.floor(Math.floor(timeMs / 1000) / TOTP_STEP_SECONDS);
+}
+// Checks the current step and ±1 (30s each side) for clock drift.
+// `lastStep` (persisted per-user) enforces anti-replay: a code is only
+// ever accepted once, even within its valid window — without this, a
+// single observed code (e.g. by a MITM) could be replayed until the step
+// rolls over. Returns the matched step (to be persisted as the new
+// lastStep) or null.
+function verifyTotpCode(base32Secret, code, lastStep) {
+  const secretBuffer = base32Decode(base32Secret);
+  if (!secretBuffer.length) return null;
+  const cleanCode = String(code || '').trim();
+  if (!/^[0-9]{6}$/.test(cleanCode)) return null;
+  const currentStep = totpStepForTime(Date.now());
+  for (const delta of [0, -1, 1]) {
+    const step = currentStep + delta;
+    if (lastStep != null && step <= lastStep) continue;
+    if (safeEqual(hotp(secretBuffer, step, TOTP_DIGITS), cleanCode)) return step;
+  }
+  return null;
+}
+
+// Per-pendingToken (not just per-IP) brute-force guard for the 2FA code —
+// a 6-digit code is only ~10^6 space, and a per-IP-only limiter is trivial
+// to evade with a botnet. Keyed by a hash of the token (never the raw
+// token itself) so this map can't be used to recover a live token from a
+// crash dump. Small and short-lived by construction: pendingTokens expire
+// in 5 minutes, so entries are pruned opportunistically on each check
+// rather than needing a separate cleanup timer.
+const totpPendingAttempts = new Map();
+const MAX_TOTP_ATTEMPTS_PER_TOKEN = 8;
+function checkAndCountTotpAttempt(rawToken) {
+  const key = crypto.createHash('sha256').update(String(rawToken || '')).digest('hex');
+  const now = Date.now();
+  for (const [k, v] of totpPendingAttempts) {
+    if (v.expires < now) totpPendingAttempts.delete(k);
+  }
+  const entry = totpPendingAttempts.get(key) || { count: 0, expires: now + 10 * 60 * 1000 };
+  entry.count += 1;
+  totpPendingAttempts.set(key, entry);
+  return entry.count <= MAX_TOTP_ATTEMPTS_PER_TOKEN;
 }
 
 // Caddy is the only thing that can reach this process, so its
@@ -140,7 +396,7 @@ const app = express();
 app.set('trust proxy', 1);
 app.disable('x-powered-by');
 // no global body parser — applied per route below, so a big limit for
-// uploads doesn't also apply to every other route (see requireAdmin above).
+// uploads doesn't also apply to every other route (see requireAuth above).
 const jsonBody = express.json({ limit: '20mb' });
 
 const loginLimiter = rateLimit({
@@ -247,9 +503,40 @@ app.get('/api/content', async (req, res) => {
   return res.status(200).json(merged);
 });
 
-app.post('/api/content', jsonBody, async (req, res) => {
+// Dotted-path get/set for the permission-scoped merge below. Never a
+// generic risk today (CONTENT_PATHS is a static, server-defined map — an
+// attacker can't choose which paths get touched, only the values placed
+// there), but the setter still refuses to ever write a `__proto__`/
+// `constructor`/`prototype` segment, as cheap insurance against this map
+// ever being extended carelessly later.
+const UNSAFE_PATH_SEGMENTS = new Set(['__proto__', 'constructor', 'prototype']);
+function getPath(obj, dottedPath) {
+  return dottedPath.split('.').reduce((o, k) => (o && typeof o === 'object' ? o[k] : undefined), obj);
+}
+function setPath(obj, dottedPath, value) {
+  const parts = dottedPath.split('.');
+  if (parts.some((p) => UNSAFE_PATH_SEGMENTS.has(p))) return;
+  let cur = obj;
+  for (let i = 0; i < parts.length - 1; i++) {
+    if (typeof cur[parts[i]] !== 'object' || cur[parts[i]] === null) cur[parts[i]] = {};
+    cur = cur[parts[i]];
+  }
+  cur[parts[parts.length - 1]] = value;
+}
+function matchesType(value, type) {
+  if (type === 'array') return Array.isArray(value);
+  if (type === 'object') return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+  if (type === 'string') return typeof value === 'string';
+  if (type === 'number') return typeof value === 'number' && Number.isFinite(value);
+  return true;
+}
+
+// requireAuth runs before jsonBody here (see the comment on requireAuth) —
+// permission enforcement itself happens *inside* the handler below, since
+// which paths are writable depends on the request body's own shape, not
+// just the route.
+app.post('/api/content', requireAuth, jsonBody, async (req, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
-  if (!isAuthorized(req)) return res.status(401).json({ error: 'No autorizado' });
 
   const body = req.body;
   if (!body || typeof body !== 'object') return res.status(400).json({ error: 'Contenido inválido' });
@@ -268,7 +555,38 @@ app.post('/api/content', jsonBody, async (req, res) => {
   }
 
   try {
-    await fs.writeFile(CONTENT_FILE, JSON.stringify(body));
+    const { allAccess, permissions } = permissionsOf(req.currentRole);
+    if (allAccess) {
+      // owner: unchanged behaviour, save the whole body verbatim.
+      await fs.writeFile(CONTENT_FILE, JSON.stringify(body));
+      return res.status(200).json({ ok: true });
+    }
+
+    // Restricted role: start from the current stored truth, and only
+    // overlay the path(s) this role's permissions actually cover — every
+    // other path is left exactly as it was, no matter what the client sent.
+    let current = {};
+    try {
+      current = JSON.parse(await fs.readFile(CONTENT_FILE, 'utf8')) || {};
+    } catch (err) {
+      current = {};
+    }
+    const entries = [];
+    permissions.forEach((key) => {
+      (CONTENT_PATHS[key] || []).forEach((spec) => entries.push(spec));
+    });
+    for (const { path: p, type } of entries) {
+      const incoming = getPath(body, p);
+      if (incoming === undefined) continue;
+      if (!matchesType(incoming, type)) {
+        return res.status(400).json({ error: `Valor inválido para "${p}"` });
+      }
+    }
+    entries.forEach(({ path: p }) => {
+      const incoming = getPath(body, p);
+      if (incoming !== undefined) setPath(current, p, incoming);
+    });
+    await fs.writeFile(CONTENT_FILE, JSON.stringify(current));
     return res.status(200).json({ ok: true });
   } catch (err) {
     console.error('save content failed', err);
@@ -319,11 +637,7 @@ app.post('/api/contact', contactLimiter, jsonBody, async (req, res) => {
 // to build a file path from, whether read here or in the move-column route.
 const CONSULTA_ID_RE = /^[0-9]+-[a-z0-9]+$/;
 
-app.get('/api/consultas', async (req, res) => {
-  const queryToken = req.query.token;
-  const authorized = isAuthorized(req) || (Boolean(process.env.ADMIN_TOKEN) && queryToken === process.env.ADMIN_TOKEN);
-  if (!authorized) return res.status(401).json({ error: 'No autorizado' });
-
+app.get('/api/consultas', requirePermission('consultas'), async (req, res) => {
   try {
     const content = await loadMergedContent();
     const columns = (content.kanban && content.kanban.columns) || [];
@@ -355,9 +669,7 @@ app.get('/api/consultas', async (req, res) => {
 });
 
 // ---------- /api/consultas/:id/column (move a card between kanban columns) ----------
-app.post('/api/consultas/:id/column', jsonBody, async (req, res) => {
-  if (!isAuthorized(req)) return res.status(401).json({ error: 'No autorizado' });
-
+app.post('/api/consultas/:id/column', requirePermission('consultas'), jsonBody, async (req, res) => {
   const id = String(req.params.id || '');
   if (!CONSULTA_ID_RE.test(id)) return res.status(400).json({ error: 'Id inválido' });
 
@@ -416,7 +728,7 @@ app.post('/api/blog/:slug/like', likeLimiter, async (req, res) => {
 // Admin-only — lets Erik set the displayed like count for an article
 // directly (e.g. to reflect real engagement seen elsewhere, or just to
 // seed a new post) instead of only ever incrementing by one.
-app.post('/api/blog/:slug/set-likes', requireAdmin, jsonBody, async (req, res) => {
+app.post('/api/blog/:slug/set-likes', requireAuth, jsonBody, async (req, res) => {
   const slug = String(req.params.slug || '');
   if (!BLOG_SLUG_RE.test(slug)) return res.status(400).json({ error: 'Artículo inválido' });
   const count = Math.round(Number(req.body && req.body.count));
@@ -432,30 +744,316 @@ app.post('/api/blog/:slug/set-likes', requireAdmin, jsonBody, async (req, res) =
   }
 });
 
-// ---------- /api/login, /api/logout ----------
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
+// ---------- /api/login, /api/login/totp, /api/logout, /api/me ----------
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+function normalizeEmail(email) { return String(email || '').trim().toLowerCase(); }
 
-app.post('/api/login', loginLimiter, jsonBody, (req, res) => {
-  const { password } = req.body || {};
-  if (!process.env.ADMIN_TOKEN || !safeEqual(password, process.env.ADMIN_TOKEN)) {
-    return res.status(401).json({ error: 'Contraseña incorrecta' });
+app.post('/api/login', loginLimiter, jsonBody, async (req, res) => {
+  const { email, password } = req.body || {};
+  const { users } = await readUsersData();
+  const user = users.find((u) => u.email === normalizeEmail(email));
+  if (!user || user.disabled || !(await verifyPassword(password, user.passwordHash))) {
+    return res.status(401).json({ error: 'Email o contraseña incorrectos' });
   }
-  const isHttps = req.headers['x-forwarded-proto'] === 'https';
-  const cookie = [
-    `${COOKIE_NAME}=${process.env.ADMIN_TOKEN}`,
-    'Path=/',
-    'HttpOnly',
-    'SameSite=Lax',
-    `Max-Age=${COOKIE_MAX_AGE}`,
-    isHttps ? 'Secure' : '',
-  ].filter(Boolean).join('; ');
-  res.setHeader('Set-Cookie', cookie);
+  if (user.totpEnabled) {
+    return res.status(200).json({ requireTotp: true, pendingToken: signPendingTotpToken(user.id) });
+  }
+  setSessionCookie(res, req, signSessionToken(user.id));
+  return res.status(200).json({ ok: true });
+});
+
+// Second step of login when the user has 2FA enabled — separate, stricter
+// rate limit than plain /api/login: a 6-digit code is a much smaller space
+// than an arbitrary password, and tracking by the pendingToken itself (not
+// just by IP) stops a distributed attacker from evading a per-IP limiter.
+app.post('/api/login/totp', loginLimiter, jsonBody, async (req, res) => {
+  const { pendingToken, code } = req.body || {};
+  if (!checkAndCountTotpAttempt(pendingToken)) {
+    return res.status(429).json({ error: 'Demasiados intentos, pedí un login nuevo.' });
+  }
+  const payload = verifyToken(pendingToken, '2fa', PENDING_2FA_MAX_AGE_MS);
+  if (!payload) return res.status(401).json({ error: 'El código expiró, iniciá sesión de nuevo.' });
+
+  const { users, roles } = await readUsersData();
+  const user = users.find((u) => u.id === payload.userId);
+  if (!user || user.disabled || !user.totpEnabled) return res.status(401).json({ error: 'No autorizado' });
+
+  const step = verifyTotpCode(user.totpSecret, code, user.totpLastStep);
+  if (step == null) return res.status(401).json({ error: 'Código inválido' });
+
+  await queueUsersWrite(({ users: list }) => {
+    const u = list.find((x) => x.id === user.id);
+    if (u) u.totpLastStep = step;
+  });
+  setSessionCookie(res, req, signSessionToken(user.id));
   return res.status(200).json({ ok: true });
 });
 
 app.post('/api/logout', (req, res) => {
   res.setHeader('Set-Cookie', `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`);
   return res.status(200).json({ ok: true });
+});
+
+app.get('/api/me', requireAuth, (req, res) => {
+  const { allAccess, permissions } = permissionsOf(req.currentRole);
+  return res.status(200).json({
+    id: req.currentUser.id,
+    name: req.currentUser.name,
+    email: req.currentUser.email,
+    roleId: req.currentUser.roleId,
+    roleLabel: req.currentRole ? req.currentRole.label : null,
+    totpEnabled: Boolean(req.currentUser.totpEnabled),
+    allAccess,
+    permissions,
+  });
+});
+
+// ---------- self-service: password + 2FA on your own account ----------
+const totpConfirmLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => (req.currentUser ? req.currentUser.id : getClientIp(req)),
+  message: { error: 'Demasiados intentos, probá de nuevo en un rato.' },
+});
+
+app.post('/api/me/password', requireAuth, jsonBody, async (req, res) => {
+  const { currentPassword, newPassword } = req.body || {};
+  if (!(await verifyPassword(currentPassword, req.currentUser.passwordHash))) {
+    return res.status(401).json({ error: 'La contraseña actual no es correcta' });
+  }
+  if (typeof newPassword !== 'string' || newPassword.length < 8) {
+    return res.status(400).json({ error: 'La contraseña nueva tiene que tener al menos 8 caracteres' });
+  }
+  const newHash = await hashPassword(newPassword);
+  await queueUsersWrite(({ users: list }) => {
+    const u = list.find((x) => x.id === req.currentUser.id);
+    if (u) u.passwordHash = newHash;
+  });
+  return res.status(200).json({ ok: true });
+});
+
+// Generates a new pending secret (not yet enabled) — self-service, so a
+// user's own 2FA secret is never seen or set by an admin. Only confirming
+// with a real code (below) turns it on.
+app.post('/api/me/totp/setup', requireAuth, async (req, res) => {
+  const secret = generateTotpSecret();
+  await queueUsersWrite(({ users: list }) => {
+    const u = list.find((x) => x.id === req.currentUser.id);
+    if (u) { u.totpPendingSecret = secret; }
+  });
+  const label = encodeURIComponent(`Tino Partners:${req.currentUser.email}`);
+  const issuer = encodeURIComponent('Tino Partners');
+  return res.status(200).json({
+    secret,
+    otpauthUri: `otpauth://totp/${label}?secret=${secret}&issuer=${issuer}`,
+  });
+});
+
+app.post('/api/me/totp/confirm', requireAuth, totpConfirmLimiter, jsonBody, async (req, res) => {
+  const { code } = req.body || {};
+  const pendingSecret = req.currentUser.totpPendingSecret;
+  if (!pendingSecret) return res.status(400).json({ error: 'No hay una activación de 2FA en curso' });
+  const step = verifyTotpCode(pendingSecret, code, null);
+  if (step == null) return res.status(401).json({ error: 'Código inválido' });
+  await queueUsersWrite(({ users: list }) => {
+    const u = list.find((x) => x.id === req.currentUser.id);
+    if (u) {
+      u.totpSecret = pendingSecret;
+      u.totpEnabled = true;
+      u.totpLastStep = step;
+      delete u.totpPendingSecret;
+    }
+  });
+  return res.status(200).json({ ok: true });
+});
+
+app.post('/api/me/totp/disable', requireAuth, jsonBody, async (req, res) => {
+  const { password } = req.body || {};
+  if (!(await verifyPassword(password, req.currentUser.passwordHash))) {
+    return res.status(401).json({ error: 'La contraseña no es correcta' });
+  }
+  await queueUsersWrite(({ users: list }) => {
+    const u = list.find((x) => x.id === req.currentUser.id);
+    if (u) { u.totpEnabled = false; delete u.totpSecret; delete u.totpLastStep; delete u.totpPendingSecret; }
+  });
+  return res.status(200).json({ ok: true });
+});
+
+// ---------- user & role management (requirePermission('usuarios.*')) ----------
+function publicUser(u) {
+  return {
+    id: u.id, name: u.name, email: u.email, roleId: u.roleId,
+    disabled: Boolean(u.disabled), totpEnabled: Boolean(u.totpEnabled),
+  };
+}
+
+app.get('/api/users', requirePermission('usuarios.users'), async (req, res) => {
+  const { users } = await readUsersData();
+  return res.status(200).json({ users: users.map(publicUser) });
+});
+
+app.post('/api/users', requirePermission('usuarios.users'), jsonBody, async (req, res) => {
+  const { name, email, password, roleId } = req.body || {};
+  const cleanEmail = normalizeEmail(email);
+  if (!name || !EMAIL_RE.test(cleanEmail)) return res.status(400).json({ error: 'Nombre o email inválido' });
+  if (typeof password !== 'string' || password.length < 8) {
+    return res.status(400).json({ error: 'La contraseña tiene que tener al menos 8 caracteres' });
+  }
+  const { roles } = await readUsersData();
+  if (!findRole(roles, roleId)) return res.status(400).json({ error: 'Rol inválido' });
+
+  try {
+    const passwordHash = await hashPassword(password);
+    const created = await queueUsersWrite(({ users: list }) => {
+      if (list.some((u) => u.email === cleanEmail)) return null;
+      const user = {
+        id: crypto.randomUUID(), name: String(name).trim(), email: cleanEmail,
+        passwordHash, roleId, disabled: false, totpEnabled: false, createdAt: Date.now(),
+      };
+      list.push(user);
+      return user;
+    });
+    if (!created) return res.status(409).json({ error: 'Ya existe un usuario con ese email' });
+    return res.status(200).json({ user: publicUser(created) });
+  } catch (err) {
+    console.error('create user failed', err);
+    return res.status(500).json({ error: 'No se pudo crear el usuario' });
+  }
+});
+
+app.post('/api/users/:id', requirePermission('usuarios.users'), jsonBody, async (req, res) => {
+  const { id } = req.params;
+  const { name, email, roleId, disabled } = req.body || {};
+  try {
+    let notFound = false;
+    let badRole = false;
+    const updated = await queueUsersWrite(({ users: list, roles }) => {
+      const u = list.find((x) => x.id === id);
+      if (!u) { notFound = true; return null; }
+      if (roleId !== undefined) {
+        if (!findRole(roles, roleId)) { badRole = true; return null; }
+        // Block leaving the site with zero allAccess users.
+        if (u.roleId !== roleId) {
+          const currentIsAllAccess = permissionsOf(findRole(roles, u.roleId)).allAccess;
+          const nextIsAllAccess = permissionsOf(findRole(roles, roleId)).allAccess;
+          if (currentIsAllAccess && !nextIsAllAccess) {
+            const otherAllAccess = list.some((x) => x.id !== id && !x.disabled
+              && permissionsOf(findRole(roles, x.roleId)).allAccess);
+            if (!otherAllAccess) { badRole = true; return null; }
+          }
+        }
+        u.roleId = roleId;
+      }
+      if (name !== undefined) u.name = String(name).trim();
+      if (email !== undefined) u.email = normalizeEmail(email);
+      if (disabled !== undefined) u.disabled = Boolean(disabled);
+      return u;
+    });
+    if (notFound) return res.status(404).json({ error: 'No se encontró el usuario' });
+    if (badRole) return res.status(400).json({ error: 'Rol inválido, o dejaría el panel sin ningún usuario con acceso total' });
+    return res.status(200).json({ user: publicUser(updated) });
+  } catch (err) {
+    console.error('update user failed', err);
+    return res.status(500).json({ error: 'No se pudo guardar' });
+  }
+});
+
+app.post('/api/users/:id/reset-password', requirePermission('usuarios.users'), jsonBody, async (req, res) => {
+  const { password } = req.body || {};
+  if (typeof password !== 'string' || password.length < 8) {
+    return res.status(400).json({ error: 'La contraseña tiene que tener al menos 8 caracteres' });
+  }
+  const passwordHash = await hashPassword(password);
+  let notFound = false;
+  await queueUsersWrite(({ users: list }) => {
+    const u = list.find((x) => x.id === req.params.id);
+    if (!u) { notFound = true; return; }
+    u.passwordHash = passwordHash;
+  });
+  if (notFound) return res.status(404).json({ error: 'No se encontró el usuario' });
+  return res.status(200).json({ ok: true });
+});
+
+app.post('/api/users/:id/reset-totp', requirePermission('usuarios.users'), async (req, res) => {
+  let notFound = false;
+  await queueUsersWrite(({ users: list }) => {
+    const u = list.find((x) => x.id === req.params.id);
+    if (!u) { notFound = true; return; }
+    u.totpEnabled = false;
+    delete u.totpSecret; delete u.totpLastStep; delete u.totpPendingSecret;
+  });
+  if (notFound) return res.status(404).json({ error: 'No se encontró el usuario' });
+  return res.status(200).json({ ok: true });
+});
+
+app.delete('/api/users/:id', requirePermission('usuarios.users'), async (req, res) => {
+  let notFound = false;
+  let blocked = false;
+  await queueUsersWrite(({ users: list, roles }) => {
+    const idx = list.findIndex((x) => x.id === req.params.id);
+    if (idx === -1) { notFound = true; return; }
+    const target = list[idx];
+    const isAllAccess = permissionsOf(findRole(roles, target.roleId)).allAccess;
+    if (isAllAccess) {
+      const otherAllAccess = list.some((x) => x.id !== target.id && !x.disabled
+        && permissionsOf(findRole(roles, x.roleId)).allAccess);
+      if (!otherAllAccess) { blocked = true; return; }
+    }
+    list.splice(idx, 1);
+  });
+  if (notFound) return res.status(404).json({ error: 'No se encontró el usuario' });
+  if (blocked) return res.status(400).json({ error: 'No se puede borrar el último usuario con acceso total' });
+  return res.status(200).json({ ok: true });
+});
+
+app.get('/api/roles', requirePermission('usuarios.roles'), async (req, res) => {
+  const { roles } = await readUsersData();
+  return res.status(200).json({ roles });
+});
+
+// Roles are edited as a batch (see admin.html's role editor — checking
+// permission boxes across several roles is a policy decision made over
+// several steps, unlike a single user's disabled-toggle) — this replaces
+// the whole array at once, validated as a set: the owner role must still
+// exist with allAccess intact, and no role still assigned to a user can
+// be removed.
+app.post('/api/roles', requirePermission('usuarios.roles'), jsonBody, async (req, res) => {
+  const incomingRoles = req.body && req.body.roles;
+  if (!Array.isArray(incomingRoles)) return res.status(400).json({ error: 'Formato inválido' });
+
+  const seen = new Set();
+  for (const r of incomingRoles) {
+    if (!r || typeof r.id !== 'string' || typeof r.label !== 'string' || !r.label.trim()) {
+      return res.status(400).json({ error: 'Cada rol necesita id y nombre' });
+    }
+    if (seen.has(r.id)) return res.status(400).json({ error: `El id de rol "${r.id}" está repetido` });
+    seen.add(r.id);
+  }
+  const owner = incomingRoles.find((r) => r.id === 'owner');
+  if (!owner || !owner.allAccess) return res.status(400).json({ error: 'El rol Dueño no puede perder el acceso total' });
+
+  try {
+    let blockedRoleId = null;
+    const saved = await queueUsersWrite((data) => {
+      const stillAssigned = new Set(data.users.map((u) => u.roleId));
+      for (const existing of data.roles) {
+        if (!seen.has(existing.id) && stillAssigned.has(existing.id)) { blockedRoleId = existing.id; return null; }
+      }
+      data.roles = incomingRoles.map((r) => ({
+        id: r.id,
+        label: String(r.label).trim(),
+        ...(r.id === 'owner' ? { allAccess: true } : { permissions: Array.isArray(r.permissions) ? r.permissions : [] }),
+      }));
+      return data.roles;
+    });
+    if (blockedRoleId) return res.status(400).json({ error: `El rol "${blockedRoleId}" todavía tiene usuarios asignados` });
+    return res.status(200).json({ roles: saved });
+  } catch (err) {
+    console.error('save roles failed', err);
+    return res.status(500).json({ error: 'No se pudo guardar' });
+  }
 });
 
 // ---------- /api/upload-media ----------
@@ -538,7 +1136,7 @@ function runFfmpeg(inputPath, outputPath) {
   });
 }
 
-app.post('/api/upload-media', requireAdmin, uploadLimiter, express.json({ limit: videoJsonLimitBytes }), transcodeConcurrencyGuard, async (req, res) => {
+app.post('/api/upload-media', requireAuth, uploadLimiter, express.json({ limit: videoJsonLimitBytes }), transcodeConcurrencyGuard, async (req, res) => {
   const { filename, contentType, dataBase64 } = req.body || {};
   if (!filename || !contentType || !dataBase64) {
     return res.status(400).json({ error: 'Faltan datos del archivo' });
@@ -668,7 +1266,54 @@ app.use((err, req, res, next) => {
   res.status(400).json({ error: 'Solicitud inválida' });
 });
 
-ensureDirs().then(() => {
+// Runs once, synchronously, before the server ever accepts a request —
+// never lazily on first request, which would race two simultaneous
+// first-requests into both generating/writing a secret. If the file
+// exists but can't be read, that's a fatal boot error (crash loudly)
+// rather than silently regenerating it: a fresh secret would invalidate
+// every existing session on every restart, an availability bug, not just
+// a security one.
+async function initSessionSecret() {
+  try {
+    SESSION_SECRET = await fs.readFile(SESSION_SECRET_FILE);
+    return;
+  } catch (err) {
+    if (err.code !== 'ENOENT') throw err; // exists but unreadable/corrupt — fail loudly
+  }
+  SESSION_SECRET = crypto.randomBytes(32);
+  await fs.writeFile(SESSION_SECRET_FILE, SESSION_SECRET, { mode: 0o600 });
+}
+
+// Seeds exactly one owner user from the pre-existing shared ADMIN_TOKEN so
+// a deploy of this change keeps working immediately with zero manual
+// steps — Erik then renames/changes the password and adds 2FA from the new
+// Usuarios panel. Runs once at boot (inside the same startup sequence as
+// initSessionSecret), never per-request, so two simultaneous first
+// requests can never both create a seed user.
+async function bootstrapOwnerUser() {
+  if (!process.env.ADMIN_TOKEN) return;
+  const existing = await readUsersData(); // never throws — falls back to {users:[],roles:[...]}
+  if (existing.users.length) return; // users.json already has real data — never overwrite it
+  const passwordHash = await hashPassword(process.env.ADMIN_TOKEN);
+  await fs.writeFile(USERS_FILE, JSON.stringify({
+    users: [{
+      id: crypto.randomUUID(),
+      name: 'Admin',
+      email: 'admin@tinopartners.com',
+      passwordHash,
+      roleId: 'owner',
+      disabled: false,
+      totpEnabled: false,
+      createdAt: Date.now(),
+    }],
+    roles: DEFAULT_ROLES.slice(),
+  }));
+  console.log('Usuario semilla creado (admin@tinopartners.com, contraseña = ADMIN_TOKEN actual) — cambiala desde el panel de Usuarios apenas entres.');
+}
+
+ensureDirs().then(async () => {
+  await initSessionSecret();
+  await bootstrapOwnerUser();
   sweepStaleTempFiles();
   const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`Tino Partners server listening on :${PORT} (DATA_DIR=${DATA_DIR})`);
@@ -678,4 +1323,7 @@ ensureDirs().then(() => {
   // in-app ffmpeg timeout (4 min) ever gets a chance to.
   server.requestTimeout = 5 * 60 * 1000;
   server.headersTimeout = 5 * 60 * 1000 + 5000;
+}).catch((err) => {
+  console.error('fatal boot error', err);
+  process.exit(1);
 });

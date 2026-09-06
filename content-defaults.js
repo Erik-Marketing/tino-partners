@@ -341,8 +341,81 @@ function normalizeCasos(casos) {
   });
 }
 
+// ---------- users/roles ----------
+// Permission keys mirror the admin.html sidebar's own data-view/
+// data-blogview/data-portfolioview/SECTIONS[].key strings exactly, on
+// purpose — one vocabulary shared between the server (enforcement)
+// and the client (nav filtering + the role editor's checkbox tree),
+// never translated between the two.
+const PERMISSION_KEYS = [
+  'consultas',
+  'home-cms.hero', 'home-cms.proyectos', 'home-cms.ticker', 'home-cms.diferenciales',
+  'home-cms.stats', 'home-cms.quehacemos', 'home-cms.marcas', 'home-cms.testimonios',
+  'home-cms.blog', 'home-cms.footer',
+  'blog-cms.new', 'blog-cms.list',
+  'menu-cms',
+  'form-cms',
+  'nosotros-cms',
+  'portfolio-cms.general', 'portfolio-cms.new', 'portfolio-cms.list',
+  'seo-cms',
+  'usuarios.users', 'usuarios.roles',
+];
+
+// permission key -> dotted content.json path(s) it controls, plus the
+// expected type of the value at that path (checked before merging a
+// restricted-role save — see POST /api/content) so a role that can
+// only touch, say, `footer` can never smuggle a wrong-shaped value
+// into `blog.articles` and break normalizeArticles() for every
+// visitor. Paths are real DEFAULT_CONTENT top-level keys (NOT nested
+// under "home" — only the permission-key namespace uses that prefix,
+// to match the sidebar's own grouping).
+const CONTENT_PATHS = {
+  'home-cms.hero': [{ path: 'hero', type: 'object' }],
+  'home-cms.proyectos': [{ path: 'proyectos', type: 'object' }],
+  'home-cms.ticker': [{ path: 'ticker', type: 'object' }],
+  'home-cms.diferenciales': [{ path: 'diferenciales', type: 'object' }],
+  'home-cms.stats': [{ path: 'stats', type: 'object' }],
+  'home-cms.quehacemos': [{ path: 'quehacemos', type: 'object' }],
+  'home-cms.marcas': [{ path: 'marcas', type: 'object' }],
+  'home-cms.testimonios': [{ path: 'testimonios', type: 'object' }],
+  'home-cms.blog': [
+    { path: 'blog.heading', type: 'string' },
+    { path: 'blog.texto', type: 'string' },
+    { path: 'blog.homeLimit', type: 'number' },
+  ],
+  'home-cms.footer': [{ path: 'footer', type: 'object' }],
+  'blog-cms.new': [{ path: 'blog.articles', type: 'array' }],
+  'blog-cms.list': [{ path: 'blog.articles', type: 'array' }],
+  'menu-cms': [{ path: 'menu', type: 'object' }],
+  'form-cms': [{ path: 'form', type: 'object' }],
+  'nosotros-cms': [{ path: 'nosotros', type: 'object' }],
+  'portfolio-cms.general': [
+    { path: 'portfolio.hero', type: 'object' },
+    { path: 'portfolio.tiles', type: 'array' },
+    { path: 'portfolio.cta', type: 'object' },
+  ],
+  'portfolio-cms.new': [{ path: 'portfolio.casos', type: 'array' }],
+  'portfolio-cms.list': [{ path: 'portfolio.casos', type: 'array' }],
+  'seo-cms': [
+    { path: 'slugs', type: 'object' },
+    { path: 'meta', type: 'object' },
+  ],
+  'consultas': [{ path: 'kanban', type: 'object' }],
+};
+
+// The one seeded, non-deletable role — allAccess is never toggled
+// through the UI, only its label can be renamed. Everything that
+// checks "can this user see/save everything" must test `allAccess`,
+// never `id === 'owner'` (the label is user-editable).
+const DEFAULT_ROLES = [
+  { id: 'owner', label: 'Dueño', allAccess: true },
+];
+
 module.exports = {
   DEFAULT_CONTENT,
+  PERMISSION_KEYS,
+  CONTENT_PATHS,
+  DEFAULT_ROLES,
   slugify,
   normalizeArticles,
   normalizeCasos,

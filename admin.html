@@ -97,6 +97,7 @@
   }
   .sb-sublink:hover{ color:var(--ink); }
   .sb-sublink.active{ background:rgba(155,93,246,.16); color:var(--ink); }
+  .sb-link.is-hidden, .sb-sublink.is-hidden{ display:none !important; }
   .sb-logout{
     display:flex; align-items:center; gap:10px; background:none; border:1px solid var(--line-strong); color:var(--ink-soft);
     font-family:'IBM Plex Mono',monospace; font-size:.75rem; font-weight:600; letter-spacing:.04em; text-transform:uppercase;
@@ -313,6 +314,37 @@
   .cms-save-status.is-ok{ color:#4ADE80; }
   .cms-save-status.is-error{ color:var(--pink-500); }
 
+  /* ---------- Mi cuenta (self-service overlay — outside the views/
+     showView system on purpose, so no permission guard can ever catch it) ---------- */
+  .mc-backdrop{ position:fixed; inset:0; background:rgba(8,4,18,.6); z-index:50; display:none; }
+  .mc-backdrop.open{ display:block; }
+  .mc-panel{
+    position:fixed; top:0; right:0; bottom:0; width:min(420px,100%); background:var(--paper);
+    z-index:51; padding:28px 22px; overflow-y:auto; transform:translateX(100%); transition:transform .25s ease;
+    border-left:1px solid var(--line); box-shadow:-24px 0 60px -28px rgba(74,49,112,.25);
+  }
+  .mc-panel.open{ transform:translateX(0); }
+  .mc-panel h2{ font-size:1.3rem; margin-bottom:4px; }
+  .mc-close{
+    position:absolute; top:20px; right:20px; background:none; border:1px solid var(--line-strong);
+    border-radius:8px; width:32px; height:32px; cursor:pointer; color:var(--ink); font-size:1.1rem; line-height:1;
+  }
+  .mc-close:hover{ border-color:var(--ink-soft); }
+  .mc-panel .cms-subgroup{ margin-top:18px; }
+  .mc-secret-box{
+    font-family:'IBM Plex Mono',monospace; font-size:.85rem; word-break:break-all; background:var(--paper-dim);
+    border:1px solid var(--line-strong); border-radius:8px; padding:12px 14px; letter-spacing:.04em;
+  }
+
+  /* ---------- Roles: permission checkbox tree ---------- */
+  .perm-group{ border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin-bottom:8px; }
+  .perm-group-head{ display:flex; align-items:center; gap:9px; font-weight:600; font-size:.88rem; }
+  .perm-group-head input{ width:16px; height:16px; accent-color:var(--v-500); cursor:pointer; }
+  .perm-children{ margin:8px 0 2px 25px; display:flex; flex-direction:column; gap:6px; }
+  .perm-children label{ display:flex; align-items:center; gap:8px; font-size:.84rem; color:var(--ink-soft); cursor:pointer; }
+  .perm-children input{ width:15px; height:15px; accent-color:var(--v-500); cursor:pointer; }
+  .role-owner-note{ font-size:.78rem; color:var(--ink-soft); font-style:italic; margin:2px 0 8px; }
+
   @media (min-width: 960px){
     .sidebar{ transform:none; }
     .sidebar-backdrop{ display:none !important; }
@@ -335,14 +367,26 @@
     <div class="login-card">
       <div class="login-brand">Tino Partners<span>Panel interno</span></div>
       <h1>Ingresar</h1>
-      <p class="hint">Acceso restringido al equipo. Ingresá la contraseña para ver las consultas.</p>
+      <p class="hint">Acceso restringido al equipo. Ingresá tu email y contraseña.</p>
       <form id="loginForm">
+        <div class="field">
+          <label for="loginEmail">Email</label>
+          <input id="loginEmail" name="email" type="email" autocomplete="username" required>
+        </div>
         <div class="field">
           <label for="password">Contraseña</label>
           <input id="password" name="password" type="password" autocomplete="current-password" required>
         </div>
         <button class="btn-primary" type="submit" id="loginBtn">Ingresar →</button>
         <p class="form-error" id="loginError"></p>
+      </form>
+      <form id="totpForm" style="display:none;">
+        <div class="field">
+          <label for="totpCode">Código de Google Authenticator</label>
+          <input id="totpCode" name="totpCode" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" maxlength="6" required>
+        </div>
+        <button class="btn-primary" type="submit" id="totpBtn">Confirmar →</button>
+        <p class="form-error" id="totpError"></p>
       </form>
     </div>
   </div>
@@ -397,7 +441,20 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           SEO
         </a>
+        <button class="sb-link sb-group-toggle" type="button" id="sbUsuariosToggle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Usuarios
+          <svg class="sb-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="sb-subnav" id="sbUsuariosSubnav">
+          <a class="sb-sublink" href="#" data-usuariosview="users">Usuarios</a>
+          <a class="sb-sublink" href="#" data-usuariosview="roles">Roles</a>
+        </div>
       </div>
+      <button class="sb-logout" id="miCuentaBtn" style="margin-top:8px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.5-6 8-6s8 2 8 6"/></svg>
+        Mi cuenta
+      </button>
       <button class="sb-logout" id="logoutBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         Salir
@@ -513,7 +570,48 @@
             <span class="cms-save-status" id="seoSaveStatus"></span>
           </div>
         </div>
+
+        <div id="view-usuarios-cms" style="display:none;">
+          <div class="main-head">
+            <h2 id="usuariosSectionTitle">Usuarios</h2>
+            <p id="usuariosSectionHint">Quién entra al panel y qué puede ver cada uno.</p>
+          </div>
+          <div id="usuariosCmsBody"><p class="state-msg">Cargando...</p></div>
+          <div class="cms-savebar" id="rolesSavebar" style="display:none;">
+            <button class="btn-primary" type="button" id="rolesSaveBtn">Guardar cambios</button>
+            <span class="cms-save-status" id="rolesSaveStatus"></span>
+          </div>
+        </div>
+
+        <div id="view-no-access" style="display:none;">
+          <div class="main-head">
+            <h2>Sin acceso</h2>
+            <p>Tu usuario no tiene ninguna sección habilitada todavía — pedile a alguien con acceso que te asigne un rol.</p>
+          </div>
+        </div>
       </main>
+    </div>
+  </div>
+
+  <div class="mc-backdrop" id="miCuentaBackdrop"></div>
+  <div class="mc-panel" id="miCuentaPanel">
+    <button class="mc-close" id="miCuentaCloseBtn" type="button" aria-label="Cerrar">×</button>
+    <h2>Mi cuenta</h2>
+    <p class="hint" id="miCuentaWho" style="margin-bottom:6px;"></p>
+
+    <div class="cms-subgroup">
+      <div class="cms-subgroup-title">Cambiar contraseña</div>
+      <div class="cms-field"><label>Contraseña actual</label><input type="password" id="mcCurrentPassword" autocomplete="current-password"></div>
+      <div class="cms-field"><label>Contraseña nueva (mínimo 8 caracteres)</label><input type="password" id="mcNewPassword" autocomplete="new-password"></div>
+      <div>
+        <button class="btn-primary" type="button" id="mcChangePasswordBtn" style="width:auto; padding:11px 20px;">Cambiar contraseña</button>
+        <span class="cms-save-status" id="mcPasswordStatus"></span>
+      </div>
+    </div>
+
+    <div class="cms-subgroup">
+      <div class="cms-subgroup-title">Verificación en dos pasos (Google Authenticator)</div>
+      <div id="mc2faBody"></div>
     </div>
   </div>
 
@@ -546,11 +644,58 @@
 
   // ---------- view switching (Consultas / Home) ----------
   var viewLinks = Array.prototype.slice.call(document.querySelectorAll('.sb-link[data-view]'));
-  var views = { consultas: document.getElementById('view-consultas'), 'home-cms': document.getElementById('view-home-cms'), 'blog-cms': document.getElementById('view-blog-cms'), 'menu-cms': document.getElementById('view-menu-cms'), 'form-cms': document.getElementById('view-form-cms'), 'nosotros-cms': document.getElementById('view-nosotros-cms'), 'portfolio-cms': document.getElementById('view-portfolio-cms'), 'seo-cms': document.getElementById('view-seo-cms') };
+  var views = { consultas: document.getElementById('view-consultas'), 'home-cms': document.getElementById('view-home-cms'), 'blog-cms': document.getElementById('view-blog-cms'), 'menu-cms': document.getElementById('view-menu-cms'), 'form-cms': document.getElementById('view-form-cms'), 'nosotros-cms': document.getElementById('view-nosotros-cms'), 'portfolio-cms': document.getElementById('view-portfolio-cms'), 'seo-cms': document.getElementById('view-seo-cms'), 'usuarios-cms': document.getElementById('view-usuarios-cms'), 'no-access': document.getElementById('view-no-access') };
   var topbarTitle = document.querySelector('.topbar-title');
   var homeCmsLoaded = false;
-  var VIEW_TITLES = { consultas: 'Consultas', 'home-cms': 'Home', 'blog-cms': 'Blog', 'menu-cms': 'Menú', 'form-cms': 'Form', 'nosotros-cms': 'Nosotros', 'portfolio-cms': 'Portfolio', 'seo-cms': 'SEO' };
+  var VIEW_TITLES = { consultas: 'Consultas', 'home-cms': 'Home', 'blog-cms': 'Blog', 'menu-cms': 'Menú', 'form-cms': 'Form', 'nosotros-cms': 'Nosotros', 'portfolio-cms': 'Portfolio', 'seo-cms': 'SEO', 'usuarios-cms': 'Usuarios', 'no-access': 'Sin acceso' };
+
+  // ---------- permissions ----------
+  // Populated from GET /api/me right after login/bootstrap. `allAccess`
+  // (never a role name/id — the owner role's label is user-editable) means
+  // every check below short-circuits to true.
+  var currentUser = null; // {id,name,email,roleId,roleLabel,allAccess,permissions,totpEnabled}
+  function hasPermission(key){
+    if (!currentUser) return false;
+    return currentUser.allAccess || currentUser.permissions.indexOf(key) !== -1;
+  }
+  function hasGroupPermission(prefix){
+    if (!currentUser) return false;
+    if (currentUser.allAccess) return true;
+    return currentUser.permissions.some(function(p){ return p === prefix || p.indexOf(prefix + '.') === 0; });
+  }
+  // Priority order used to pick a fallback view when the requested one
+  // isn't allowed (stale sessionStorage, a hand-typed hash, a role that
+  // lost a permission after the tab already loaded).
+  var VIEW_PERMISSION_ORDER = ['consultas', 'home-cms', 'blog-cms', 'menu-cms', 'form-cms', 'nosotros-cms', 'portfolio-cms', 'seo-cms', 'usuarios-cms'];
+  function canSeeView(name){
+    if (name === 'usuarios-cms') return hasGroupPermission('usuarios');
+    if (name === 'menu-cms' || name === 'form-cms' || name === 'nosotros-cms' || name === 'seo-cms' || name === 'consultas') return hasPermission(name);
+    return hasGroupPermission(name); // home-cms, blog-cms, portfolio-cms
+  }
+  function firstAllowedView(){
+    for (var i = 0; i < VIEW_PERMISSION_ORDER.length; i++) {
+      if (canSeeView(VIEW_PERMISSION_ORDER[i])) return VIEW_PERMISSION_ORDER[i];
+    }
+    return 'no-access';
+  }
+  // Clamps a requested sub-view (Blog's new/list, Portfolio's general/new/
+  // list, Usuarios' users/roles) to one the current user is actually
+  // allowed to see — used everywhere the sub-view variable gets assigned
+  // (sublink clicks, group-toggle clicks, restoreAdminViewState), so a
+  // stale/tampered sessionStorage value can never land on a hidden
+  // sub-view just because the parent group itself is permitted.
+  function firstAllowedSub(prefix, options, fallback){
+    for (var i = 0; i < options.length; i++) {
+      if (hasPermission(prefix + '.' + options[i])) return options[i];
+    }
+    return fallback;
+  }
+  function setActiveBlogView(v){ activeBlogView = hasPermission('blog-cms.' + v) ? v : firstAllowedSub('blog-cms', ['new', 'list'], 'new'); }
+  function setActivePortfolioView(v){ activePortfolioView = hasPermission('portfolio-cms.' + v) ? v : firstAllowedSub('portfolio-cms', ['general', 'new', 'list'], 'general'); }
+  function setActiveUsuariosView(v){ activeUsuariosView = hasPermission('usuarios.' + v) ? v : firstAllowedSub('usuarios', ['users', 'roles'], 'users'); }
+
   function showView(name){
+    if (currentUser && !canSeeView(name)) name = firstAllowedView();
     Object.keys(views).forEach(function(k){ views[k].style.display = (k === name) ? 'block' : 'none'; });
     viewLinks.forEach(function(a){ a.classList.toggle('active', a.dataset.view === name); });
     if (topbarTitle) topbarTitle.textContent = VIEW_TITLES[name] || 'Consultas';
@@ -563,6 +708,49 @@
   viewLinks.forEach(function(a){
     a.addEventListener('click', function(e){ e.preventDefault(); showView(a.dataset.view); });
   });
+
+  // Generic sidebar filtering — flat links + Blog/Portfolio/Usuarios
+  // sublinks. Home's own 10 links are filtered separately, at build time,
+  // inside buildHomeSidebar() (it runs more than once per session).
+  function applyPermissionsToNav(){
+    viewLinks.forEach(function(a){
+      var name = a.dataset.view;
+      var visible = name === 'consultas' ? hasPermission('consultas') : hasPermission(name);
+      a.classList.toggle('is-hidden', !visible);
+    });
+    [
+      { subnavId: 'sbBlogSubnav', toggleId: 'sbBlogToggle', attr: 'blogview', prefix: 'blog-cms' },
+      { subnavId: 'sbPortfolioSubnav', toggleId: 'sbPortfolioToggle', attr: 'portfolioview', prefix: 'portfolio-cms' },
+      { subnavId: 'sbUsuariosSubnav', toggleId: 'sbUsuariosToggle', attr: 'usuariosview', prefix: 'usuarios' },
+    ].forEach(function(group){
+      var subnav = document.getElementById(group.subnavId);
+      var toggle = document.getElementById(group.toggleId);
+      if (!subnav || !toggle) return;
+      var anyVisible = false;
+      Array.prototype.slice.call(subnav.querySelectorAll('.sb-sublink')).forEach(function(a){
+        var sub = a.dataset[group.attr];
+        var visible = hasPermission(group.prefix + '.' + sub);
+        a.classList.toggle('is-hidden', !visible);
+        if (visible) anyVisible = true;
+      });
+      toggle.classList.toggle('is-hidden', !anyVisible);
+    });
+  }
+
+  // Single source of truth for "who am I / what can I see" — replaces the
+  // old trick of firing /api/consultas and treating a 401 as "not logged
+  // in" (which would misfire a 403 for a real, logged-in user who simply
+  // lacks the Consultas permission).
+  function fetchCurrentUser(){
+    return fetch('/api/me')
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(data){
+        currentUser = data;
+        if (currentUser) applyPermissionsToNav();
+        return currentUser;
+      })
+      .catch(function(){ currentUser = null; return null; });
+  }
 
   // ---------- remember which view/section/scroll was open across an F5 ----------
   // sessionStorage (not localStorage) on purpose — this is "where was I a
@@ -903,6 +1091,26 @@
     if (document.visibilityState === 'visible' && pollTimer) loadConsultas(false);
   });
 
+  // ---------- login (email+password, then an optional 2FA step) ----------
+  var totpForm = document.getElementById('totpForm');
+  var totpBtn = document.getElementById('totpBtn');
+  var totpError = document.getElementById('totpError');
+  var pendingTotpToken = null;
+
+  function afterLogin(){
+    loginForm.reset();
+    totpForm.reset();
+    totpForm.style.display = 'none';
+    loginForm.style.display = 'block';
+    pendingTotpToken = null;
+    fetchCurrentUser().then(function(){
+      showApp();
+      lastSignature = null;
+      loadConsultas(true);
+      startPolling();
+    });
+  }
+
   loginForm.addEventListener('submit', function(e){
     e.preventDefault();
     loginBtn.disabled = true;
@@ -910,24 +1118,45 @@
     fetch('/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: document.getElementById('password').value })
+      body: JSON.stringify({ email: document.getElementById('loginEmail').value, password: document.getElementById('password').value })
     })
       .then(function(r){ return r.json().then(function(data){ return { ok: r.ok, data: data }; }); })
       .then(function(res){
         if (!res.ok) { loginError.textContent = res.data.error || 'No se pudo ingresar.'; return; }
-        loginForm.reset();
-        showApp();
-        lastSignature = null;
-        loadConsultas(true);
-        startPolling();
+        if (res.data.requireTotp) {
+          pendingTotpToken = res.data.pendingToken;
+          loginForm.style.display = 'none';
+          totpForm.style.display = 'block';
+          document.getElementById('totpCode').focus();
+          return;
+        }
+        afterLogin();
       })
       .catch(function(){ loginError.textContent = 'Error de conexión.'; })
       .finally(function(){ loginBtn.disabled = false; });
   });
 
+  totpForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    totpBtn.disabled = true;
+    totpError.textContent = '';
+    fetch('/api/login/totp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pendingToken: pendingTotpToken, code: document.getElementById('totpCode').value })
+    })
+      .then(function(r){ return r.json().then(function(data){ return { ok: r.ok, data: data }; }); })
+      .then(function(res){
+        if (!res.ok) { totpError.textContent = res.data.error || 'Código inválido.'; return; }
+        afterLogin();
+      })
+      .catch(function(){ totpError.textContent = 'Error de conexión.'; })
+      .finally(function(){ totpBtn.disabled = false; });
+  });
+
   document.getElementById('logoutBtn').addEventListener('click', function(){
     stopPolling();
-    fetch('/api/logout', { method: 'POST' }).finally(showLogin);
+    fetch('/api/logout', { method: 'POST' }).finally(function(){ currentUser = null; showLogin(); });
   });
 
   // ---------- Home CMS ----------
@@ -1620,9 +1849,24 @@
   var homeGroupToggle = document.getElementById('sbHomeToggle');
   var homeSubnavEl = document.getElementById('sbHomeSubnav');
 
+  // First Home subsection the current user is actually allowed to see —
+  // used both to clamp a requested section and as the fallback when the
+  // active one turns out not to be permitted.
+  function firstAllowedHomeSectionKey(){
+    for (var i = 0; i < SECTIONS.length; i++) {
+      if (hasPermission('home-cms.' + SECTIONS[i].key)) return SECTIONS[i].key;
+    }
+    return null;
+  }
+
   function buildHomeSidebar(){
     homeSubnavEl.innerHTML = '';
     SECTIONS.forEach(function(section){
+      // Filtered at build time (not a post-hoc hide pass) because this
+      // function re-runs several times a session (group-toggle click,
+      // restoreAdminViewState, after loadContent) — skipping the
+      // unauthorized link here is the one place that always applies.
+      if (!hasPermission('home-cms.' + section.key)) return;
       var a = document.createElement('a');
       a.className = 'sb-sublink';
       a.href = '#';
@@ -1637,9 +1881,11 @@
       });
       homeSubnavEl.appendChild(a);
     });
+    homeGroupToggle.classList.toggle('is-hidden', homeSubnavEl.children.length === 0);
   }
 
   function selectHomeSection(key){
+    if (!hasPermission('home-cms.' + key)) key = firstAllowedHomeSectionKey() || key;
     activeSectionKey = key;
     saveAdminViewState({ view: 'home-cms', section: key });
     Array.prototype.slice.call(homeSubnavEl.querySelectorAll('.sb-sublink')).forEach(function(a){
@@ -1651,6 +1897,7 @@
 
   function renderActiveHomeSection(){
     if (!homeContent) return;
+    if (!hasPermission('home-cms.' + activeSectionKey)) activeSectionKey = firstAllowedHomeSectionKey() || activeSectionKey;
     var section = SECTIONS.filter(function(s){ return s.key === activeSectionKey; })[0] || SECTIONS[0];
     homeSectionTitleEl.textContent = section.title;
     homeCmsBody.innerHTML = '';
@@ -1993,7 +2240,7 @@
       showView('blog-cms');
       blogGroupToggle.classList.add('is-open');
       blogSubnavEl.classList.add('is-open');
-      activeBlogView = a.dataset.blogview;
+      setActiveBlogView(a.dataset.blogview);
       Array.prototype.slice.call(blogSubnavEl.querySelectorAll('.sb-sublink')).forEach(function(x){
         x.classList.toggle('active', x === a);
       });
@@ -2484,7 +2731,7 @@
       showView('portfolio-cms');
       portfolioGroupToggle.classList.add('is-open');
       portfolioSubnavEl.classList.add('is-open');
-      activePortfolioView = a.dataset.portfolioview;
+      setActivePortfolioView(a.dataset.portfolioview);
       Array.prototype.slice.call(portfolioSubnavEl.querySelectorAll('.sb-sublink')).forEach(function(x){
         x.classList.toggle('active', x === a);
       });
@@ -2599,28 +2846,549 @@
     else renderSeoCms();
   });
 
-  // check for an existing session on load
-  fetch('/api/consultas')
-    .then(function(r){
-      if (r.status === 401) { showLogin(); return null; }
-      return r.json();
-    })
-    .then(function(data){
-      if (data) {
-        showApp();
-        lastSignature = JSON.stringify(data.items);
-        renderConsultas(data.items);
-        startPolling();
-        // pre-fetch content in the background so Consultas can show nice
-        // field labels (from the Form config) instead of raw keys, without
-        // making the admin visit another section first.
-        loadContent(function(){
-          if (lastConsultaItems) renderConsultas(lastConsultaItems);
+  // ---------- Usuarios CMS (Usuarios / Roles) ----------
+  var usuariosCmsBody = document.getElementById('usuariosCmsBody');
+  var usuariosSectionTitleEl = document.getElementById('usuariosSectionTitle');
+  var usuariosGroupToggle = document.getElementById('sbUsuariosToggle');
+  var usuariosSubnavEl = document.getElementById('sbUsuariosSubnav');
+  var activeUsuariosView = 'users';
+  var cachedRoles = []; // last-fetched roles — used for the role <select> in Users, and as the base for the Roles editor's working copy
+  var workingRoles = null; // local, unsaved edits while on the Roles tab
+
+  // Mirrors the sidebar 1:1 — reuses SECTIONS for Home's 10 subsections so
+  // their labels are never typed out a second time.
+  var NAV_PERMISSION_TREE = [
+    { key: 'consultas', label: 'Consultas' },
+    { key: 'home-cms', label: 'Home', children: SECTIONS.map(function(s){ return { key: s.key, label: s.title }; }) },
+    { key: 'blog-cms', label: 'Blog', children: [{ key: 'new', label: 'Nuevo artículo' }, { key: 'list', label: 'Artículos' }] },
+    { key: 'menu-cms', label: 'Menú' },
+    { key: 'form-cms', label: 'Form' },
+    { key: 'nosotros-cms', label: 'Nosotros' },
+    { key: 'portfolio-cms', label: 'Portfolio', children: [{ key: 'general', label: 'Contenido general' }, { key: 'new', label: 'Nuevo caso' }, { key: 'list', label: 'Casos' }] },
+    { key: 'seo-cms', label: 'SEO' },
+    { key: 'usuarios', label: 'Usuarios', children: [{ key: 'users', label: 'Usuarios' }, { key: 'roles', label: 'Roles' }] },
+  ];
+
+  function roleLabelFor(roleId){
+    var r = cachedRoles.filter(function(x){ return x.id === roleId; })[0];
+    return r ? r.label : roleId;
+  }
+
+  function renderUsuariosCms(){
+    saveAdminViewState({ view: 'usuarios-cms', sub: activeUsuariosView });
+    document.getElementById('rolesSavebar').style.display = 'none';
+    if (activeUsuariosView === 'roles') renderRolesList();
+    else renderUsersList();
+  }
+
+  // -- Usuarios: immediate-save per action (same reasoning as moving a
+  // Kanban card, or the blog like-count field) — disabling a compromised
+  // account, or changing someone's role, shouldn't sit as unsaved local
+  // state behind a "Guardar cambios" someone forgets to click. --
+  function patchUser(id, patch, statusEl, onSuccess){
+    statusEl.textContent = 'Guardando...'; statusEl.className = 'cms-save-status';
+    fetch('/api/users/' + id, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch) })
+      .then(function(r){ return r.json().then(function(data){ return { ok: r.ok, data: data }; }); })
+      .then(function(res){
+        if (!res.ok) { statusEl.textContent = res.data.error || 'Error'; statusEl.className = 'cms-save-status is-error'; return; }
+        statusEl.textContent = 'Guardado ✓'; statusEl.className = 'cms-save-status is-ok';
+        if (onSuccess) onSuccess();
+      })
+      .catch(function(){ statusEl.textContent = 'Error de conexión.'; statusEl.className = 'cms-save-status is-error'; });
+  }
+
+  function renderNewUserForm(){
+    var details = document.createElement('details');
+    details.className = 'cms-section';
+    details.open = true;
+    var summary = document.createElement('summary');
+    summary.textContent = '+ Nuevo usuario';
+    details.appendChild(summary);
+
+    var wrap = document.createElement('div');
+    wrap.className = 'cms-fields';
+    function field(labelText, type){
+      var f = document.createElement('div'); f.className = 'cms-field';
+      f.appendChild(makeLabel(labelText));
+      var input = document.createElement('input'); input.type = type;
+      f.appendChild(input);
+      wrap.appendChild(f);
+      return input;
+    }
+    var nameInput = field('Nombre', 'text');
+    var emailInput = field('Email', 'email');
+    var passwordInput = field('Contraseña inicial (mínimo 8 caracteres)', 'text');
+
+    var roleField = document.createElement('div'); roleField.className = 'cms-field';
+    roleField.appendChild(makeLabel('Rol'));
+    var roleSelect = document.createElement('select');
+    cachedRoles.forEach(function(r){
+      var o = document.createElement('option'); o.value = r.id; o.textContent = r.label;
+      roleSelect.appendChild(o);
+    });
+    roleField.appendChild(roleSelect);
+    wrap.appendChild(roleField);
+
+    var createBtn = document.createElement('button');
+    createBtn.type = 'button'; createBtn.className = 'btn-primary'; createBtn.style.cssText = 'width:auto; padding:11px 20px; margin-top:4px;';
+    createBtn.textContent = 'Crear usuario';
+    var status = document.createElement('span'); status.className = 'cms-save-status'; status.style.marginLeft = '12px';
+    wrap.appendChild(createBtn);
+    wrap.appendChild(status);
+
+    createBtn.addEventListener('click', function(){
+      createBtn.disabled = true;
+      status.textContent = 'Creando...'; status.className = 'cms-save-status';
+      fetch('/api/users', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: nameInput.value, email: emailInput.value, password: passwordInput.value, roleId: roleSelect.value }),
+      })
+        .then(function(r){ return r.json().then(function(data){ return { ok: r.ok, data: data }; }); })
+        .then(function(res){
+          if (!res.ok) { status.textContent = res.data.error || 'No se pudo crear.'; status.className = 'cms-save-status is-error'; return; }
+          renderUsersList();
+        })
+        .catch(function(){ status.textContent = 'Error de conexión.'; status.className = 'cms-save-status is-error'; })
+        .finally(function(){ createBtn.disabled = false; });
+    });
+
+    details.appendChild(wrap);
+    return details;
+  }
+
+  function renderUserRow(user){
+    var details = document.createElement('details');
+    details.className = 'cms-section';
+    var summary = document.createElement('summary');
+    summary.textContent = user.name + ' · ' + user.email + ' · ' + roleLabelFor(user.roleId) + (user.disabled ? ' · Deshabilitado' : '');
+    details.appendChild(summary);
+
+    var wrap = document.createElement('div');
+    wrap.className = 'cms-fields';
+
+    function textField(labelText, initial, onSave){
+      var f = document.createElement('div'); f.className = 'cms-field';
+      f.appendChild(makeLabel(labelText));
+      var row = document.createElement('div'); row.style.cssText = 'display:flex; align-items:center; gap:10px;';
+      var input = document.createElement('input'); input.type = 'text'; input.value = initial;
+      var status = document.createElement('span'); status.className = 'cms-save-status';
+      row.appendChild(input); row.appendChild(status);
+      f.appendChild(row);
+      input.addEventListener('change', function(){ onSave(input.value, status); });
+      wrap.appendChild(f);
+    }
+    textField('Nombre', user.name, function(v, status){ patchUser(user.id, { name: v }, status); });
+    textField('Email', user.email, function(v, status){ patchUser(user.id, { email: v }, status); });
+
+    var roleField = document.createElement('div'); roleField.className = 'cms-field';
+    roleField.appendChild(makeLabel('Rol'));
+    var roleRow = document.createElement('div'); roleRow.style.cssText = 'display:flex; align-items:center; gap:10px;';
+    var roleSelect = document.createElement('select');
+    cachedRoles.forEach(function(r){
+      var o = document.createElement('option'); o.value = r.id; o.textContent = r.label;
+      if (r.id === user.roleId) o.selected = true;
+      roleSelect.appendChild(o);
+    });
+    var roleStatus = document.createElement('span'); roleStatus.className = 'cms-save-status';
+    roleRow.appendChild(roleSelect); roleRow.appendChild(roleStatus);
+    roleField.appendChild(roleRow);
+    roleSelect.addEventListener('change', function(){ patchUser(user.id, { roleId: roleSelect.value }, roleStatus, renderUsersList); });
+    wrap.appendChild(roleField);
+
+    var totpField = document.createElement('div'); totpField.className = 'cms-field';
+    totpField.appendChild(makeLabel('Verificación en dos pasos'));
+    var totpRow = document.createElement('div'); totpRow.style.cssText = 'display:flex; align-items:center; gap:10px;';
+    var totpText = document.createElement('span'); totpText.style.fontSize = '.88rem';
+    totpText.textContent = user.totpEnabled ? 'Activada ✓' : 'No configurada';
+    var totpResetBtn = document.createElement('button');
+    totpResetBtn.type = 'button'; totpResetBtn.className = 'cms-add-btn'; totpResetBtn.textContent = 'Forzar reset de 2FA';
+    totpResetBtn.style.cssText = 'padding:8px 14px; font-size:.72rem;';
+    totpResetBtn.addEventListener('click', function(){
+      if (!confirm('¿Reiniciar la verificación en dos pasos de ' + user.name + '? Va a tener que activarla de nuevo.')) return;
+      fetch('/api/users/' + user.id + '/reset-totp', { method: 'POST' }).then(function(){ renderUsersList(); });
+    });
+    totpRow.appendChild(totpText); totpRow.appendChild(totpResetBtn);
+    totpField.appendChild(totpRow);
+    wrap.appendChild(totpField);
+
+    var toggleRow = document.createElement('label'); toggleRow.className = 'cms-toggle-row';
+    var toggleInput = document.createElement('input'); toggleInput.type = 'checkbox'; toggleInput.checked = Boolean(user.disabled);
+    var toggleLabel = document.createElement('span'); toggleLabel.textContent = 'Cuenta deshabilitada';
+    toggleRow.appendChild(toggleInput); toggleRow.appendChild(toggleLabel);
+    var toggleStatus = document.createElement('span'); toggleStatus.className = 'cms-save-status'; toggleStatus.style.marginLeft = '10px';
+    toggleInput.addEventListener('change', function(){ patchUser(user.id, { disabled: toggleInput.checked }, toggleStatus); });
+    wrap.appendChild(toggleRow);
+    wrap.appendChild(toggleStatus);
+
+    var pwField = document.createElement('div'); pwField.className = 'cms-field';
+    pwField.appendChild(makeLabel('Restablecer contraseña'));
+    var pwRow = document.createElement('div'); pwRow.style.cssText = 'display:flex; align-items:center; gap:10px;';
+    var pwInput = document.createElement('input'); pwInput.type = 'text'; pwInput.placeholder = 'Nueva contraseña (mínimo 8 caracteres)';
+    var pwBtn = document.createElement('button'); pwBtn.type = 'button'; pwBtn.className = 'cms-add-btn'; pwBtn.textContent = 'Guardar';
+    pwBtn.style.cssText = 'padding:8px 14px; font-size:.72rem;';
+    var pwStatus = document.createElement('span'); pwStatus.className = 'cms-save-status';
+    pwRow.appendChild(pwInput); pwRow.appendChild(pwBtn); pwRow.appendChild(pwStatus);
+    pwField.appendChild(pwRow);
+    pwBtn.addEventListener('click', function(){
+      fetch('/api/users/' + user.id + '/reset-password', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pwInput.value }),
+      })
+        .then(function(r){ return r.json().then(function(data){ return { ok: r.ok, data: data }; }); })
+        .then(function(res){
+          if (!res.ok) { pwStatus.textContent = res.data.error || 'Error'; pwStatus.className = 'cms-save-status is-error'; return; }
+          pwInput.value = '';
+          pwStatus.textContent = 'Guardado ✓'; pwStatus.className = 'cms-save-status is-ok';
         });
-        restoreAdminViewState();
+    });
+    wrap.appendChild(pwField);
+
+    var delBtn = document.createElement('button');
+    delBtn.type = 'button'; delBtn.className = 'cms-add-btn'; delBtn.textContent = 'Eliminar usuario';
+    delBtn.style.borderColor = 'var(--pink-500)'; delBtn.style.color = 'var(--pink-500)';
+    delBtn.addEventListener('click', function(){
+      if (!confirm('¿Eliminar a ' + user.name + '? No se puede deshacer.')) return;
+      fetch('/api/users/' + user.id, { method: 'DELETE' })
+        .then(function(r){ return r.json().then(function(data){ return { ok: r.ok, data: data }; }); })
+        .then(function(res){
+          if (!res.ok) { alert(res.data.error || 'No se pudo eliminar.'); return; }
+          renderUsersList();
+        });
+    });
+    wrap.appendChild(delBtn);
+
+    details.appendChild(wrap);
+    return details;
+  }
+
+  function renderUsersList(){
+    usuariosSectionTitleEl.textContent = 'Usuarios';
+    usuariosCmsBody.innerHTML = '<p class="state-msg">Cargando...</p>';
+    Promise.all([
+      fetch('/api/users').then(function(r){ return r.json(); }),
+      fetch('/api/roles').then(function(r){ return r.json(); }),
+    ]).then(function(results){
+      var users = results[0].users || [];
+      cachedRoles = results[1].roles || [];
+      usuariosCmsBody.innerHTML = '';
+      usuariosCmsBody.appendChild(renderNewUserForm());
+      if (!users.length) {
+        var empty = document.createElement('p');
+        empty.className = 'state-msg';
+        empty.textContent = 'Todavía no hay otros usuarios — creá el primero arriba.';
+        usuariosCmsBody.appendChild(empty);
+        return;
       }
+      users.forEach(function(user){ usuariosCmsBody.appendChild(renderUserRow(user)); });
+    }).catch(function(){
+      usuariosCmsBody.innerHTML = '<p class="state-msg">No se pudieron cargar los usuarios.</p>';
+    });
+  }
+
+  // -- Roles: batched (Guardar cambios) — same reasoning as Kanban's
+  // column editor. Checking/unchecking a permission tree across a few
+  // roles is a policy decision made over several steps; auto-saving each
+  // click would put a half-decided permission set live for whoever's
+  // currently logged in with that role. --
+  function uniqueRoleId(base){
+    var id = base || 'rol', n = 2;
+    while (workingRoles.some(function(r){ return r.id === id; })) { id = base + '-' + n; n++; }
+    return id;
+  }
+
+  function renderPermGroup(node, role){
+    var group = document.createElement('div');
+    group.className = 'perm-group';
+    var head = document.createElement('div'); head.className = 'perm-group-head';
+    var checkbox = document.createElement('input'); checkbox.type = 'checkbox';
+    var label = document.createElement('span'); label.textContent = node.label;
+    head.appendChild(checkbox); head.appendChild(label);
+    group.appendChild(head);
+
+    function isChecked(key){ return Boolean(role.allAccess) || (role.permissions || []).indexOf(key) !== -1; }
+    function setChecked(key, on){
+      if (role.allAccess) return;
+      if (!role.permissions) role.permissions = [];
+      var idx = role.permissions.indexOf(key);
+      if (on && idx === -1) role.permissions.push(key);
+      else if (!on && idx !== -1) role.permissions.splice(idx, 1);
+    }
+
+    if (node.children) {
+      var childrenWrap = document.createElement('div'); childrenWrap.className = 'perm-children';
+      var childBoxes = [];
+      node.children.forEach(function(child){
+        var fullKey = node.key + '.' + child.key;
+        var childLabel = document.createElement('label');
+        var childBox = document.createElement('input'); childBox.type = 'checkbox';
+        childBox.checked = isChecked(fullKey);
+        childBox.disabled = Boolean(role.allAccess);
+        childBox.addEventListener('change', function(){ setChecked(fullKey, childBox.checked); syncParent(); });
+        childLabel.appendChild(childBox);
+        childLabel.appendChild(document.createTextNode(child.label));
+        childrenWrap.appendChild(childLabel);
+        childBoxes.push(childBox);
+      });
+      group.appendChild(childrenWrap);
+      var syncParent = function(){
+        var checkedCount = childBoxes.filter(function(b){ return b.checked; }).length;
+        checkbox.checked = checkedCount > 0;
+        checkbox.indeterminate = checkedCount > 0 && checkedCount < childBoxes.length;
+      };
+      syncParent();
+      checkbox.disabled = Boolean(role.allAccess);
+      checkbox.addEventListener('change', function(){
+        childBoxes.forEach(function(b){ b.checked = checkbox.checked; b.dispatchEvent(new Event('change')); });
+      });
+    } else {
+      checkbox.checked = isChecked(node.key);
+      checkbox.disabled = Boolean(role.allAccess);
+      checkbox.addEventListener('change', function(){ setChecked(node.key, checkbox.checked); });
+    }
+    return group;
+  }
+
+  function renderRoleCard(role, i){
+    var details = document.createElement('details');
+    details.className = 'cms-section';
+    details.open = (i === 0);
+    var summary = document.createElement('summary');
+    summary.textContent = role.label + (role.allAccess ? ' (ve todo)' : '');
+    details.appendChild(summary);
+
+    var wrap = document.createElement('div');
+    wrap.className = 'cms-fields';
+
+    var labelField = document.createElement('div'); labelField.className = 'cms-field';
+    labelField.appendChild(makeLabel('Nombre del rol'));
+    var labelInput = document.createElement('input'); labelInput.type = 'text'; labelInput.value = role.label;
+    labelInput.addEventListener('input', function(){ role.label = labelInput.value; summary.textContent = labelInput.value + (role.allAccess ? ' (ve todo)' : ''); });
+    labelField.appendChild(labelInput);
+    wrap.appendChild(labelField);
+
+    if (role.allAccess) {
+      var note = document.createElement('p'); note.className = 'role-owner-note';
+      note.textContent = 'Este rol ve todo el panel — no se puede restringir.';
+      wrap.appendChild(note);
+    }
+
+    NAV_PERMISSION_TREE.forEach(function(node){ wrap.appendChild(renderPermGroup(node, role)); });
+
+    if (!role.allAccess) {
+      var delBtn = document.createElement('button');
+      delBtn.type = 'button'; delBtn.className = 'cms-add-btn'; delBtn.textContent = 'Eliminar rol';
+      delBtn.style.borderColor = 'var(--pink-500)'; delBtn.style.color = 'var(--pink-500)';
+      delBtn.addEventListener('click', function(){
+        if (workingRoles.filter(function(r){ return !r.allAccess; }).length <= 1) {
+          alert('No podés borrar el único rol que no es el Dueño.');
+          return;
+        }
+        var idx = workingRoles.indexOf(role);
+        if (idx !== -1) workingRoles.splice(idx, 1);
+        renderRolesEditor();
+      });
+      wrap.appendChild(delBtn);
+    }
+
+    details.appendChild(wrap);
+    return details;
+  }
+
+  function renderRolesEditor(){
+    usuariosCmsBody.innerHTML = '';
+    workingRoles.forEach(function(role, i){ usuariosCmsBody.appendChild(renderRoleCard(role, i)); });
+    var addBtn = document.createElement('button');
+    addBtn.type = 'button'; addBtn.className = 'cms-add-btn'; addBtn.textContent = '+ Nuevo rol';
+    addBtn.addEventListener('click', function(){
+      var label = prompt('Nombre del rol nuevo:');
+      if (!label || !label.trim()) return;
+      workingRoles.push({ id: uniqueRoleId(slugify(label)), label: label.trim(), permissions: [] });
+      renderRolesEditor();
+    });
+    usuariosCmsBody.appendChild(addBtn);
+    document.getElementById('rolesSavebar').style.display = 'flex';
+  }
+
+  function renderRolesList(){
+    usuariosSectionTitleEl.textContent = 'Roles';
+    usuariosCmsBody.innerHTML = '<p class="state-msg">Cargando...</p>';
+    fetch('/api/roles').then(function(r){ return r.json(); }).then(function(data){
+      cachedRoles = data.roles || [];
+      workingRoles = JSON.parse(JSON.stringify(cachedRoles));
+      renderRolesEditor();
+    }).catch(function(){
+      usuariosCmsBody.innerHTML = '<p class="state-msg">No se pudieron cargar los roles.</p>';
+    });
+  }
+
+  document.getElementById('rolesSaveBtn').addEventListener('click', function(){
+    var btn = document.getElementById('rolesSaveBtn');
+    var status = document.getElementById('rolesSaveStatus');
+    btn.disabled = true;
+    status.textContent = 'Guardando...'; status.className = 'cms-save-status';
+    fetch('/api/roles', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ roles: workingRoles }) })
+      .then(function(r){ return r.json().then(function(data){ return { ok: r.ok, data: data }; }); })
+      .then(function(res){
+        if (!res.ok) { status.textContent = res.data.error || 'No se pudo guardar.'; status.className = 'cms-save-status is-error'; return; }
+        cachedRoles = res.data.roles;
+        workingRoles = JSON.parse(JSON.stringify(cachedRoles));
+        status.textContent = 'Guardado ✓'; status.className = 'cms-save-status is-ok';
+      })
+      .catch(function(){ status.textContent = 'Error de conexión.'; status.className = 'cms-save-status is-error'; })
+      .finally(function(){ btn.disabled = false; });
+  });
+
+  Array.prototype.slice.call(usuariosSubnavEl.querySelectorAll('.sb-sublink')).forEach(function(a){
+    a.addEventListener('click', function(e){
+      e.preventDefault();
+      showView('usuarios-cms');
+      usuariosGroupToggle.classList.add('is-open');
+      usuariosSubnavEl.classList.add('is-open');
+      setActiveUsuariosView(a.dataset.usuariosview);
+      Array.prototype.slice.call(usuariosSubnavEl.querySelectorAll('.sb-sublink')).forEach(function(x){
+        x.classList.toggle('active', x === a);
+      });
+      renderUsuariosCms();
+      closeSidebar();
+    });
+  });
+
+  usuariosGroupToggle.addEventListener('click', function(){
+    var willOpen = !usuariosGroupToggle.classList.contains('is-open');
+    usuariosGroupToggle.classList.toggle('is-open', willOpen);
+    usuariosSubnavEl.classList.toggle('is-open', willOpen);
+    if (willOpen) {
+      showView('usuarios-cms');
+      renderUsuariosCms();
+    }
+  });
+
+  // ---------- Mi cuenta (self-service — outside views/showView on purpose) ----------
+  var miCuentaBackdrop = document.getElementById('miCuentaBackdrop');
+  var miCuentaPanel = document.getElementById('miCuentaPanel');
+  function openMiCuenta(){
+    miCuentaBackdrop.classList.add('open');
+    miCuentaPanel.classList.add('open');
+    document.getElementById('miCuentaWho').textContent = currentUser ? (currentUser.name + ' · ' + currentUser.email + ' · ' + currentUser.roleLabel) : '';
+    renderMc2fa();
+  }
+  function closeMiCuenta(){
+    miCuentaBackdrop.classList.remove('open');
+    miCuentaPanel.classList.remove('open');
+  }
+  document.getElementById('miCuentaBtn').addEventListener('click', openMiCuenta);
+  document.getElementById('miCuentaCloseBtn').addEventListener('click', closeMiCuenta);
+  miCuentaBackdrop.addEventListener('click', closeMiCuenta);
+
+  document.getElementById('mcChangePasswordBtn').addEventListener('click', function(){
+    var status = document.getElementById('mcPasswordStatus');
+    var currentInput = document.getElementById('mcCurrentPassword');
+    var newInput = document.getElementById('mcNewPassword');
+    status.textContent = 'Guardando...'; status.className = 'cms-save-status';
+    fetch('/api/me/password', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ currentPassword: currentInput.value, newPassword: newInput.value }),
     })
-    .catch(showLogin);
+      .then(function(r){ return r.json().then(function(data){ return { ok: r.ok, data: data }; }); })
+      .then(function(res){
+        if (!res.ok) { status.textContent = res.data.error || 'No se pudo cambiar.'; status.className = 'cms-save-status is-error'; return; }
+        currentInput.value = ''; newInput.value = '';
+        status.textContent = 'Contraseña actualizada ✓'; status.className = 'cms-save-status is-ok';
+      })
+      .catch(function(){ status.textContent = 'Error de conexión.'; status.className = 'cms-save-status is-error'; });
+  });
+
+  function renderMc2fa(){
+    var body = document.getElementById('mc2faBody');
+    body.innerHTML = '';
+    if (currentUser && currentUser.totpEnabled) {
+      var p = document.createElement('p'); p.style.cssText = 'font-size:.9rem; margin-bottom:10px;'; p.textContent = 'Activada ✓';
+      body.appendChild(p);
+      var pwField = document.createElement('div'); pwField.className = 'cms-field';
+      pwField.appendChild(makeLabel('Confirmá tu contraseña para desactivarla'));
+      var pwInput = document.createElement('input'); pwInput.type = 'password';
+      pwField.appendChild(pwInput);
+      body.appendChild(pwField);
+      var disableBtn = document.createElement('button');
+      disableBtn.type = 'button'; disableBtn.className = 'cms-add-btn'; disableBtn.textContent = 'Desactivar 2FA';
+      disableBtn.style.cssText = 'border-color:var(--pink-500); color:var(--pink-500);';
+      var status = document.createElement('span'); status.className = 'cms-save-status'; status.style.marginLeft = '10px';
+      disableBtn.addEventListener('click', function(){
+        fetch('/api/me/totp/disable', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pwInput.value }) })
+          .then(function(r){ return r.json().then(function(data){ return { ok: r.ok, data: data }; }); })
+          .then(function(res){
+            if (!res.ok) { status.textContent = res.data.error || 'Error'; status.className = 'cms-save-status is-error'; return; }
+            currentUser.totpEnabled = false;
+            renderMc2fa();
+          });
+      });
+      body.appendChild(disableBtn);
+      body.appendChild(status);
+    } else {
+      var activateBtn = document.createElement('button');
+      activateBtn.type = 'button'; activateBtn.className = 'cms-add-btn'; activateBtn.textContent = 'Activar 2FA';
+      activateBtn.addEventListener('click', function(){
+        fetch('/api/me/totp/setup', { method: 'POST' }).then(function(r){ return r.json(); }).then(function(data){ renderMc2faSetup(data.secret); });
+      });
+      body.appendChild(activateBtn);
+    }
+  }
+
+  function renderMc2faSetup(secret){
+    var body = document.getElementById('mc2faBody');
+    body.innerHTML = '';
+    var p1 = document.createElement('p'); p1.style.cssText = 'font-size:.85rem; color:var(--ink-soft); margin-bottom:10px;';
+    p1.textContent = 'En Google Authenticator: + → "Ingresar una clave de configuración" → pegá esta clave (cuenta: ' + (currentUser ? currentUser.email : '') + ', proveedor: Tino Partners).';
+    body.appendChild(p1);
+    var box = document.createElement('div'); box.className = 'mc-secret-box'; box.textContent = secret;
+    body.appendChild(box);
+    var copyBtn = document.createElement('button');
+    copyBtn.type = 'button'; copyBtn.className = 'cms-add-btn'; copyBtn.textContent = 'Copiar'; copyBtn.style.cssText = 'margin-top:8px; padding:8px 14px; font-size:.72rem;';
+    copyBtn.addEventListener('click', function(){
+      (navigator.clipboard ? navigator.clipboard.writeText(secret) : Promise.reject()).then(function(){ copyBtn.textContent = 'Copiado ✓'; }).catch(function(){});
+    });
+    body.appendChild(copyBtn);
+
+    var codeField = document.createElement('div'); codeField.className = 'cms-field'; codeField.style.marginTop = '14px';
+    codeField.appendChild(makeLabel('Código de 6 dígitos'));
+    var codeInput = document.createElement('input'); codeInput.type = 'text'; codeInput.inputMode = 'numeric'; codeInput.maxLength = 6;
+    codeField.appendChild(codeInput);
+    body.appendChild(codeField);
+
+    var confirmBtn = document.createElement('button');
+    confirmBtn.type = 'button'; confirmBtn.className = 'btn-primary'; confirmBtn.style.cssText = 'width:auto; padding:11px 20px;';
+    confirmBtn.textContent = 'Confirmar y activar';
+    var status = document.createElement('span'); status.className = 'cms-save-status'; status.style.marginLeft = '10px';
+    confirmBtn.addEventListener('click', function(){
+      fetch('/api/me/totp/confirm', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: codeInput.value }) })
+        .then(function(r){ return r.json().then(function(data){ return { ok: r.ok, data: data }; }); })
+        .then(function(res){
+          if (!res.ok) { status.textContent = res.data.error || 'Código inválido.'; status.className = 'cms-save-status is-error'; return; }
+          currentUser.totpEnabled = true;
+          renderMc2fa();
+        })
+        .catch(function(){ status.textContent = 'Error de conexión.'; status.className = 'cms-save-status is-error'; });
+    });
+    body.appendChild(confirmBtn);
+    body.appendChild(status);
+  }
+
+  // check for an existing session on load
+  fetchCurrentUser().then(function(user){
+    if (!user) { showLogin(); return; }
+    showApp();
+    if (hasPermission('consultas')) {
+      lastSignature = null;
+      loadConsultas(true);
+      startPolling();
+    }
+    // pre-fetch content in the background so Consultas can show nice
+    // field labels (from the Form config) instead of raw keys, without
+    // making the admin visit another section first.
+    loadContent(function(){
+      if (lastConsultaItems) renderConsultas(lastConsultaItems);
+    });
+    restoreAdminViewState();
+  });
 
   // puts the admin back where they left off before an F5 — same view,
   // same submenu (Home's section / Blog's new-or-list / Portfolio's
@@ -2628,6 +3396,20 @@
   function restoreAdminViewState(){
     var state;
     try { state = JSON.parse(sessionStorage.getItem(ADMIN_VIEW_KEY) || 'null'); } catch (e) { state = null; }
+    var requestedView = (state && state.view) || 'consultas';
+    // Guard the whole restore up front: if the requested view isn't
+    // permitted (permission revoked since this tab last saved state, or a
+    // tampered sessionStorage value), land on the first allowed view in
+    // its default state instead of trying to replicate a submenu/section
+    // for a view this user no longer has — showView() itself falls back
+    // the same way, but redirecting here first avoids the
+    // home/blog/portfolio/usuarios branches below ever running against
+    // the wrong view.
+    if (!canSeeView(requestedView)) {
+      showView(firstAllowedView());
+      restoreAdminScroll(null);
+      return;
+    }
     if (!state || !state.view || state.view === 'consultas' || !views[state.view]) {
       // Consultas is already the default visible view in the markup, so
       // showView('consultas') never runs here to add this class — set it
@@ -2645,7 +3427,7 @@
         homeSubnavEl.classList.add('is-open');
         selectHomeSection(state.section || activeSectionKey);
       } else if (state.view === 'blog-cms') {
-        activeBlogView = state.sub || 'new';
+        setActiveBlogView(state.sub || 'new');
         blogGroupToggle.classList.add('is-open');
         blogSubnavEl.classList.add('is-open');
         Array.prototype.slice.call(blogSubnavEl.querySelectorAll('.sb-sublink')).forEach(function(x){
@@ -2654,7 +3436,7 @@
         showView('blog-cms');
         renderBlogCms();
       } else if (state.view === 'portfolio-cms') {
-        activePortfolioView = state.sub || 'general';
+        setActivePortfolioView(state.sub || 'general');
         portfolioGroupToggle.classList.add('is-open');
         portfolioSubnavEl.classList.add('is-open');
         Array.prototype.slice.call(portfolioSubnavEl.querySelectorAll('.sb-sublink')).forEach(function(x){
@@ -2662,6 +3444,15 @@
         });
         showView('portfolio-cms');
         renderPortfolioCms();
+      } else if (state.view === 'usuarios-cms') {
+        setActiveUsuariosView(state.sub || 'users');
+        usuariosGroupToggle.classList.add('is-open');
+        usuariosSubnavEl.classList.add('is-open');
+        Array.prototype.slice.call(usuariosSubnavEl.querySelectorAll('.sb-sublink')).forEach(function(x){
+          x.classList.toggle('active', x.dataset.usuariosview === activeUsuariosView);
+        });
+        showView('usuarios-cms');
+        renderUsuariosCms();
       } else {
         showView(state.view);
         var renderers = { 'menu-cms': renderMenuCms, 'form-cms': renderFormCms, 'nosotros-cms': renderNosotrosCms, 'seo-cms': renderSeoCms };
