@@ -438,10 +438,39 @@ app.get('/', async (req, res) => {
 // SLUG_PAGE_FILES/content-defaults.js) redirect to whatever that slug
 // currently is — so the address bar never shows "/nosotros.html", always
 // "/nosotros" (or Erik's custom word), even when nothing's been changed
-// from the default. Everything else is served directly, as before.
+// from the default.
 const SLUGGED_FILES = new Set(Object.values(SLUG_PAGE_FILES));
-PAGES.filter((page) => !SLUGGED_FILES.has(page)).forEach((page) => {
-  app.get('/' + page, (req, res) => res.sendFile(path.join(ROOT, page)));
+
+// Pages that can be switched off from the panel's SEO section while
+// they're still being built (e.g. Portfolio, before it has real cases
+// loaded) — hidden from the public and from the sitemap, but still
+// reachable for whoever's logged into the admin panel, so the team can
+// keep working on it before flipping it back on. Home and the admin panel
+// itself are excluded on purpose: Home always needs somewhere to resolve
+// to, and admin's visibility already works via its secret path.
+const TOGGLABLE_PAGES = ['nosotros', 'portfolio', 'nobrand', 'blog', 'terminos', 'privacidad'];
+function isPageEnabled(content, key) {
+  return !(content.meta && content.meta[key] && content.meta[key].enabled === false);
+}
+async function canServePage(req, content, key) {
+  if (isPageEnabled(content, key)) return true;
+  return Boolean(await getRequestUser(req));
+}
+
+// blog-post.html and caso.html aren't in SLUG_PAGE_FILES — an individual
+// post/caso is addressed by a "?s=" query param, not a page-level custom
+// slug — so they're served directly here instead of through the catch-all
+// slug resolver below, each gated on its parent section (Blog/Portfolio)
+// still being enabled.
+app.get('/blog-post.html', async (req, res, next) => {
+  const content = await loadMergedContent();
+  if (!(await canServePage(req, content, 'blog'))) return next();
+  return res.sendFile(path.join(ROOT, 'blog-post.html'));
+});
+app.get('/caso.html', async (req, res, next) => {
+  const content = await loadMergedContent();
+  if (!(await canServePage(req, content, 'portfolio'))) return next();
+  return res.sendFile(path.join(ROOT, 'caso.html'));
 });
 
 // admin.html gets no redirect route at all (see the comment on
@@ -1214,13 +1243,19 @@ app.get('/sitemap.xml', async (req, res) => {
   const origin = req.protocol + '://' + req.get('host');
   const urls = [];
   urls.push(slugs.home || '');
-  ['nosotros', 'portfolio', 'nobrand', 'blog'].forEach((key) => urls.push(slugs[key] || key));
-  ((content.blog && content.blog.articles) || []).forEach((a) => {
-    if (a.slug) urls.push('blog-post.html?s=' + encodeURIComponent(a.slug));
+  ['nosotros', 'portfolio', 'nobrand', 'blog'].forEach((key) => {
+    if (isPageEnabled(content, key)) urls.push(slugs[key] || key);
   });
-  ((content.portfolio && content.portfolio.casos) || []).forEach((c) => {
-    if (c.slug) urls.push('caso.html?s=' + encodeURIComponent(c.slug));
-  });
+  if (isPageEnabled(content, 'blog')) {
+    ((content.blog && content.blog.articles) || []).forEach((a) => {
+      if (a.slug) urls.push('blog-post.html?s=' + encodeURIComponent(a.slug));
+    });
+  }
+  if (isPageEnabled(content, 'portfolio')) {
+    ((content.portfolio && content.portfolio.casos) || []).forEach((c) => {
+      if (c.slug) urls.push('caso.html?s=' + encodeURIComponent(c.slug));
+    });
+  }
   const body = '<?xml version="1.0" encoding="UTF-8"?>\n' +
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
     urls.map((u) => '  <url><loc>' + origin + '/' + u + '</loc></url>').join('\n') +
@@ -1253,6 +1288,7 @@ app.get('/:seg', async (req, res, next) => {
   const slugs = content.slugs || {};
   const matchKey = Object.keys(SLUG_PAGE_FILES).find((k) => slugs[k] === seg);
   if (!matchKey) return next();
+  if (TOGGLABLE_PAGES.includes(matchKey) && !(await canServePage(req, content, matchKey))) return next();
   return res.sendFile(path.join(ROOT, SLUG_PAGE_FILES[matchKey]));
 });
 

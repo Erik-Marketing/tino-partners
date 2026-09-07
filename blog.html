@@ -297,18 +297,32 @@
     if (c.menu && c.menu.items && c.menu.items.length) {
       var menuNav = document.getElementById('siteMenu');
       if (menuNav) {
-        var currentFile = location.pathname.split('/').pop() || 'index.html';
+        // Hardcoded to this page's own filename, not derived from
+        // location.pathname — the visible URL is an admin-configurable slug,
+        // unrelated to which static .html file is actually running this
+        // script, so comparing a slug against a menu item's raw filename
+        // could never match.
+        var currentFile = 'blog.html';
+        // A page switched off from SEO → "Página visible al público" (see
+        // admin.html) shouldn't dead-end in the nav either — the menu
+        // simply doesn't link to it, same as if the item didn't exist.
+        var DISABLED_KEY_BY_FILE = { 'nosotros.html':'nosotros', 'portfolio.html':'portfolio', 'nobrand.html':'nobrand', 'blog.html':'blog', 'terminos.html':'terminos', 'privacidad.html':'privacidad' };
         menuNav.innerHTML = '';
         c.menu.items.forEach(function(item){
-          var a = document.createElement('a');
-          a.className = 'menu-link';
-          a.href = item.url;
           var hashIdx = (item.url || '').indexOf('#');
           var itemFile = hashIdx !== -1 ? item.url.slice(0, hashIdx) : (item.url || 'index.html');
           if (!itemFile) itemFile = 'index.html';
+          var toggleKey = DISABLED_KEY_BY_FILE[itemFile];
+          if (toggleKey && c.meta && c.meta[toggleKey] && c.meta[toggleKey].enabled === false) return;
+          var a = document.createElement('a');
+          a.className = 'menu-link';
+          a.href = item.url;
           if (hashIdx !== -1) {
             a.setAttribute('data-section', '');
           } else if (itemFile === currentFile) {
+            // same violet treatment as a same-page section link — this is
+            // "the page you're already on", not just an a11y hint.
+            a.setAttribute('data-section', '');
             a.setAttribute('aria-current', 'page');
           }
           a.textContent = item.label;

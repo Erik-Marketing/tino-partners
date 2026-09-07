@@ -2756,12 +2756,12 @@
   var seoCmsBody = document.getElementById('seoCmsBody');
   var SEO_PAGES = [
     { key: 'home', label: 'Home', hasSlug: true, hasMeta: true },
-    { key: 'nosotros', label: 'Nosotros', hasSlug: true, hasMeta: true },
-    { key: 'portfolio', label: 'Portfolio', hasSlug: true, hasMeta: true },
-    { key: 'nobrand', label: 'NOBRAND', hasSlug: true, hasMeta: true },
-    { key: 'blog', label: 'Blog', hasSlug: true, hasMeta: true },
-    { key: 'terminos', label: 'Términos', hasSlug: true, hasMeta: true },
-    { key: 'privacidad', label: 'Privacidad', hasSlug: true, hasMeta: true },
+    { key: 'nosotros', label: 'Nosotros', hasSlug: true, hasMeta: true, canToggle: true },
+    { key: 'portfolio', label: 'Portfolio', hasSlug: true, hasMeta: true, canToggle: true },
+    { key: 'nobrand', label: 'NOBRAND', hasSlug: true, hasMeta: true, canToggle: true },
+    { key: 'blog', label: 'Blog', hasSlug: true, hasMeta: true, canToggle: true },
+    { key: 'terminos', label: 'Términos', hasSlug: true, hasMeta: true, canToggle: true },
+    { key: 'privacidad', label: 'Privacidad', hasSlug: true, hasMeta: true, canToggle: true },
     { key: 'admin', label: 'Panel de administración', hasSlug: true, hasMeta: false },
   ];
 
@@ -2799,6 +2799,28 @@
     return wrap;
   }
 
+  // Lets a page be taken offline while it's still being built (e.g.
+  // Portfolio before it has real cases) — hidden from the public site, the
+  // nav, and the sitemap, but still reachable by URL for whoever's logged
+  // into the panel, so the team can keep previewing it. Backed by
+  // meta[key].enabled — absent/true means visible, only `false` hides it,
+  // so existing content.json files with no such field stay fully visible.
+  function renderPageEnabledToggle(page){
+    var row = document.createElement('label');
+    row.className = 'cms-toggle-row';
+    var input = document.createElement('input');
+    input.type = 'checkbox';
+    input.checked = homeContent.meta[page.key].enabled !== false;
+    input.addEventListener('change', function(){
+      homeContent.meta[page.key].enabled = input.checked;
+    });
+    var span = document.createElement('span');
+    span.textContent = 'Página visible al público (si la destildás, da 404 salvo que estés logueado)';
+    row.appendChild(input);
+    row.appendChild(span);
+    return row;
+  }
+
   function renderSeoCms(){
     seoCmsBody.innerHTML = '';
     if (!homeContent.meta) homeContent.meta = {};
@@ -2815,6 +2837,7 @@
       pageGroup.appendChild(title);
       pageGroup.appendChild(renderField({ path: 'title', label: 'Título', type: 'text', plain: true }, 'meta.' + page.key));
       pageGroup.appendChild(renderField({ path: 'description', label: 'Descripción (meta description)', type: 'textarea', plain: true }, 'meta.' + page.key));
+      if (page.canToggle) pageGroup.appendChild(renderPageEnabledToggle(page));
       metaGroup.appendChild(pageGroup);
     });
     seoCmsBody.appendChild(metaGroup);

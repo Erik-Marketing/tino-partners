@@ -1266,19 +1266,28 @@
     if (c.menu && c.menu.items && c.menu.items.length) {
       var menuNav = document.getElementById('siteMenu');
       if (menuNav) {
-        var currentFile = location.pathname.split('/').pop() || 'index.html';
+        // Hardcoded, not derived from location.pathname — the visible URL is
+        // an admin-configurable slug, unrelated to which static .html file
+        // is actually running this script.
+        var currentFile = 'index.html';
+        // A page switched off from SEO → "Página visible al público" (see
+        // admin.html) shouldn't dead-end in the nav either — the menu
+        // simply doesn't link to it, same as if the item didn't exist.
+        var DISABLED_KEY_BY_FILE = { 'nosotros.html':'nosotros', 'portfolio.html':'portfolio', 'nobrand.html':'nobrand', 'blog.html':'blog', 'terminos.html':'terminos', 'privacidad.html':'privacidad' };
         menuNav.innerHTML = '';
         if (menuSectionObserver) { menuSectionObserver.disconnect(); menuSectionObserver = null; }
         var sectionTargets = [];
         c.menu.items.forEach(function(item){
-          var a = document.createElement('a');
-          a.className = 'menu-link';
-          a.href = item.url;
-          a.textContent = item.label;
           var hashIdx = (item.url || '').indexOf('#');
           var hasSection = hashIdx !== -1;
           var itemFile = hasSection ? item.url.slice(0, hashIdx) : (item.url || 'index.html');
           if (!itemFile) itemFile = 'index.html';
+          var toggleKey = DISABLED_KEY_BY_FILE[itemFile];
+          if (toggleKey && c.meta && c.meta[toggleKey] && c.meta[toggleKey].enabled === false) return;
+          var a = document.createElement('a');
+          a.className = 'menu-link';
+          a.href = item.url;
+          a.textContent = item.label;
           // links that jump to a section of the home page are always shown in
           // violet (they're "the same page"), separately from aria-current
           // (which now tracks exactly where we are: current page for regular
@@ -1290,6 +1299,7 @@
               if (target) sectionTargets.push({ link: a, target: target });
             }
           } else if (itemFile === currentFile) {
+            a.setAttribute('data-section', '');
             a.setAttribute('aria-current', 'page');
           }
           menuNav.appendChild(a);
