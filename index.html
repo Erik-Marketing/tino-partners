@@ -306,14 +306,14 @@
 
   .fran-card{
     background:var(--paper-flat); border:1px solid var(--line); border-radius:var(--radius);
-    box-shadow:var(--shadow); padding:clamp(24px,3vw,32px); max-width:360px;
+    box-shadow:var(--shadow); padding:clamp(24px,3vw,32px); max-width:400px;
     display:flex; flex-direction:column; gap:18px; align-items:center; text-align:center;
   }
   .fran-photo{ width:96px; height:96px; border-radius:50%; object-fit:cover; }
-  .fran-chart{ display:flex; align-items:flex-end; gap:clamp(28px,4vw,44px); width:100%; justify-content:center; }
-  .fran-bar-col{ display:flex; flex-direction:column; align-items:center; width:120px; }
-  .fran-bar-num{ font-family:'Big Shoulders Display',sans-serif; font-weight:800; font-size:clamp(1.1rem,2.2vw,1.4rem); color:var(--v-500); margin-bottom:10px; white-space:nowrap; }
-  .fran-bar-track{ width:100%; height:140px; background:var(--paper-dim); border-radius:10px 10px 4px 4px; display:flex; align-items:flex-end; overflow:hidden; }
+  .fran-chart{ display:grid; grid-template-columns:repeat(2,1fr); gap:28px 20px; width:100%; }
+  .fran-bar-col{ display:flex; flex-direction:column; align-items:center; }
+  .fran-bar-num{ font-family:'Big Shoulders Display',sans-serif; font-weight:800; font-size:clamp(1rem,2vw,1.3rem); color:var(--v-500); margin-bottom:10px; white-space:nowrap; }
+  .fran-bar-track{ width:100%; max-width:110px; height:110px; background:var(--paper-dim); border-radius:10px 10px 4px 4px; display:flex; align-items:flex-end; overflow:hidden; }
   .fran-bar-fill{ width:100%; height:0%; background:var(--gradient-vivid); border-radius:10px 10px 4px 4px; }
   .fran-bar-label{ margin-top:10px; font-size:.78rem; color:var(--ink-soft); line-height:1.35; }
 
@@ -672,6 +672,16 @@
               <div class="fran-bar-num" id="cms-fran-num-2"></div>
               <div class="fran-bar-track"><div class="fran-bar-fill" id="cms-fran-bar-2"></div></div>
               <div class="fran-bar-label" id="cms-fran-label-2"></div>
+            </div>
+            <div class="fran-bar-col">
+              <div class="fran-bar-num" id="cms-fran-num-3"></div>
+              <div class="fran-bar-track"><div class="fran-bar-fill" id="cms-fran-bar-3"></div></div>
+              <div class="fran-bar-label" id="cms-fran-label-3"></div>
+            </div>
+            <div class="fran-bar-col">
+              <div class="fran-bar-num" id="cms-fran-num-4"></div>
+              <div class="fran-bar-track"><div class="fran-bar-fill" id="cms-fran-bar-4"></div></div>
+              <div class="fran-bar-label" id="cms-fran-label-4"></div>
             </div>
           </div>
         </div>
@@ -1109,6 +1119,8 @@
     var FRAN_BARS = [
       { numEl: null, fillEl: null, labelEl: null, hasNumber: false, target: 0, prefix: '', unit: '', isInt: true },
       { numEl: null, fillEl: null, labelEl: null, hasNumber: false, target: 0, prefix: '', unit: '', isInt: true },
+      { numEl: null, fillEl: null, labelEl: null, hasNumber: false, target: 0, prefix: '', unit: '', isInt: true },
+      { numEl: null, fillEl: null, labelEl: null, hasNumber: false, target: 0, prefix: '', unit: '', isInt: true },
     ];
     function setupFranBar(index, text){
       var bar = FRAN_BARS[index];
@@ -1132,7 +1144,11 @@
       var card = document.getElementById('cms-fran-card');
       if (!card) return;
       var rect = card.getBoundingClientRect();
-      var progress = Math.max(0, Math.min(1, (window.innerHeight - rect.top) / window.innerHeight));
+      // Reaches 100% right when the card's center lines up with the
+      // viewport's center — not just whenever the card enters the screen —
+      // and eases back down if you scroll back past that point.
+      var cardCenter = rect.top + rect.height / 2;
+      var progress = Math.max(0, Math.min(1, (window.innerHeight - cardCenter) / (window.innerHeight / 2)));
       FRAN_BARS.forEach(function(bar){
         if (bar.fillEl) bar.fillEl.style.height = (progress * 100) + '%';
         if (bar.numEl && bar.hasNumber) {
@@ -1155,8 +1171,13 @@
         setMedia(photo, franCard.photo);
         photo.style.display = '';
       }
+      // On-screen order (Cuentas, Ventas, ROAS, Inversión) is set here, by
+      // which field feeds which chart slot — not by field declaration
+      // order (see the comment on franCard in content-defaults.js).
       setupFranBar(0, franCard.statLine1);
-      setupFranBar(1, franCard.statLine2);
+      setupFranBar(1, franCard.statLine3);
+      setupFranBar(2, franCard.statLine4);
+      setupFranBar(3, franCard.statLine2);
       updateFranChart();
     }
 

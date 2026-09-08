@@ -54,10 +54,17 @@ const DEFAULT_CONTENT = {
       texto: 'Nuestro foco está en marcas o empresas con capacidad de invertir entre USD 3.000 y 20.000 en medios. ¿Tu empresa está en esta etapa?',
       ctaText: 'Hablemos',
     },
+    // Field names don't match their on-screen order — statLine1/2 predate
+    // statLine3/4 and keep their original keys so nothing Erik already
+    // edited gets orphaned by a rename. The visual order (Cuentas, Ventas,
+    // ROAS, Inversión) is applied in index.html/admin.html by picking which
+    // field renders into which chart slot, not by field declaration order.
     franCard: {
       photo: { url: '', posX: 50, posY: 50 },
       statLine1: '+100 Cuentas publicitarias gestionadas',
       statLine2: '+Más de USD 500K invertidos en publicidad digital',
+      statLine3: '+8000 Ventas realizadas',
+      statLine4: '+60 ROAS Alcanzados',
     },
   },
   stats: {

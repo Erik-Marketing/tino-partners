@@ -527,6 +527,15 @@ async function loadMergedContent() {
   // after a site already had it saved (invertir/franCard on diferenciales,
   // the enabled toggle + copy on quehacemos) must still show up.
   merged.diferenciales = Object.assign({}, DEFAULT_CONTENT.diferenciales, saved.diferenciales);
+  // franCard is nested inside diferenciales, so it needs its own deeper
+  // merge too — the line above only stops "diferenciales" itself from
+  // losing new sibling keys, it doesn't reach inside an already-saved
+  // franCard object (same shallow-merge trap one level down).
+  merged.diferenciales.franCard = Object.assign(
+    {},
+    DEFAULT_CONTENT.diferenciales.franCard,
+    saved.diferenciales && saved.diferenciales.franCard
+  );
   merged.quehacemos = Object.assign({}, DEFAULT_CONTENT.quehacemos, saved.quehacemos);
   merged.marcas = Object.assign({}, DEFAULT_CONTENT.marcas, saved.marcas);
   merged.logosBand = Object.assign({}, DEFAULT_CONTENT.logosBand, saved.logosBand);
