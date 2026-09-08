@@ -211,8 +211,30 @@ const DEFAULT_CONTENT = {
     },
     // Each caso is tagged with `tipo` so the portfolio page can group them
     // into the 3 fixed business-type blocks (ecommerce / marcas-servicios /
-    // eventos-experiencias) instead of one flat "otros casos" grid.
-    casos: [],
+    // eventos-experiencias) instead of one flat "otros casos" grid. One
+    // flagged example per block so the new grouping is visible on the page
+    // before Erik has real cases to put in each one — same "Marca Ejemplo"
+    // convention already used for the highlights tiles above.
+    casos: [
+      {
+        tipo: 'ecommerce', categoria: 'Ecommerce', cliente: 'Marca Ejemplo — Ecommerce',
+        meta: 'Campaña de escalamiento — 2026',
+        resumen: 'Tienda online con catálogo completo y pauta segmentada para escalar ventas, medida de punta a punta.',
+        template: 'estandar', cover: null, cuerpo: '', gallery: [], slug: 'marca-ejemplo-ecommerce',
+      },
+      {
+        tipo: 'marcas-servicios', categoria: 'Estrategia de marca', cliente: 'Marca Ejemplo — Servicios',
+        meta: 'Reposicionamiento de marca — 2026',
+        resumen: 'Reposicionamiento de marca con estrategia de contenido y medios para una empresa de servicios profesionales.',
+        template: 'estandar', cover: null, cuerpo: '', gallery: [], slug: 'marca-ejemplo-servicios',
+      },
+      {
+        tipo: 'eventos-experiencias', categoria: 'Producción de eventos', cliente: 'Marca Ejemplo — Eventos',
+        meta: 'Cobertura de evento corporativo — 2026',
+        resumen: 'Cobertura y producción audiovisual de un evento corporativo, de principio a fin.',
+        template: 'estandar', cover: null, cuerpo: '', gallery: [], slug: 'marca-ejemplo-eventos',
+      },
+    ],
     cta: {
       eyebrow: '¿Hablamos?',
       heading: 'Sé parte del primer caso real acá.',
