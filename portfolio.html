@@ -7,6 +7,21 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 
+<script>
+  // Runs before the header is even parsed, let alone painted: if a custom
+  // logo was cached on a previous visit, flag it on <html> so the CSS below
+  // hides the default icon+wordmark from the very first frame. The old code
+  // did this from a script at the bottom of the body, which is why the
+  // original lockup always flashed first no matter what was cached.
+  try {
+    var tpCachedLogo = JSON.parse(localStorage.getItem('tp_logo_cache_v1') || 'null');
+    if (tpCachedLogo && typeof tpCachedLogo.url === 'string' && /^(\/|https?:\/\/|data:)/.test(tpCachedLogo.url.trim())) {
+      window.__tpLogo = tpCachedLogo;
+      document.documentElement.className += ' has-logo';
+    }
+  } catch (e) {}
+</script>
+
 <style>
   :root{
     --ink:#171221;
@@ -121,6 +136,8 @@
   .brand-logo-img{ display:none; width:auto; }
   .brand.has-custom-logo svg, .brand.has-custom-logo .brand-word{ display:none; }
   .brand.has-custom-logo .brand-logo-img{ display:block; }
+  html.has-logo .brand svg, html.has-logo .brand .brand-word{ display:none; }
+  html.has-logo .brand .brand-logo-img{ display:block; }
 
   .nav-toggle{
     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
@@ -503,6 +520,17 @@
     <img class="brand-logo-img" id="cms-brand-logo" alt="Tino Partners">
     <span class="brand-word">Tino<span>Partners</span></span>
   </a>
+  <script>
+    // Sets the cached logo's src during parse, as soon as the element
+    // exists — the class on <html> above already hid the default one.
+    if (window.__tpLogo) {
+      var tpLogoImg = document.getElementById('cms-brand-logo');
+      if (tpLogoImg) {
+        tpLogoImg.src = window.__tpLogo.url;
+        tpLogoImg.style.height = (window.__tpLogo.height || 34) + 'px';
+      }
+    }
+  </script>
   <button class="nav-toggle" id="navToggle" aria-label="Abrir menú" aria-expanded="false">
     <span></span><span></span><span></span>
   </button>
@@ -899,37 +927,27 @@
     return typeof url === 'string' && /^(\/|https?:\/\/|data:)/.test(url.trim());
   }
 
-  // Apply a cached logo synchronously (if any) before the network
-  // round trip even starts — same idea as index.html's full content
-  // cache, kept small here since this page doesn't need the rest of
-  // the Home content. Without this the default icon+wordmark flashed
-  // first on every single load, not just a first-ever visit.
-  try {
-    var cachedLogo = JSON.parse(localStorage.getItem('tp_logo_cache_v1') || 'null');
-    if (cachedLogo && cachedLogo.url) {
-      var cachedBrandEl = document.querySelector('.brand');
-      var cachedBrandImg = document.getElementById('cms-brand-logo');
-      if (cachedBrandEl && cachedBrandImg) {
-        cachedBrandImg.src = cachedLogo.url;
-        cachedBrandImg.style.height = (cachedLogo.height || 34) + 'px';
-        cachedBrandEl.classList.add('has-custom-logo');
-      }
-    }
-  } catch (e) {}
-
   fetch('/api/content?t=' + Date.now()).then(function(r){ return r.ok ? r.json() : null; }).then(function(c){
     if (!c) return;
-    if (c && c.logo && c.logo.url && /^(\/|https?:\/\/|data:)/.test(c.logo.url.trim())) {
+    // The <html> class and the <img> src are already set during parse by
+    // the two small scripts at the top of the page, from the cached copy —
+    // this only keeps them in sync with the real response, and undoes them
+    // if the logo was removed from the panel.
+    if (c) {
       var brandEl = document.querySelector('.brand');
       var brandLogoImg = document.getElementById('cms-brand-logo');
-      if (brandEl && brandLogoImg) {
-        brandLogoImg.src = c.logo.url;
+      var logoUrl = (c.logo && typeof c.logo.url === 'string') ? c.logo.url.trim() : '';
+      if (brandEl && brandLogoImg && logoUrl && /^(\/|https?:\/\/|data:)/.test(logoUrl)) {
+        if (brandLogoImg.getAttribute('src') !== logoUrl) brandLogoImg.src = logoUrl;
         brandLogoImg.style.height = (c.logo.height || 34) + 'px';
         brandEl.classList.add('has-custom-logo');
+        document.documentElement.classList.add('has-logo');
+        try { localStorage.setItem('tp_logo_cache_v1', JSON.stringify({ url: logoUrl, height: c.logo.height })); } catch (e) {}
+      } else if (brandEl) {
+        brandEl.classList.remove('has-custom-logo');
+        document.documentElement.classList.remove('has-logo');
+        try { localStorage.removeItem('tp_logo_cache_v1'); } catch (e) {}
       }
-      try { localStorage.setItem('tp_logo_cache_v1', JSON.stringify({ url: c.logo.url, height: c.logo.height })); } catch (e) {}
-    } else if (c) {
-      try { localStorage.removeItem('tp_logo_cache_v1'); } catch (e) {}
     }
 
     if (c.meta && c.meta.portfolio) {
