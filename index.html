@@ -1030,8 +1030,17 @@
       el.innerHTML = '';
       tags.forEach(function(t){ var span = document.createElement('span'); span.textContent = t; el.appendChild(span); });
     }
+    // A saved media value is only usable if it actually looks like a path or
+    // URL. Anything else (e.g. a stray string a browser/password manager
+    // autofilled into one of the panel's text fields) is ignored instead of
+    // being handed to the browser as an image/video source — that once left
+    // the Home hero with no photo at all on mobile.
+    function isUsableMediaUrl(url){
+      return typeof url === 'string' && /^(\/|https?:\/\/|data:)/.test(url.trim());
+    }
     function setMedia(el, media){
       if (!el || !media) return;
+      if (media.url && !isUsableMediaUrl(media.url)) return;
       if (media.url && el.getAttribute('src') !== media.url) {
         el.src = media.url;
         if (el.tagName === 'VIDEO') { try { el.load(); } catch(e){} }
@@ -1048,13 +1057,13 @@
       var mobileSource = document.getElementById('cms-hero-img-mobile-source');
       if (!img || !hero || !hero.image) return;
       var media = hero.image;
-      if (media.url && img.getAttribute('src') !== media.url) img.src = media.url;
+      if (isUsableMediaUrl(media.url) && img.getAttribute('src') !== media.url) img.src = media.url;
       var x = (media.posX != null ? media.posX : 50);
       var y = (media.posY != null ? media.posY : 50);
       img.style.setProperty('--hero-img-pos', x + '% ' + y + '%');
 
       var mobile = hero.mobileImage;
-      if (mobile && mobile.url) {
+      if (mobile && isUsableMediaUrl(mobile.url)) {
         if (mobileSource) mobileSource.srcset = mobile.url;
         var mx = (mobile.posX != null ? mobile.posX : 50);
         var my = (mobile.posY != null ? mobile.posY : 50);
@@ -1087,7 +1096,7 @@
         if (hasVideo) {
           el.innerHTML =
             '<div class="video-frame" data-video>' +
-              (tile.logo && tile.logo.url ? '<img class="tile-logo" alt="">' : '') +
+              (tile.logo && isUsableMediaUrl(tile.logo.url) ? '<img class="tile-logo" alt="">' : '') +
               '<video muted loop playsinline preload="metadata"></video>' + VIDEO_CONTROLS_HTML +
             '</div>' +
             '<div class="tile-overlay">' +
@@ -1227,13 +1236,16 @@
       var section = document.getElementById('cms-logos-band');
       var track = document.getElementById('cms-logos-track');
       if (!section || !track) return;
-      var logos = (band.logos || []).filter(function(l){ return l && l.url; });
+      var logos = (band.logos || []).filter(function(l){ return l && isUsableMediaUrl(l.url); });
       if (band.enabled === false || !logos.length) {
         section.classList.add('is-off');
         return;
       }
       section.classList.remove('is-off');
-      section.style.background = band.bgColor || 'transparent';
+      // Same reasoning as isUsableMediaUrl: only honour something that reads
+      // as a colour, so a stray autofilled string can't paint the band.
+      var bg = typeof band.bgColor === 'string' ? band.bgColor.trim() : '';
+      section.style.background = /^(#[0-9a-fA-F]{3,8}|rgb|hsl|transparent|var\()/.test(bg) ? bg : 'transparent';
       section.style.setProperty('--logos-duration', (band.speed || 30) + 's');
       // With very few logos (even just 1), doubling the list once makes a
       // track so narrow that the -50% loop translation is a handful of

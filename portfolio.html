@@ -888,6 +888,12 @@
   // above if the request fails.
   function setText(id, val){ var el = document.getElementById(id); if (el && val != null && val !== '') el.textContent = val; }
   function setHtml(id, val){ var el = document.getElementById(id); if (el && val != null && val !== '') el.innerHTML = val; }
+  // A saved media value is only usable if it actually looks like a path or
+  // URL — a stray string autofilled into one of the panel's text fields
+  // must never end up as an image/video source (see index.html).
+  function isUsableMediaUrl(url){
+    return typeof url === 'string' && /^(\/|https?:\/\/|data:)/.test(url.trim());
+  }
 
   fetch('/api/content?t=' + Date.now()).then(function(r){ return r.ok ? r.json() : null; }).then(function(c){
     if (!c) return;
@@ -955,10 +961,10 @@
         if (!tile.key) return;
         setHtml('cms-port-' + tile.key + '-title', tile.title);
         var logoImg = document.getElementById('cms-port-' + tile.key + '-logo');
-        if (logoImg && tile.logo && tile.logo.url) { logoImg.src = tile.logo.url; logoImg.style.display = ''; }
+        if (logoImg && tile.logo && isUsableMediaUrl(tile.logo.url)) { logoImg.src = tile.logo.url; logoImg.style.display = ''; }
         var videoEl = document.getElementById('cms-port-' + tile.key + '-video');
         var badge = document.getElementById('cms-port-' + tile.key + '-badge');
-        if (tile.video && tile.video.url) {
+        if (tile.video && isUsableMediaUrl(tile.video.url)) {
           if (videoEl) {
             videoEl.src = tile.video.url;
             var x = (tile.video.posX != null ? tile.video.posX : 50) + '% ' + (tile.video.posY != null ? tile.video.posY : 50) + '%';
@@ -976,7 +982,7 @@
         setHtml('cms-port-respaldo-heading', p.respaldo.heading);
         var logosWrap = document.getElementById('respaldoLogos');
         p.respaldo.logos.forEach(function(logo){
-          if (!logo || !logo.url) return;
+          if (!logo || !isUsableMediaUrl(logo.url)) return;
           var img = document.createElement('img');
           img.src = logo.url; img.alt = '';
           logosWrap.appendChild(img);

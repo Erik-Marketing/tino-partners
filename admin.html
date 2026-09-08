@@ -1222,6 +1222,7 @@
     wrap.appendChild(makeLabel(field.label));
     var input = document.createElement(field.type === 'textarea' ? 'textarea' : 'input');
     if (field.type !== 'textarea') input.type = 'text';
+    input.autocomplete = 'off';
     input.value = getPath(homeContent, sectionKey + '.' + field.path) || '';
     input.addEventListener('input', function(){ setPath(homeContent, sectionKey + '.' + field.path, input.value); });
     wrap.appendChild(input);
@@ -1573,6 +1574,7 @@
 
     var urlInput = document.createElement('input');
     urlInput.type = 'text';
+    urlInput.autocomplete = 'off';
     urlInput.placeholder = 'o pegá una URL directa (para archivos grandes que ya subió Claude)';
     urlInput.style.cssText = 'flex:1; min-width:220px; background:var(--paper-flat); border:1px solid var(--line-strong); color:var(--ink); padding:9px 12px; border-radius:9px; font-size:.82rem;';
     urlInput.addEventListener('change', function(){
@@ -1831,6 +1833,7 @@
     bgField.appendChild(makeLabel('Color de fondo (opcional — vacío = sin fondo)'));
     var bgInput = document.createElement('input');
     bgInput.type = 'text';
+    bgInput.autocomplete = 'off';
     bgInput.placeholder = 'ej: #F4EEFF';
     bgInput.value = b.bgColor || '';
     bgInput.addEventListener('input', function(){ b.bgColor = bgInput.value; });
@@ -1889,6 +1892,7 @@
     wrap.appendChild(makeLabel(field.label));
     var input = document.createElement(field.type === 'textarea' ? 'textarea' : 'input');
     if (field.type !== 'textarea') input.type = 'text';
+    input.autocomplete = 'off';
     input.value = getVal() || '';
     input.addEventListener('input', function(){ setVal(input.value); });
     wrap.appendChild(input);
