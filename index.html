@@ -297,15 +297,13 @@
     box-shadow:var(--shadow); padding:clamp(24px,3vw,32px); max-width:360px;
     display:flex; flex-direction:column; gap:18px; align-items:center; text-align:center;
   }
-  .fran-photo{ width:112px; height:112px; border-radius:50%; object-fit:cover; }
-  .fran-stats{ display:flex; flex-direction:column; gap:10px; }
-  .fran-stat{ font-family:'Big Shoulders Display',sans-serif; font-weight:800; font-size:clamp(1.3rem,2.6vw,1.7rem); color:var(--v-500); }
-  .fran-cta{
-    display:inline-flex; align-items:center; justify-content:center; text-decoration:none; width:100%;
-    background:var(--gradient-vivid); color:#fff; font-family:'IBM Plex Mono',monospace;
-    font-weight:600; font-size:.82rem; letter-spacing:.06em; text-transform:uppercase;
-    padding:14px 20px; border-radius:var(--radius-pill);
-  }
+  .fran-photo{ width:96px; height:96px; border-radius:50%; object-fit:cover; }
+  .fran-chart{ display:flex; align-items:flex-end; gap:clamp(28px,4vw,44px); width:100%; justify-content:center; }
+  .fran-bar-col{ display:flex; flex-direction:column; align-items:center; width:120px; }
+  .fran-bar-num{ font-family:'Big Shoulders Display',sans-serif; font-weight:800; font-size:clamp(1.1rem,2.2vw,1.4rem); color:var(--v-500); margin-bottom:10px; white-space:nowrap; }
+  .fran-bar-track{ width:100%; height:140px; background:var(--paper-dim); border-radius:10px 10px 4px 4px; display:flex; align-items:flex-end; overflow:hidden; }
+  .fran-bar-fill{ width:100%; height:0%; background:var(--gradient-vivid); border-radius:10px 10px 4px 4px; }
+  .fran-bar-label{ margin-top:10px; font-size:.78rem; color:var(--ink-soft); line-height:1.35; }
 
   /* ---- stats ---- */
   .stats{ padding:clamp(56px,8vh,88px) 0 clamp(72px,9vh,104px); text-align:center; }
@@ -645,11 +643,18 @@
       <div class="different-video reveal">
         <div class="fran-card reveal" id="cms-fran-card">
           <img class="fran-photo" id="cms-fran-photo" alt="" style="display:none;">
-          <div class="fran-stats">
-            <div class="fran-stat" data-fran-stat id="cms-fran-stat-1"></div>
-            <div class="fran-stat" data-fran-stat id="cms-fran-stat-2"></div>
+          <div class="fran-chart">
+            <div class="fran-bar-col">
+              <div class="fran-bar-num" id="cms-fran-num-1"></div>
+              <div class="fran-bar-track"><div class="fran-bar-fill" id="cms-fran-bar-1"></div></div>
+              <div class="fran-bar-label" id="cms-fran-label-1"></div>
+            </div>
+            <div class="fran-bar-col">
+              <div class="fran-bar-num" id="cms-fran-num-2"></div>
+              <div class="fran-bar-track"><div class="fran-bar-fill" id="cms-fran-bar-2"></div></div>
+              <div class="fran-bar-label" id="cms-fran-label-2"></div>
+            </div>
           </div>
-          <a href="#contacto" class="fran-cta" id="cms-fran-cta">Quiero escalar mi negocio</a>
         </div>
       </div>
     </div>
@@ -1078,57 +1083,62 @@
       });
     }
 
-    // ---- "diferenciales" right-side card: photo + two stats that count up
-    // once, the first time the card scrolls into view ----
-    function renderFranStat(id, text){
-      var el = document.getElementById(id);
-      if (!el || !text) return;
-      var match = String(text).match(/^(.*?)(\d+(?:[.,]\d+)?)(.*)$/);
-      if (!match) { el.textContent = text; return; }
-      el.setAttribute('data-fran-prefix', match[1]);
-      el.setAttribute('data-fran-target', match[2].replace(',', '.'));
-      el.setAttribute('data-fran-suffix', match[3]);
-      el.textContent = match[1] + '0' + match[3];
-    }
-    function animateFranStat(el){
-      var targetStr = el.getAttribute('data-fran-target');
-      var target = parseFloat(targetStr);
-      if (!targetStr || isNaN(target)) return;
-      var prefix = el.getAttribute('data-fran-prefix') || '';
-      var suffix = el.getAttribute('data-fran-suffix') || '';
-      var isInt = targetStr.indexOf('.') === -1;
-      var duration = 1200, start = null;
-      function step(ts){
-        if (!start) start = ts;
-        var progress = Math.min((ts - start) / duration, 1);
-        var current = target * progress;
-        el.textContent = prefix + (isInt ? Math.round(current) : current.toFixed(1)) + suffix;
-        if (progress < 1) requestAnimationFrame(step);
+    // ---- "diferenciales" right-side card: a small bar chart tied directly
+    // to scroll position, not a play-once animation — the bars (and the
+    // numbers above them) grow or shrink continuously as the card moves
+    // through the viewport, in either scroll direction.
+    var FRAN_BARS = [
+      { numEl: null, fillEl: null, labelEl: null, hasNumber: false, target: 0, prefix: '', unit: '', isInt: true },
+      { numEl: null, fillEl: null, labelEl: null, hasNumber: false, target: 0, prefix: '', unit: '', isInt: true },
+    ];
+    function setupFranBar(index, text){
+      var bar = FRAN_BARS[index];
+      bar.numEl = document.getElementById('cms-fran-num-' + (index + 1));
+      bar.fillEl = document.getElementById('cms-fran-bar-' + (index + 1));
+      bar.labelEl = document.getElementById('cms-fran-label-' + (index + 1));
+      if (!text) return;
+      var match = String(text).match(/^(.*?)(\d+(?:[.,]\d+)?)(\S*)\s*(.*)$/);
+      if (!match) {
+        if (bar.numEl) bar.numEl.textContent = text;
+        return;
       }
-      requestAnimationFrame(step);
+      bar.hasNumber = true;
+      bar.prefix = match[1];
+      bar.target = parseFloat(match[2].replace(',', '.'));
+      bar.isInt = match[2].indexOf('.') === -1 && match[2].indexOf(',') === -1;
+      bar.unit = match[3];
+      if (bar.labelEl) bar.labelEl.textContent = match[4];
     }
-    var franStatsAnimated = false;
-    var franStatsObserver = new IntersectionObserver(function(entries){
-      entries.forEach(function(entry){
-        if (entry.isIntersecting && !franStatsAnimated) {
-          franStatsAnimated = true;
-          document.querySelectorAll('[data-fran-stat]').forEach(animateFranStat);
-          franStatsObserver.disconnect();
+    function updateFranChart(){
+      var card = document.getElementById('cms-fran-card');
+      if (!card) return;
+      var rect = card.getBoundingClientRect();
+      var progress = Math.max(0, Math.min(1, (window.innerHeight - rect.top) / window.innerHeight));
+      FRAN_BARS.forEach(function(bar){
+        if (bar.fillEl) bar.fillEl.style.height = (progress * 100) + '%';
+        if (bar.numEl && bar.hasNumber) {
+          var current = bar.target * progress;
+          bar.numEl.textContent = bar.prefix + (bar.isInt ? Math.round(current) : current.toFixed(1)) + bar.unit;
         }
       });
-    }, { threshold: .4 });
+    }
+    var franChartTicking = false;
+    function requestFranChartUpdate(){
+      if (franChartTicking) return;
+      franChartTicking = true;
+      requestAnimationFrame(function(){ updateFranChart(); franChartTicking = false; });
+    }
+    window.addEventListener('scroll', requestFranChartUpdate, { passive: true });
+    window.addEventListener('resize', requestFranChartUpdate);
     function setupFranCard(franCard){
-      var card = document.getElementById('cms-fran-card');
       var photo = document.getElementById('cms-fran-photo');
       if (photo && franCard.photo && franCard.photo.url) {
         setMedia(photo, franCard.photo);
         photo.style.display = '';
       }
-      var cta = document.getElementById('cms-fran-cta');
-      if (cta && franCard.ctaText) cta.textContent = franCard.ctaText;
-      renderFranStat('cms-fran-stat-1', franCard.statLine1);
-      renderFranStat('cms-fran-stat-2', franCard.statLine2);
-      if (card) franStatsObserver.observe(card);
+      setupFranBar(0, franCard.statLine1);
+      setupFranBar(1, franCard.statLine2);
+      updateFranChart();
     }
 
     // ---- testimonials carousel: one item shown at a time, arrows + autoplay

@@ -1724,7 +1724,7 @@
     wrap.className = 'cms-fields';
     var d = homeContent.diferenciales;
     if (!d.invertir) d.invertir = { texto: '', ctaText: 'Hablemos' };
-    if (!d.franCard) d.franCard = { photo: { url: '', posX: 50, posY: 50 }, statLine1: '', statLine2: '', ctaText: 'Quiero escalar mi negocio' };
+    if (!d.franCard) d.franCard = { photo: { url: '', posX: 50, posY: 50 }, statLine1: '', statLine2: '' };
 
     wrap.appendChild(renderPlainFieldFor({ label: 'Etiqueta de la sección', type: 'text' }, function(){ return d.eyebrow; }, function(v){ d.eyebrow = v; }));
     wrap.appendChild(renderRichField({ label: 'Título', type: 'text' }, function(){ return d.heading; }, function(v){ d.heading = v; }));
@@ -1749,7 +1749,6 @@
     franGroup.appendChild(renderMediaField(d.franCard.photo, { type: 'image', portrait: true, label: 'Foto' }));
     franGroup.appendChild(renderPlainFieldFor({ label: 'Dato 1 (ej: +100 Cuentas publicitarias gestionadas)', type: 'text' }, function(){ return d.franCard.statLine1; }, function(v){ d.franCard.statLine1 = v; }));
     franGroup.appendChild(renderPlainFieldFor({ label: 'Dato 2 (ej: +Más de USD 500K invertidos en publicidad digital)', type: 'text' }, function(){ return d.franCard.statLine2; }, function(v){ d.franCard.statLine2 = v; }));
-    franGroup.appendChild(renderPlainFieldFor({ label: 'Texto del cartel violeta', type: 'text' }, function(){ return d.franCard.ctaText; }, function(v){ d.franCard.ctaText = v; }));
     wrap.appendChild(franGroup);
 
     return wrap;

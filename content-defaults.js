@@ -58,7 +58,6 @@ const DEFAULT_CONTENT = {
       photo: { url: '', posX: 50, posY: 50 },
       statLine1: '+100 Cuentas publicitarias gestionadas',
       statLine2: '+Más de USD 500K invertidos en publicidad digital',
-      ctaText: 'Quiero escalar mi negocio',
     },
   },
   stats: {
