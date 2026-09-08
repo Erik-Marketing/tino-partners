@@ -528,6 +528,8 @@ async function loadMergedContent() {
   // the enabled toggle + copy on quehacemos) must still show up.
   merged.diferenciales = Object.assign({}, DEFAULT_CONTENT.diferenciales, saved.diferenciales);
   merged.quehacemos = Object.assign({}, DEFAULT_CONTENT.quehacemos, saved.quehacemos);
+  merged.marcas = Object.assign({}, DEFAULT_CONTENT.marcas, saved.marcas);
+  merged.logosBand = Object.assign({}, DEFAULT_CONTENT.logosBand, saved.logosBand);
   merged.testimonios = normalizeTestimonios(saved.testimonios);
   merged.form = Object.assign({}, DEFAULT_CONTENT.form, saved.form, {
     fields: normalizeFormFields(saved.form && saved.form.fields),

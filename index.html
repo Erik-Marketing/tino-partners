@@ -232,6 +232,18 @@
   @keyframes tickerScroll{ from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
   @media (prefers-reduced-motion: reduce){ .ticker-track{ animation:none; } }
 
+  /* ---- carrusel de logos de marcas (sin fondo por defecto, sin bordes) ---- */
+  .logos-band{ background:transparent; padding:clamp(20px,3vh,32px) 0; }
+  .logos-band.is-off{ display:none; }
+  .logos-row{ overflow:hidden; }
+  .logos-track{
+    display:flex; align-items:center; width:max-content; gap:clamp(40px,6vw,72px);
+    animation:logosScroll var(--logos-duration, 30s) linear infinite;
+  }
+  .logos-track img{ height:36px; width:auto; object-fit:contain; flex:none; opacity:.8; }
+  @keyframes logosScroll{ from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
+  @media (prefers-reduced-motion: reduce){ .logos-track{ animation:none; } }
+
   /* ---- proyectos ---- */
   .work{ position:relative; padding:clamp(72px,10vh,120px) 0; }
   .work .ambient-1{ width:230px; height:230px; top:8%; right:-70px; background:radial-gradient(circle, var(--lime-fill), transparent 70%); }
@@ -323,6 +335,7 @@
 
   /* ---- banner de marcas ---- */
   .brands-band{ padding:clamp(28px,4vw,40px) 0; background:var(--gradient-vivid); }
+  .brands-band.is-off{ display:none; }
   .brands-row{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-around; gap:clamp(20px,4vw,40px); }
   .brands-row span{
     font-family:'Big Shoulders Display',sans-serif; font-weight:800; font-size:clamp(1.1rem,2.4vw,1.6rem);
@@ -565,6 +578,12 @@
         <img id="cms-hero-img" src="https://8re8o884kengswvt.public.blob.vercel-storage.com/uploads/1788359629540-man-portrait-editorial-collage-2k-202609021132.jpeg" alt="Foto de portada de Tino Partners" style="--hero-img-pos:53% 44%">
       </picture>
       <span class="hero-fade-dots" id="cms-hero-fade" aria-hidden="true"></span>
+    </div>
+  </section>
+
+  <section class="logos-band is-off" id="cms-logos-band">
+    <div class="logos-row">
+      <div class="logos-track" id="cms-logos-track"></div>
     </div>
   </section>
 
@@ -1141,6 +1160,35 @@
       updateFranChart();
     }
 
+    // ---- client logos carousel above "Nuestros proyectos" ----
+    function fillLogosBand(band){
+      var section = document.getElementById('cms-logos-band');
+      var track = document.getElementById('cms-logos-track');
+      if (!section || !track) return;
+      var logos = (band.logos || []).filter(function(l){ return l && l.url; });
+      if (band.enabled === false || !logos.length) {
+        section.classList.add('is-off');
+        return;
+      }
+      section.classList.remove('is-off');
+      section.style.background = band.bgColor || 'transparent';
+      section.style.setProperty('--logos-duration', (band.speed || 30) + 's');
+      track.innerHTML = '';
+      logos.concat(logos).forEach(function(logo){
+        var img = document.createElement('img');
+        img.src = logo.url; img.alt = '';
+        track.appendChild(img);
+      });
+      // Force the CSS animation to restart from 0% now that the real logos
+      // are in place, instead of continuing whatever time had already
+      // elapsed on the empty track since page load — otherwise a slow
+      // content fetch could make the very first frame the visitor sees
+      // land mid-loop instead of a clean, complete strip of logos.
+      track.style.animation = 'none';
+      void track.offsetWidth;
+      track.style.animation = '';
+    }
+
     // ---- testimonials carousel: one item shown at a time, arrows + autoplay
     // when there's more than one ----
     var testiState = { items: [], index: 0, timer: null };
@@ -1288,7 +1336,12 @@
       var qhCta = document.getElementById('cms-qh-cta');
       if (qhCta && c.quehacemos.ctaText) qhCta.textContent = c.quehacemos.ctaText + ' →';
     }
-    if (c.marcas) setTags('cms-brands-row', c.marcas.items);
+    if (c.marcas) {
+      setTags('cms-brands-row', c.marcas.items);
+      var brandsBand = document.querySelector('.brands-band');
+      if (brandsBand) brandsBand.classList.toggle('is-off', c.marcas.enabled === false);
+    }
+    if (c.logosBand) fillLogosBand(c.logosBand);
     if (c.testimonios) setupTestimonials(c.testimonios);
     if (c.blog) {
       setHtml('cms-blog-heading', c.blog.heading);

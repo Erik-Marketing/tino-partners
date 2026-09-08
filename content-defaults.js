@@ -77,7 +77,11 @@ const DEFAULT_CONTENT = {
     texto2: 'Trabajamos con empresas que ya tienen trayectoria, un negocio funcionando, un equipo detrás y presupuesto real para invertir en crecimiento.',
     ctaText: 'Contactanos',
   },
-  marcas: { items: 'Aura, Solden, Nimbus, Marca Ejemplo, Próximo cliente' },
+  marcas: { enabled: true, items: 'Aura, Solden, Nimbus, Marca Ejemplo, Próximo cliente' },
+  // Logo carousel shown above "Nuestros proyectos" — separate from `marcas`
+  // (which is just a static row of text names). Starts off/empty until
+  // Erik uploads real client logos from the panel.
+  logosBand: { enabled: false, speed: 30, bgColor: '', logos: [] },
   testimonios: {
     enabled: false,
     items: [
@@ -404,7 +408,7 @@ function normalizeFormFields(savedFields) {
 // never translated between the two.
 const PERMISSION_KEYS = [
   'consultas',
-  'home-cms.hero', 'home-cms.proyectos', 'home-cms.ticker', 'home-cms.diferenciales',
+  'home-cms.hero', 'home-cms.logosBand', 'home-cms.proyectos', 'home-cms.ticker', 'home-cms.diferenciales',
   'home-cms.stats', 'home-cms.quehacemos', 'home-cms.marcas', 'home-cms.testimonios',
   'home-cms.blog', 'home-cms.footer',
   'blog-cms.new', 'blog-cms.list',
@@ -432,6 +436,7 @@ const CONTENT_PATHS = {
   'home-cms.stats': [{ path: 'stats', type: 'object' }],
   'home-cms.quehacemos': [{ path: 'quehacemos', type: 'object' }],
   'home-cms.marcas': [{ path: 'marcas', type: 'object' }],
+  'home-cms.logosBand': [{ path: 'logosBand', type: 'object' }],
   'home-cms.testimonios': [{ path: 'testimonios', type: 'object' }],
   'home-cms.blog': [
     { path: 'blog.heading', type: 'string' },

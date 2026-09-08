@@ -1185,14 +1185,13 @@
         { path: 'image', label: 'Foto del hero (desktop)', type: 'image', fadeToggle: true },
         { path: 'mobileImage', label: 'Foto del hero (mobile — opcional)', type: 'image', optional: true }
     ]},
+    { key: 'logosBand', title: 'Logos de marcas (carrusel)', custom: 'logosBand' },
     { key: 'proyectos', title: 'Nuestros proyectos', custom: 'proyectos' },
     { key: 'ticker', title: 'Cinta de palabras', custom: 'ticker' },
     { key: 'diferenciales', title: 'Lo que nos hace diferentes', custom: 'diferenciales' },
     { key: 'stats', title: 'Números', custom: 'stats' },
     { key: 'quehacemos', title: 'Partner de negocio', custom: 'quehacemos' },
-    { key: 'marcas', title: 'Marcas', fields: [
-        { path: 'items', label: 'Nombres separados por coma', type: 'text', plain: true }
-    ]},
+    { key: 'marcas', title: 'Marcas', custom: 'marcas' },
     { key: 'testimonios', title: 'Testimonios', custom: 'testimonios' },
     { key: 'blog', title: 'Contenido interesante (blog)', custom: 'blog' },
     { key: 'footer', title: 'Datos de contacto', fields: [
@@ -1799,6 +1798,88 @@
     return wrap;
   }
 
+  function renderMarcasSection(){
+    var wrap = document.createElement('div');
+    wrap.className = 'cms-fields';
+    var m = homeContent.marcas;
+    wrap.appendChild(renderToggleRow('Mostrar esta sección en el sitio', function(){ return m.enabled; }, function(v){ m.enabled = v; }));
+    wrap.appendChild(renderPlainFieldFor({ label: 'Nombres separados por coma', type: 'text' }, function(){ return m.items; }, function(v){ m.items = v; }));
+    return wrap;
+  }
+
+  function renderLogosBandSection(){
+    var wrap = document.createElement('div');
+    wrap.className = 'cms-fields';
+    var b = homeContent.logosBand;
+    if (!b.logos) b.logos = [];
+    wrap.appendChild(renderToggleRow('Mostrar esta sección en el sitio', function(){ return b.enabled; }, function(v){ b.enabled = v; }));
+
+    var speedField = document.createElement('div');
+    speedField.className = 'cms-field';
+    speedField.appendChild(makeLabel('Velocidad — segundos por vuelta completa (menos = más rápido)'));
+    var speedInput = document.createElement('input');
+    speedInput.type = 'number'; speedInput.min = '6'; speedInput.max = '90'; speedInput.step = '1';
+    speedInput.value = b.speed || 30;
+    speedInput.addEventListener('input', function(){ b.speed = Number(speedInput.value) || 30; });
+    speedField.appendChild(speedInput);
+    wrap.appendChild(speedField);
+
+    var bgField = document.createElement('div');
+    bgField.className = 'cms-field';
+    bgField.appendChild(makeLabel('Color de fondo (opcional — vacío = sin fondo)'));
+    var bgInput = document.createElement('input');
+    bgInput.type = 'text';
+    bgInput.placeholder = 'ej: #F4EEFF';
+    bgInput.value = b.bgColor || '';
+    bgInput.addEventListener('input', function(){ b.bgColor = bgInput.value; });
+    bgField.appendChild(bgInput);
+    wrap.appendChild(bgField);
+
+    var logosWrap = document.createElement('div');
+    logosWrap.style.cssText = 'display:flex; flex-direction:column; gap:14px; margin:4px 0;';
+    function renderLogos(){
+      logosWrap.innerHTML = '';
+      b.logos.forEach(function(logo, i){
+        var row = document.createElement('div');
+        row.className = 'cms-subgroup cms-list-item';
+        var title = document.createElement('div');
+        title.className = 'cms-subgroup-title';
+        title.textContent = 'Logo ' + (i + 1);
+        row.appendChild(title);
+
+        var removeBtn = document.createElement('button');
+        removeBtn.type = 'button'; removeBtn.className = 'cms-remove-btn'; removeBtn.textContent = '×'; removeBtn.title = 'Quitar este logo';
+        removeBtn.addEventListener('click', function(){ b.logos.splice(i, 1); renderLogos(); });
+        row.appendChild(removeBtn);
+
+        var orderRow = document.createElement('div');
+        orderRow.style.cssText = 'display:flex; gap:8px; margin-bottom:12px;';
+        var upBtn = document.createElement('button');
+        upBtn.type = 'button'; upBtn.className = 'cms-file-btn'; upBtn.textContent = '↑ Subir';
+        upBtn.disabled = i === 0;
+        upBtn.addEventListener('click', function(){ var tmp = b.logos[i - 1]; b.logos[i - 1] = b.logos[i]; b.logos[i] = tmp; renderLogos(); });
+        var downBtn = document.createElement('button');
+        downBtn.type = 'button'; downBtn.className = 'cms-file-btn'; downBtn.textContent = '↓ Bajar';
+        downBtn.disabled = i === b.logos.length - 1;
+        downBtn.addEventListener('click', function(){ var tmp = b.logos[i + 1]; b.logos[i + 1] = b.logos[i]; b.logos[i] = tmp; renderLogos(); });
+        orderRow.appendChild(upBtn); orderRow.appendChild(downBtn);
+        row.appendChild(orderRow);
+
+        row.appendChild(renderMediaField(logo, { type: 'image', label: 'Logo' }));
+        logosWrap.appendChild(row);
+      });
+    }
+    renderLogos();
+    wrap.appendChild(logosWrap);
+
+    var addBtn = document.createElement('button');
+    addBtn.type = 'button'; addBtn.className = 'cms-add-btn'; addBtn.textContent = '+ Agregar logo';
+    addBtn.addEventListener('click', function(){ b.logos.push({ url: '', posX: 50, posY: 50 }); renderLogos(); });
+    wrap.appendChild(addBtn);
+
+    return wrap;
+  }
+
   // plain (non-rich) field bound via explicit getter/setter, for array items
   function renderPlainFieldFor(field, getVal, setVal){
     var wrap = document.createElement('div');
@@ -1993,6 +2074,8 @@
     else if (section.custom === 'blog') body = renderBlogSection();
     else if (section.custom === 'diferenciales') body = renderDiferencialesSection();
     else if (section.custom === 'testimonios') body = renderTestimoniosSection();
+    else if (section.custom === 'marcas') body = renderMarcasSection();
+    else if (section.custom === 'logosBand') body = renderLogosBandSection();
     else {
       body = document.createElement('div');
       body.className = 'cms-fields';
