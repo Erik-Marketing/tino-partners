@@ -21,18 +21,21 @@ const DEFAULT_CONTENT = {
     nota: 'Venimos haciendo esto hace años y ya pasaron muchas marcas por nuestras manos — lo que está en construcción es la web, no la experiencia. Arrancamos a subir ese trabajo acá, empezando por NOBRAND, y esta sección se va a ir llenando con cada proyecto que sumamos.',
     tiles: [
       {
-        title: 'NOBRAND', status: 'Cliente', category: 'Producción', link: 'nobrand.html',
+        title: 'NOBRAND', status: 'Cliente', category: 'Producción',
         video: { url: '/media/nobrand/trailer-vertical.mp4', posX: 50, posY: 50 },
+        logo: { url: '', posX: 50, posY: 50 },
         adminLabel: 'Proyecto 1',
       },
       {
         title: 'Wholegreen', status: 'Próximamente', category: 'Estrategia',
         video: { url: '/media/proyectos/proyecto2-capsula-3-wg.mp4', posX: 50, posY: 50 },
+        logo: { url: '', posX: 50, posY: 50 },
         adminLabel: 'Proyecto 2',
       },
       {
         title: 'Desarrollo en curso', status: 'Próximamente', category: 'Tecnología',
         video: { url: '/media/proyectos/proyecto3-opera-3.mp4', posX: 50, posY: 50 },
+        logo: { url: '', posX: 50, posY: 50 },
         adminLabel: 'Proyecto 3',
       },
     ],
@@ -46,8 +49,17 @@ const DEFAULT_CONTENT = {
   diferenciales: {
     eyebrow: 'Lo que nos hace diferentes',
     heading: 'Un mismo equipo, de punta a punta.',
-    texto: 'No coordinamos entre tres proveedores distintos: producimos el contenido, armamos la estrategia de medios y construimos la tecnología de medición bajo un mismo techo. Eso significa menos idas y vueltas, y decisiones que consideran el negocio completo, no solo la pieza que le toca a cada uno.',
-    video: { url: '/media/nobrand/backstage-margen.mp4', posX: 50, posY: 50 },
+    texto: 'Tino Partners está pensado para empresas que ya venden, ya invierten en marketing y necesitan escalar su negocio trabajando contenido, pauta, data y tecnología con un mismo objetivo en común.',
+    invertir: {
+      texto: 'Nuestro foco está en marcas o empresas con capacidad de invertir entre USD 3.000 y 20.000 en medios. ¿Tu empresa está en esta etapa?',
+      ctaText: 'Hablemos',
+    },
+    franCard: {
+      photo: { url: '', posX: 50, posY: 50 },
+      statLine1: '+100 Cuentas publicitarias gestionadas',
+      statLine2: '+Más de USD 500K invertidos en publicidad digital',
+      ctaText: 'Quiero escalar mi negocio',
+    },
   },
   stats: {
     items: [
@@ -59,30 +71,24 @@ const DEFAULT_CONTENT = {
     flag: 'Cifras de referencia — se actualizan a medida que crecemos',
   },
   quehacemos: {
-    items: [
-      {
-        title: 'Producción & contenido',
-        texto: 'Fotografía y video con mirada de marca, dirección de arte y gestión integral de redes sociales — contenido pensado para cada plataforma, no adaptado después.',
-        tags: 'Fotografía, Video, Redes sociales, Dirección de arte',
-      },
-      {
-        title: 'Estrategia & medios',
-        texto: 'Planes de medios, campañas publicitarias y acciones comerciales diseñadas para mover un número de negocio concreto, no solo métricas de vanidad.',
-        tags: 'Planificación de medios, Campañas, Estrategia de marca, Acciones comerciales',
-      },
-      {
-        title: 'Tecnología & automatización',
-        texto: 'Automatización de procesos, inteligencia artificial aplicada a imagen, contenido y reportes, medición con Google Tag Manager y Analytics, y desarrollo web y de apps a medida.',
-        tags: 'Automatización, IA aplicada, GTM & Analytics, Desarrollo web & apps',
-      },
-    ],
+    enabled: true,
+    eyebrow: '¿Agencia o partner?',
+    heading: 'No somos una agencia de Marketing. Somos tu Partner de Negocio.',
+    texto1: 'No esperamos que nos digas qué hacer: somos proactivos y te decimos cuál creemos que es el mejor camino. No solo ejecutamos — evaluamos y determinamos si una acción es o no la más conveniente para tu negocio, incluso cuando esa respuesta no sea la que esperabas. Esa transparencia es parte de nuestro profesionalismo.',
+    texto2: 'Trabajamos con empresas que ya tienen trayectoria, un negocio funcionando, un equipo detrás y presupuesto real para invertir en crecimiento.',
+    ctaText: 'Contactanos',
   },
   marcas: { items: 'Aura, Solden, Nimbus, Marca Ejemplo, Próximo cliente' },
   testimonios: {
-    quote: 'Tener producción, medios y tecnología en un mismo equipo nos ahorró meses de coordinación. Se nota que entienden el negocio, no solo la campaña.',
-    nombre: 'María Fernández',
-    rol: 'Marketing Manager, Marca Ejemplo',
-    flag: 'Ejemplo',
+    enabled: false,
+    items: [
+      {
+        quote: 'Tener producción, medios y tecnología en un mismo equipo nos ahorró meses de coordinación. Se nota que entienden el negocio, no solo la campaña.',
+        nombre: 'María Fernández',
+        rol: 'Marketing Manager, Marca Ejemplo',
+        flag: 'Ejemplo',
+      },
+    ],
   },
   blog: {
     heading: 'Lo que estamos pensando.',
@@ -134,7 +140,9 @@ const DEFAULT_CONTENT = {
       { key: 'rubro', label: 'Rubro del negocio', type: 'text', required: true, placeholder: 'Ej: indumentaria, gastronomía, salud' },
       { key: 'tamano', label: 'Tamaño de la empresa', type: 'select', required: true, options: '1 a 5 personas, 6 a 20 personas, 21 a 50 personas, 51 a 200 personas, Más de 200 personas' },
       { key: 'ganancias', label: 'Presupuesto para Marketing', type: 'select', required: true, options: '0 a 1.000 USD, 1.001 a 5.000 USD, 5.001 a 20.000 USD, 20.001 a 50.000 USD, Más de 50.000 USD' },
-      { key: 'mensaje', label: 'Mensaje', type: 'textarea', required: true, placeholder: 'Contanos sobre tu marca y qué necesitás' },
+      { key: 'facturacion', label: '¿Cuánto factura tu empresa por mes?', type: 'select', required: true, options: 'Menos de USD 10.000, USD 10.000 – 30.000, USD 30.000 – 100.000, USD 100.000 – 300.000, Más de USD 300.000, Prefiero conversarlo' },
+      { key: 'necesitan_mejorar', label: '¿Qué necesitan mejorar?', type: 'checkbox-group', required: false, options: 'Contenido y producción, Meta / Google Ads, Ventas, Medición y datos, Automatizaciones, Web / tecnología, Necesitamos ordenar todo' },
+      { key: 'mensaje', label: 'Contanos tu principal desafío hoy', type: 'textarea', required: true, placeholder: 'Contanos sobre tu marca y qué necesitás' },
     ],
   },
   menu: {
@@ -191,10 +199,19 @@ const DEFAULT_CONTENT = {
       previewFlag: 'Vista previa del formato — contenido de ejemplo',
     },
     tiles: [
-      { key: 'tile1', status: 'Cliente', category: 'Producción', title: 'NOBRAND', meta: 'Campaña Margen — 2026' },
-      { key: 'tile2', status: 'Ejemplo', category: 'Estrategia', title: 'Marca Ejemplo 02', meta: 'Campaña de lanzamiento — 2026' },
-      { key: 'tile3', status: 'Ejemplo', category: 'Tecnología', title: 'Marca Ejemplo 03', meta: 'Automatización &amp; medición — 2026' },
+      { key: 'tile1', status: 'Cliente', category: 'Producción', title: 'NOBRAND', meta: 'Campaña Margen — 2026', logo: { url: '', posX: 50, posY: 50 } },
+      { key: 'tile2', status: 'Ejemplo', category: 'Estrategia', title: 'Marca Ejemplo 02', meta: 'Campaña de lanzamiento — 2026', logo: { url: '', posX: 50, posY: 50 } },
+      { key: 'tile3', status: 'Ejemplo', category: 'Tecnología', title: 'Marca Ejemplo 03', meta: 'Automatización &amp; medición — 2026', logo: { url: '', posX: 50, posY: 50 } },
     ],
+    respaldo: {
+      eyebrow: 'Tres especialidades. Un mismo equipo.',
+      heading: 'Producción audiovisual + Performance/Data + Automatización/IA.',
+      flagLabel: 'Experiencia que nos respalda',
+      logos: [],
+    },
+    // Each caso is tagged with `tipo` so the portfolio page can group them
+    // into the 3 fixed business-type blocks (ecommerce / marcas-servicios /
+    // eventos-experiencias) instead of one flat "otros casos" grid.
     casos: [],
     cta: {
       eyebrow: '¿Hablamos?',
@@ -392,6 +409,7 @@ const CONTENT_PATHS = {
   'portfolio-cms.general': [
     { path: 'portfolio.hero', type: 'object' },
     { path: 'portfolio.tiles', type: 'array' },
+    { path: 'portfolio.respaldo', type: 'object' },
     { path: 'portfolio.cta', type: 'object' },
   ],
   'portfolio-cms.new': [{ path: 'portfolio.casos', type: 'array' }],

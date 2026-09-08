@@ -252,6 +252,10 @@
   .v-btn .icon-off{ display:none; }
   .video-frame.is-muted .v-mute .icon-on{ display:none; }
   .video-frame.is-muted .v-mute .icon-off{ display:block; }
+  .tile-logo{
+    position:absolute; top:14px; left:14px; z-index:3; height:30px; max-width:120px;
+    object-fit:contain; background:rgba(255,255,255,.92); border-radius:8px; padding:5px 8px;
+  }
   .v-play{
     position:absolute; inset:0; z-index:2; display:flex; align-items:center; justify-content:center;
     background:rgba(10,4,20,.3); border:none; cursor:pointer; padding:0;
@@ -360,6 +364,16 @@
   .video-showcase-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(20px,3vw,28px); }
   .video-tile{ display:block; text-decoration:none; color:inherit; }
 
+  .respaldo-section{ padding:clamp(56px,8vh,88px) 0 0; text-align:center; }
+  .respaldo-logos{
+    display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:clamp(24px,4vw,48px);
+    margin:0 0 clamp(48px,7vh,72px);
+  }
+  .respaldo-logos img{ height:36px; max-width:140px; object-fit:contain; opacity:.85; }
+  .respaldo-concept h2{ font-size:clamp(1.8rem,3.6vw,2.6rem); max-width:60ch; margin:10px auto 0; }
+  .casos-section{ padding:clamp(56px,8vh,88px) 0; }
+  .casos-tipo-block{ margin-bottom:clamp(48px,7vh,72px); }
+  .casos-tipo-block:last-child{ margin-bottom:0; }
   .casos-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:24px; }
   .caso-card{
     display:flex; flex-direction:column; text-decoration:none; color:inherit;
@@ -522,8 +536,9 @@
   <section class="highlights">
     <div class="section-inner">
       <div class="work-grid">
-        <a class="work-tile has-video reveal" href="nobrand.html">
+        <div class="work-tile has-video reveal">
           <div class="video-frame" data-video>
+            <img class="tile-logo" id="cms-port-tile1-logo" alt="" style="display:none;">
             <video src="https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/trailer-vertical.mp4" muted loop playsinline preload="metadata"></video>
             <div class="video-controls">
               <button class="v-btn v-mute" type="button" aria-label="Activar sonido">
@@ -543,7 +558,7 @@
               <div class="wt-meta" id="cms-port-tile1-meta">Campaña Margen — 2026</div>
             </div>
           </div>
-        </a>
+        </div>
         <div class="work-tile reveal">
           <span class="wt-status" id="cms-port-tile2-status">Ejemplo</span>
           <div>
@@ -788,13 +803,37 @@
     </div>
   </section>
 
+  <section class="respaldo-section" id="respaldoSection" style="display:none;">
+    <div class="section-inner">
+      <p class="eyebrow-badge reveal" id="cms-port-respaldo-flag">Experiencia que nos respalda</p>
+      <div class="respaldo-logos" id="respaldoLogos"></div>
+      <div class="respaldo-concept reveal">
+        <p class="eyebrow" id="cms-port-respaldo-eyebrow">Tres especialidades. Un mismo equipo.</p>
+        <h2 id="cms-port-respaldo-heading">Producción audiovisual + Performance/Data + Automatización/IA.</h2>
+      </div>
+    </div>
+  </section>
+
   <section class="casos-section" id="casosSection" style="display:none;">
     <div class="section-inner">
-      <div class="section-head reveal">
-        <p class="eyebrow-badge">Más clientes</p>
-        <h2>Otros trabajos que hicimos.</h2>
+      <div class="casos-tipo-block" id="casosBlock-ecommerce" style="display:none;">
+        <div class="section-head reveal">
+          <p class="eyebrow-badge">Ecommerce</p>
+        </div>
+        <div class="casos-grid" id="casosGrid-ecommerce"></div>
       </div>
-      <div class="casos-grid" id="casosGrid"></div>
+      <div class="casos-tipo-block" id="casosBlock-marcas-servicios" style="display:none;">
+        <div class="section-head reveal">
+          <p class="eyebrow-badge">Marcas &amp; Servicios</p>
+        </div>
+        <div class="casos-grid" id="casosGrid-marcas-servicios"></div>
+      </div>
+      <div class="casos-tipo-block" id="casosBlock-eventos-experiencias" style="display:none;">
+        <div class="section-head reveal">
+          <p class="eyebrow-badge">Eventos &amp; Experiencias</p>
+        </div>
+        <div class="casos-grid" id="casosGrid-eventos-experiencias"></div>
+      </div>
     </div>
   </section>
 
@@ -912,49 +951,78 @@
         setHtml('cms-port-' + tile.key + '-category', tile.category);
         setHtml('cms-port-' + tile.key + '-title', tile.title);
         setHtml('cms-port-' + tile.key + '-meta', tile.meta);
+        var logoImg = document.getElementById('cms-port-' + tile.key + '-logo');
+        if (logoImg && tile.logo && tile.logo.url) { logoImg.src = tile.logo.url; logoImg.style.display = ''; }
       });
+
+      if (p.respaldo && p.respaldo.logos && p.respaldo.logos.length) {
+        setText('cms-port-respaldo-flag', p.respaldo.flagLabel);
+        setHtml('cms-port-respaldo-eyebrow', p.respaldo.eyebrow);
+        setHtml('cms-port-respaldo-heading', p.respaldo.heading);
+        var logosWrap = document.getElementById('respaldoLogos');
+        p.respaldo.logos.forEach(function(logo){
+          if (!logo || !logo.url) return;
+          var img = document.createElement('img');
+          img.src = logo.url; img.alt = '';
+          logosWrap.appendChild(img);
+        });
+        document.getElementById('respaldoSection').style.display = 'block';
+      }
       if (p.cta) {
         setHtml('cms-port-cta-eyebrow', p.cta.eyebrow);
         setHtml('cms-port-cta-heading', p.cta.heading);
         setHtml('cms-port-cta-texto', p.cta.texto);
       }
 
+      function buildCasoCard(caso){
+        var card = document.createElement('a');
+        card.className = 'caso-card reveal';
+        card.href = 'caso.html?s=' + encodeURIComponent(caso.slug || '');
+
+        if (caso.cover && caso.cover.url) {
+          var pos = (caso.cover.posX != null ? caso.cover.posX : 50) + '% ' + (caso.cover.posY != null ? caso.cover.posY : 50) + '%';
+          var coverWrap = document.createElement('div');
+          coverWrap.className = 'caso-card-cover';
+          var mediaEl = document.createElement(caso.template === 'video' ? 'video' : 'img');
+          mediaEl.src = caso.cover.url;
+          mediaEl.style.objectPosition = pos;
+          if (caso.template === 'video') { mediaEl.muted = true; mediaEl.loop = true; mediaEl.playsInline = true; mediaEl.autoplay = true; }
+          else mediaEl.alt = '';
+          coverWrap.appendChild(mediaEl);
+          card.appendChild(coverWrap);
+        }
+
+        var body = document.createElement('div');
+        body.className = 'caso-card-body';
+        var tag = document.createElement('span'); tag.className = 'eyebrow'; tag.textContent = caso.categoria || '';
+        var h3 = document.createElement('h3'); h3.innerHTML = caso.cliente || '';
+        var resumen = document.createElement('p'); resumen.innerHTML = caso.resumen || '';
+        var link = document.createElement('span'); link.className = 'arrow-link';
+        link.innerHTML = 'Ver caso <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg>';
+        body.appendChild(tag); body.appendChild(h3); body.appendChild(resumen); body.appendChild(link);
+        card.appendChild(body);
+        return card;
+      }
+
+      // Cases are grouped into 3 fixed business-type blocks instead of one
+      // flat "otros casos" grid — a block only appears once it has at least
+      // one caso tagged with that tipo.
+      var TIPOS_NEGOCIO = ['ecommerce', 'marcas-servicios', 'eventos-experiencias'];
       var casos = p.casos || [];
-      if (casos.length) {
-        var casosGrid = document.getElementById('casosGrid');
-        casos.forEach(function(caso){
-          var card = document.createElement('a');
-          card.className = 'caso-card reveal';
-          card.href = 'caso.html?s=' + encodeURIComponent(caso.slug || '');
-
-          if (caso.cover && caso.cover.url) {
-            var pos = (caso.cover.posX != null ? caso.cover.posX : 50) + '% ' + (caso.cover.posY != null ? caso.cover.posY : 50) + '%';
-            var coverWrap = document.createElement('div');
-            coverWrap.className = 'caso-card-cover';
-            var mediaEl = document.createElement(caso.template === 'video' ? 'video' : 'img');
-            mediaEl.src = caso.cover.url;
-            mediaEl.style.objectPosition = pos;
-            if (caso.template === 'video') { mediaEl.muted = true; mediaEl.loop = true; mediaEl.playsInline = true; mediaEl.autoplay = true; }
-            else mediaEl.alt = '';
-            coverWrap.appendChild(mediaEl);
-            card.appendChild(coverWrap);
-          }
-
-          var body = document.createElement('div');
-          body.className = 'caso-card-body';
-          var tag = document.createElement('span'); tag.className = 'eyebrow'; tag.textContent = caso.categoria || '';
-          var h3 = document.createElement('h3'); h3.innerHTML = caso.cliente || '';
-          var resumen = document.createElement('p'); resumen.innerHTML = caso.resumen || '';
-          var link = document.createElement('span'); link.className = 'arrow-link';
-          link.innerHTML = 'Ver caso <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg>';
-          body.appendChild(tag); body.appendChild(h3); body.appendChild(resumen); body.appendChild(link);
-          card.appendChild(body);
-
-          casosGrid.appendChild(card);
+      var anyTipoShown = false;
+      TIPOS_NEGOCIO.forEach(function(tipo){
+        var grouped = casos.filter(function(c){ return (c.tipo || TIPOS_NEGOCIO[0]) === tipo; });
+        if (!grouped.length) return;
+        anyTipoShown = true;
+        var grid = document.getElementById('casosGrid-' + tipo);
+        grouped.forEach(function(caso){
+          var card = buildCasoCard(caso);
+          grid.appendChild(card);
           io.observe(card);
         });
-        document.getElementById('casosSection').style.display = 'block';
-      }
+        document.getElementById('casosBlock-' + tipo).style.display = 'block';
+      });
+      if (anyTipoShown) document.getElementById('casosSection').style.display = 'block';
     }
   }).catch(function(){});
 

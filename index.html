@@ -279,13 +279,33 @@
   .v-btn .icon-off{ display:none; }
   .video-frame.is-muted .v-mute .icon-on{ display:none; }
   .video-frame.is-muted .v-mute .icon-off{ display:block; }
+  .tile-logo{
+    position:absolute; top:14px; left:14px; z-index:3; height:30px; max-width:120px;
+    object-fit:contain; background:rgba(255,255,255,.92); border-radius:8px; padding:5px 8px;
+  }
 
   /* ---- lo que nos hace diferentes ---- */
   .different{ background:var(--paper-dim); padding:clamp(72px,10vh,120px) 0; border-bottom:1px solid var(--line); }
   .different-grid{ display:grid; grid-template-columns:1fr .8fr; gap:clamp(32px,5vw,56px); align-items:center; }
   .different-copy h2{ font-size:clamp(2rem,4.2vw,3rem); margin-bottom:18px; }
   .different-copy p{ font-size:1.05rem; line-height:1.65; color:var(--ink-soft); max-width:52ch; }
-  .different-video .video-frame{ aspect-ratio:9/16; max-width:300px; margin:28px 0 0; box-shadow:var(--shadow); }
+  .invertir-block{ margin-top:26px; padding-top:22px; border-top:1px solid var(--line); }
+  .invertir-block p{ font-size:1.05rem; line-height:1.65; color:var(--ink-soft); max-width:52ch; margin-bottom:16px; }
+
+  .fran-card{
+    background:var(--paper-flat); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:clamp(24px,3vw,32px); max-width:360px;
+    display:flex; flex-direction:column; gap:18px; align-items:center; text-align:center;
+  }
+  .fran-photo{ width:112px; height:112px; border-radius:50%; object-fit:cover; }
+  .fran-stats{ display:flex; flex-direction:column; gap:10px; }
+  .fran-stat{ font-family:'Big Shoulders Display',sans-serif; font-weight:800; font-size:clamp(1.3rem,2.6vw,1.7rem); color:var(--v-500); }
+  .fran-cta{
+    display:inline-flex; align-items:center; justify-content:center; text-decoration:none; width:100%;
+    background:var(--gradient-vivid); color:#fff; font-family:'IBM Plex Mono',monospace;
+    font-weight:600; font-size:.82rem; letter-spacing:.06em; text-transform:uppercase;
+    padding:14px 20px; border-radius:var(--radius-pill);
+  }
 
   /* ---- stats ---- */
   .stats{ padding:clamp(56px,8vh,88px) 0 clamp(72px,9vh,104px); text-align:center; }
@@ -295,45 +315,13 @@
   .stat-label{ margin-top:4px; font-size:.86rem; color:var(--ink-soft); }
   .stats .example-flag{ margin-top:32px; }
 
-  /* ---- qué hacemos (columnas con motion graphic) ---- */
+  /* ---- partner de negocio (antes "qué hacemos") ---- */
   .what{ background:var(--paper-dim); padding:clamp(72px,10vh,120px) 0; }
-  .what h2{ color:var(--v-500); font-size:clamp(2.2rem,5vw,3.6rem); margin-bottom:clamp(28px,4vw,44px); text-align:center; }
-  .what-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(20px,3vw,32px); }
-  .what-card{
-    background:var(--paper-flat); border:1px solid var(--line); border-radius:var(--radius);
-    padding:clamp(28px,3vw,36px) clamp(24px,2.6vw,30px); box-shadow:var(--shadow);
-    display:flex; flex-direction:column; gap:14px;
-  }
-  .what-icon{ width:64px; height:64px; color:var(--v-500); }
-  .what-icon svg{ width:100%; height:100%; overflow:visible; }
-  .what-card h3{
-    font-family:'Big Shoulders Display',sans-serif; font-weight:800; text-transform:uppercase;
-    font-size:clamp(1.15rem,2.2vw,1.4rem); letter-spacing:0; color:var(--ink);
-  }
-  .what-card p{ color:var(--ink-soft); line-height:1.6; font-size:.94rem; }
-  .what-card .accordion-tags{ margin-top:auto; padding-top:4px; }
-
-  @keyframes iconPulseScale{ 0%,100%{ transform:scale(1); opacity:1; } 50%{ transform:scale(1.16); opacity:.72; } }
-  .icon-produccion .pulse{ transform-origin:32px 32px; animation:iconPulseScale 2.4s ease-in-out infinite; }
-
-  @keyframes iconBarGrow{ 0%,100%{ transform:scaleY(.55); } 50%{ transform:scaleY(1); } }
-  .icon-estrategia .bar{ transform-box:fill-box; transform-origin:bottom; animation:iconBarGrow 1.8s ease-in-out infinite; }
-  .icon-estrategia .bar1{ animation-delay:0s; }
-  .icon-estrategia .bar2{ animation-delay:.25s; }
-  .icon-estrategia .bar3{ animation-delay:.5s; }
-
-  @keyframes iconGearSpin{ to{ transform:rotate(360deg); } }
-  .icon-tecnologia .gear{ transform-origin:32px 32px; animation:iconGearSpin 9s linear infinite; }
-  @media (prefers-reduced-motion: reduce){
-    .icon-produccion .pulse, .icon-estrategia .bar, .icon-tecnologia .gear{ animation:none; }
-  }
-  .accordion-body{ padding:0 4px 26px; max-width:70ch; }
-  .accordion-body p{ color:var(--ink-soft); line-height:1.65; margin-bottom:14px; }
-  .accordion-tags{ display:flex; flex-wrap:wrap; gap:8px 10px; }
-  .accordion-tags span{
-    font-family:'IBM Plex Mono',monospace; font-size:.68rem; letter-spacing:.05em; text-transform:uppercase;
-    padding:6px 12px; border:1px solid var(--line-strong); border-radius:var(--radius-pill); color:var(--ink-soft);
-  }
+  .what.is-off{ display:none; }
+  .what .section-head{ text-align:center; margin-bottom:clamp(28px,4vw,40px); }
+  .what h2{ color:var(--v-500); font-size:clamp(2.2rem,5vw,3.6rem); }
+  .what-copy{ max-width:68ch; margin:0 auto; text-align:center; display:flex; flex-direction:column; gap:16px; align-items:center; }
+  .what-copy p{ color:var(--ink-soft); line-height:1.65; font-size:1.05rem; }
 
   /* ---- banner de marcas ---- */
   .brands-band{ padding:clamp(28px,4vw,40px) 0; background:var(--gradient-vivid); }
@@ -345,7 +333,15 @@
 
   /* ---- testimonios ---- */
   .testimonials{ padding:clamp(72px,10vh,120px) 0; }
+  .testimonials.is-off{ display:none; }
+  .testimonial-carousel{ position:relative; }
   .testimonial-grid{ display:grid; grid-template-columns:.7fr 1.3fr; gap:clamp(32px,5vw,56px); align-items:center; }
+  .testi-nav{ display:flex; gap:12px; justify-content:center; margin-top:28px; }
+  .testi-arrow{
+    width:40px; height:40px; border-radius:50%; border:1px solid var(--line-strong); background:var(--paper-flat);
+    color:var(--ink); font-size:1.3rem; line-height:1; cursor:pointer; transition:background .2s ease;
+  }
+  .testi-arrow:hover{ background:var(--paper-dim); }
   .testi-avatar{
     width:76px; height:76px; border-radius:50%; background:var(--gradient-vivid);
     display:flex; align-items:center; justify-content:center; color:#fff; font-family:'Big Shoulders Display',sans-serif; font-weight:800; font-size:1.6rem;
@@ -416,6 +412,15 @@
   }
   .field select option{ background:var(--v-900); color:#FFFFFF; }
   .field select:invalid{ color:rgba(255,255,255,.42); }
+
+  .checkbox-group{ display:flex; flex-wrap:wrap; gap:10px; }
+  .checkbox-group.field-invalid{ outline:1px solid #3B1A78; border-radius:var(--radius-pill); padding:6px; }
+  .checkbox-option{
+    display:flex !important; align-items:center; gap:8px; width:auto; margin:0;
+    border:1px solid rgba(255,255,255,.35); border-radius:var(--radius-pill); padding:8px 14px;
+    font-family:'Work Sans',sans-serif; font-size:.88rem; color:rgba(255,255,255,.85); cursor:pointer;
+  }
+  .checkbox-option input{ width:auto; accent-color:#fff; }
 
   .submit-btn{
     display:inline-flex; align-items:center; gap:10px; margin-top:8px;
@@ -497,9 +502,8 @@
     .hero-copy{ padding-top:112px; order:1; }
     .hero-media{ order:2; min-height:340px; }
     .work-grid{ grid-template-columns:1fr; }
-    .what-grid{ grid-template-columns:1fr; }
     .different-grid{ grid-template-columns:1fr; }
-    .different-video .video-frame{ margin-inline:auto; }
+    .fran-card{ margin-inline:auto; }
     .stats-grid{ grid-template-columns:repeat(2,1fr); row-gap:32px; }
     .testimonial-grid{ grid-template-columns:1fr; }
     .contact-grid{ grid-template-columns:1fr; }
@@ -633,19 +637,19 @@
           Conocé al equipo
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg>
         </a>
+        <div class="invertir-block reveal">
+          <p id="cms-dif-invertir-texto">Nuestro foco está en marcas o empresas con capacidad de invertir entre USD 3.000 y 20.000 en medios. ¿Tu empresa está en esta etapa?</p>
+          <a href="#contacto" class="btn-primary" id="cms-dif-invertir-cta">Hablemos →</a>
+        </div>
       </div>
       <div class="different-video reveal">
-        <div class="video-frame" data-video>
-          <video id="cms-dif-video" src="/media/nobrand/backstage-margen.mp4" muted loop playsinline preload="metadata"></video>
-          <div class="video-controls">
-            <button class="v-btn v-mute" type="button" aria-label="Activar sonido">
-              <svg class="icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-              <svg class="icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
-            </button>
-            <button class="v-btn v-expand" type="button" aria-label="Ampliar video">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
-            </button>
+        <div class="fran-card reveal" id="cms-fran-card">
+          <img class="fran-photo" id="cms-fran-photo" alt="" style="display:none;">
+          <div class="fran-stats">
+            <div class="fran-stat" data-fran-stat id="cms-fran-stat-1"></div>
+            <div class="fran-stat" data-fran-stat id="cms-fran-stat-2"></div>
           </div>
+          <a href="#contacto" class="fran-cta" id="cms-fran-cta">Quiero escalar mi negocio</a>
         </div>
       </div>
     </div>
@@ -683,62 +687,14 @@
 
   <section id="servicios" class="what">
     <div class="section-inner">
-      <h2>Qué hacemos</h2>
-
-      <div class="what-grid">
-        <div class="what-card reveal">
-          <div class="what-icon icon-produccion">
-            <svg viewBox="0 0 64 64" fill="none">
-              <circle cx="32" cy="32" r="27" stroke="currentColor" stroke-width="2"/>
-              <polygon class="pulse" points="26,20 26,44 46,32" fill="currentColor"/>
-            </svg>
-          </div>
-          <h3 id="cms-qh-title-0">Producción &amp; contenido</h3>
-          <p id="cms-qh-texto-0">Fotografía y video con mirada de marca, dirección de arte y gestión integral de redes sociales — contenido pensado para cada plataforma, no adaptado después.</p>
-          <div class="accordion-tags" id="cms-qh-tags-0">
-            <span>Fotografía</span><span>Video</span><span>Redes sociales</span><span>Dirección de arte</span>
-          </div>
-        </div>
-
-        <div class="what-card reveal">
-          <div class="what-icon icon-estrategia">
-            <svg viewBox="0 0 64 64" fill="none">
-              <circle cx="32" cy="32" r="27" stroke="currentColor" stroke-width="2"/>
-              <rect class="bar bar1" x="20" y="34" width="6" height="12" rx="1" fill="currentColor"/>
-              <rect class="bar bar2" x="29" y="26" width="6" height="20" rx="1" fill="currentColor"/>
-              <rect class="bar bar3" x="38" y="19" width="6" height="27" rx="1" fill="currentColor"/>
-            </svg>
-          </div>
-          <h3 id="cms-qh-title-1">Estrategia &amp; medios</h3>
-          <p id="cms-qh-texto-1">Planes de medios, campañas publicitarias y acciones comerciales diseñadas para mover un número de negocio concreto, no solo métricas de vanidad.</p>
-          <div class="accordion-tags" id="cms-qh-tags-1">
-            <span>Planificación de medios</span><span>Campañas</span><span>Estrategia de marca</span><span>Acciones comerciales</span>
-          </div>
-        </div>
-
-        <div class="what-card reveal">
-          <div class="what-icon icon-tecnologia">
-            <svg viewBox="0 0 64 64" fill="none">
-              <circle cx="32" cy="32" r="27" stroke="currentColor" stroke-width="2"/>
-              <g class="gear">
-                <circle cx="32" cy="32" r="9" stroke="currentColor" stroke-width="2"/>
-                <rect x="29" y="12" width="6" height="8" rx="1" fill="currentColor"/>
-                <rect x="29" y="44" width="6" height="8" rx="1" fill="currentColor"/>
-                <rect x="12" y="29" width="8" height="6" rx="1" fill="currentColor"/>
-                <rect x="44" y="29" width="8" height="6" rx="1" fill="currentColor"/>
-                <rect x="17" y="17" width="7" height="6" rx="1" fill="currentColor" transform="rotate(45 20.5 20)"/>
-                <rect x="40" y="17" width="7" height="6" rx="1" fill="currentColor" transform="rotate(-45 43.5 20)"/>
-                <rect x="17" y="41" width="7" height="6" rx="1" fill="currentColor" transform="rotate(-45 20.5 44)"/>
-                <rect x="40" y="41" width="7" height="6" rx="1" fill="currentColor" transform="rotate(45 43.5 44)"/>
-              </g>
-            </svg>
-          </div>
-          <h3 id="cms-qh-title-2">Tecnología &amp; automatización</h3>
-          <p id="cms-qh-texto-2">Automatización de procesos, inteligencia artificial aplicada a imagen, contenido y reportes, medición con Google Tag Manager y Analytics, y desarrollo web y de apps a medida.</p>
-          <div class="accordion-tags" id="cms-qh-tags-2">
-            <span>Automatización</span><span>IA aplicada</span><span>GTM &amp; Analytics</span><span>Desarrollo web &amp; apps</span>
-          </div>
-        </div>
+      <div class="section-head reveal">
+        <p class="eyebrow" id="cms-qh-eyebrow">¿Agencia o partner?</p>
+        <h2 id="cms-qh-heading">No somos una agencia de Marketing. Somos tu Partner de Negocio.</h2>
+      </div>
+      <div class="what-copy reveal">
+        <p id="cms-qh-texto1">No esperamos que nos digas qué hacer: somos proactivos y te decimos cuál creemos que es el mejor camino. No solo ejecutamos — evaluamos y determinamos si una acción es o no la más conveniente para tu negocio, incluso cuando esa respuesta no sea la que esperabas. Esa transparencia es parte de nuestro profesionalismo.</p>
+        <p id="cms-qh-texto2">Trabajamos con empresas que ya tienen trayectoria, un negocio funcionando, un equipo detrás y presupuesto real para invertir en crecimiento.</p>
+        <a href="#contacto" class="btn-primary" id="cms-qh-cta">Contactanos →</a>
       </div>
     </div>
   </section>
@@ -751,20 +707,26 @@
     </div>
   </section>
 
-  <section class="testimonials">
+  <section class="testimonials" id="cms-testimonials-section">
     <div class="section-inner">
       <div class="section-head reveal">
         <p class="eyebrow">Clientes</p>
         <h2>Qué dicen de nosotros.</h2>
       </div>
-      <div class="testimonial-grid reveal">
-        <div>
-          <div class="testi-avatar" id="cms-testi-avatar">MF</div>
-          <div class="testi-name" id="cms-testi-name">María Fernández</div>
-          <div class="testi-role" id="cms-testi-role">Marketing Manager, Marca Ejemplo</div>
-          <span class="example-flag" id="cms-testi-flag">Ejemplo</span>
+      <div class="testimonial-carousel reveal">
+        <div class="testimonial-grid" id="cms-testi-grid">
+          <div>
+            <div class="testi-avatar" id="cms-testi-avatar"></div>
+            <div class="testi-name" id="cms-testi-name"></div>
+            <div class="testi-role" id="cms-testi-role"></div>
+            <span class="example-flag" id="cms-testi-flag"></span>
+          </div>
+          <p class="testi-quote" id="cms-testi-quote"></p>
         </div>
-        <p class="testi-quote" id="cms-testi-quote">"Tener producción, medios y tecnología en un mismo equipo nos ahorró meses de coordinación. Se nota que entienden el negocio, no solo la campaña."</p>
+        <div class="testi-nav" id="cms-testi-nav" style="display:none;">
+          <button type="button" class="testi-arrow" id="cms-testi-prev" aria-label="Testimonio anterior">‹</button>
+          <button type="button" class="testi-arrow" id="cms-testi-next" aria-label="Testimonio siguiente">›</button>
+        </div>
       </div>
     </div>
   </section>
@@ -934,6 +896,7 @@
     var data = {};
     var firstInvalid = null;
     inputs.forEach(function(field){
+      if (field.type === 'checkbox') return; // checkbox-group fields are collected separately below
       var value = field.value.trim();
       data[field.name] = value;
       if (field.hasAttribute('required') && !value) {
@@ -941,6 +904,17 @@
         firstInvalid = firstInvalid || field;
       } else {
         field.classList.remove('field-invalid');
+      }
+    });
+    Array.prototype.slice.call(contactFields.querySelectorAll('.checkbox-group')).forEach(function(group){
+      var name = group.getAttribute('data-field-name');
+      var checked = Array.prototype.slice.call(group.querySelectorAll('input:checked')).map(function(cb){ return cb.value; });
+      data[name] = checked.join(', ');
+      if (group.getAttribute('data-required') === '1' && !checked.length) {
+        group.classList.add('field-invalid');
+        firstInvalid = firstInvalid || group.querySelector('input');
+      } else {
+        group.classList.remove('field-invalid');
       }
     });
     if (firstInvalid) {
@@ -1073,13 +1047,15 @@
       grid.innerHTML = '';
       tiles.forEach(function(tile){
         var hasVideo = tile.video && tile.video.url;
-        var el = document.createElement(hasVideo ? 'a' : 'div');
+        var el = document.createElement('div');
         el.className = 'work-tile reveal' + (hasVideo ? ' has-video' : '');
-        if (hasVideo) el.href = tile.link || '#';
 
         if (hasVideo) {
           el.innerHTML =
-            '<div class="video-frame" data-video><video muted loop playsinline preload="metadata"></video>' + VIDEO_CONTROLS_HTML + '</div>' +
+            '<div class="video-frame" data-video>' +
+              (tile.logo && tile.logo.url ? '<img class="tile-logo" alt="">' : '') +
+              '<video muted loop playsinline preload="metadata"></video>' + VIDEO_CONTROLS_HTML +
+            '</div>' +
             '<div class="tile-overlay">' +
               '<span class="wt-status"></span>' +
               '<div><span class="eyebrow" style="color:rgba(255,255,255,.7)"></span><div class="wt-title"></div></div>' +
@@ -1088,6 +1064,8 @@
           el.querySelector('.eyebrow').textContent = tile.category || '';
           el.querySelector('.wt-title').textContent = tile.title || '';
           setMedia(el.querySelector('video'), tile.video);
+          var logoImg = el.querySelector('.tile-logo');
+          if (logoImg) logoImg.src = tile.logo.url;
           wireVideoFrame(el.querySelector('.video-frame'));
         } else {
           var eyebrow = document.createElement('span'); eyebrow.className = 'eyebrow'; eyebrow.textContent = tile.category || '';
@@ -1099,6 +1077,98 @@
         io.observe(el);
       });
     }
+
+    // ---- "diferenciales" right-side card: photo + two stats that count up
+    // once, the first time the card scrolls into view ----
+    function renderFranStat(id, text){
+      var el = document.getElementById(id);
+      if (!el || !text) return;
+      var match = String(text).match(/^(.*?)(\d+(?:[.,]\d+)?)(.*)$/);
+      if (!match) { el.textContent = text; return; }
+      el.setAttribute('data-fran-prefix', match[1]);
+      el.setAttribute('data-fran-target', match[2].replace(',', '.'));
+      el.setAttribute('data-fran-suffix', match[3]);
+      el.textContent = match[1] + '0' + match[3];
+    }
+    function animateFranStat(el){
+      var targetStr = el.getAttribute('data-fran-target');
+      var target = parseFloat(targetStr);
+      if (!targetStr || isNaN(target)) return;
+      var prefix = el.getAttribute('data-fran-prefix') || '';
+      var suffix = el.getAttribute('data-fran-suffix') || '';
+      var isInt = targetStr.indexOf('.') === -1;
+      var duration = 1200, start = null;
+      function step(ts){
+        if (!start) start = ts;
+        var progress = Math.min((ts - start) / duration, 1);
+        var current = target * progress;
+        el.textContent = prefix + (isInt ? Math.round(current) : current.toFixed(1)) + suffix;
+        if (progress < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+    var franStatsAnimated = false;
+    var franStatsObserver = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if (entry.isIntersecting && !franStatsAnimated) {
+          franStatsAnimated = true;
+          document.querySelectorAll('[data-fran-stat]').forEach(animateFranStat);
+          franStatsObserver.disconnect();
+        }
+      });
+    }, { threshold: .4 });
+    function setupFranCard(franCard){
+      var card = document.getElementById('cms-fran-card');
+      var photo = document.getElementById('cms-fran-photo');
+      if (photo && franCard.photo && franCard.photo.url) {
+        setMedia(photo, franCard.photo);
+        photo.style.display = '';
+      }
+      var cta = document.getElementById('cms-fran-cta');
+      if (cta && franCard.ctaText) cta.textContent = franCard.ctaText;
+      renderFranStat('cms-fran-stat-1', franCard.statLine1);
+      renderFranStat('cms-fran-stat-2', franCard.statLine2);
+      if (card) franStatsObserver.observe(card);
+    }
+
+    // ---- testimonials carousel: one item shown at a time, arrows + autoplay
+    // when there's more than one ----
+    var testiState = { items: [], index: 0, timer: null };
+    function renderTestiCurrent(){
+      var item = testiState.items[testiState.index];
+      if (!item) return;
+      setHtml('cms-testi-name', item.nombre);
+      setHtml('cms-testi-role', item.rol);
+      setText('cms-testi-flag', item.flag);
+      var q = document.getElementById('cms-testi-quote');
+      if (q) q.innerHTML = item.quote ? ('"' + item.quote + '"') : '';
+      var avatar = document.getElementById('cms-testi-avatar');
+      if (avatar) {
+        var plainName = document.createElement('div'); plainName.innerHTML = item.nombre || '';
+        avatar.textContent = (plainName.textContent || '').trim().split(/\s+/).slice(0, 2).map(function(w){ return w[0]; }).join('').toUpperCase();
+      }
+    }
+    function stepTesti(dir){
+      if (!testiState.items.length) return;
+      testiState.index = (testiState.index + dir + testiState.items.length) % testiState.items.length;
+      renderTestiCurrent();
+    }
+    function setupTestimonials(testimonios){
+      var section = document.getElementById('cms-testimonials-section');
+      if (section) section.classList.toggle('is-off', testimonios.enabled === false);
+      if (testiState.timer) { clearInterval(testiState.timer); testiState.timer = null; }
+      if (testimonios.enabled === false) return;
+      testiState.items = testimonios.items || [];
+      testiState.index = 0;
+      renderTestiCurrent();
+      var nav = document.getElementById('cms-testi-nav');
+      if (nav) nav.style.display = testiState.items.length > 1 ? 'flex' : 'none';
+      if (testiState.items.length > 1) testiState.timer = setInterval(function(){ stepTesti(1); }, 7000);
+    }
+    var testiPrevBtn = document.getElementById('cms-testi-prev');
+    var testiNextBtn = document.getElementById('cms-testi-next');
+    if (testiPrevBtn) testiPrevBtn.addEventListener('click', function(){ stepTesti(-1); });
+    if (testiNextBtn) testiNextBtn.addEventListener('click', function(){ stepTesti(1); });
 
     function renderBlogArticles(articles, limit){
       var grid = document.getElementById('cms-blog-articles');
@@ -1173,7 +1243,12 @@
       setHtml('cms-dif-eyebrow', c.diferenciales.eyebrow);
       setHtml('cms-dif-heading', c.diferenciales.heading);
       setHtml('cms-dif-texto', c.diferenciales.texto);
-      setMedia(document.getElementById('cms-dif-video'), c.diferenciales.video);
+      if (c.diferenciales.invertir) {
+        setHtml('cms-dif-invertir-texto', c.diferenciales.invertir.texto);
+        var invertirCta = document.getElementById('cms-dif-invertir-cta');
+        if (invertirCta && c.diferenciales.invertir.ctaText) invertirCta.textContent = c.diferenciales.invertir.ctaText + ' →';
+      }
+      if (c.diferenciales.franCard) setupFranCard(c.diferenciales.franCard);
     }
     if (c.stats) {
       var statsGrid = document.getElementById('cms-stats-grid');
@@ -1194,25 +1269,17 @@
       setHtml('cms-stats-flag', c.stats.flag);
     }
     if (c.quehacemos) {
-      (c.quehacemos.items || []).forEach(function(item, i){
-        setHtml('cms-qh-title-' + i, item.title);
-        setHtml('cms-qh-texto-' + i, item.texto);
-        setTags('cms-qh-tags-' + i, item.tags);
-      });
+      var qhSection = document.getElementById('servicios');
+      if (qhSection) qhSection.classList.toggle('is-off', c.quehacemos.enabled === false);
+      setHtml('cms-qh-eyebrow', c.quehacemos.eyebrow);
+      setHtml('cms-qh-heading', c.quehacemos.heading);
+      setHtml('cms-qh-texto1', c.quehacemos.texto1);
+      setHtml('cms-qh-texto2', c.quehacemos.texto2);
+      var qhCta = document.getElementById('cms-qh-cta');
+      if (qhCta && c.quehacemos.ctaText) qhCta.textContent = c.quehacemos.ctaText + ' →';
     }
     if (c.marcas) setTags('cms-brands-row', c.marcas.items);
-    if (c.testimonios) {
-      setHtml('cms-testi-name', c.testimonios.nombre);
-      setHtml('cms-testi-role', c.testimonios.rol);
-      setText('cms-testi-flag', c.testimonios.flag);
-      var q = document.getElementById('cms-testi-quote');
-      if (q && c.testimonios.quote) q.innerHTML = '"' + c.testimonios.quote + '"';
-      var avatar = document.getElementById('cms-testi-avatar');
-      if (avatar && c.testimonios.nombre) {
-        var plainName = document.createElement('div'); plainName.innerHTML = c.testimonios.nombre;
-        avatar.textContent = (plainName.textContent || '').trim().split(/\s+/).slice(0, 2).map(function(w){ return w[0]; }).join('').toUpperCase();
-      }
-    }
+    if (c.testimonios) setupTestimonials(c.testimonios);
     if (c.blog) {
       setHtml('cms-blog-heading', c.blog.heading);
       setHtml('cms-blog-texto', c.blog.texto);
@@ -1225,8 +1292,34 @@
         var fieldWrap = document.createElement('div');
         fieldWrap.className = 'field';
         var label = document.createElement('label');
-        label.setAttribute('for', f.key);
         label.textContent = f.label;
+
+        if (f.type === 'checkbox-group') {
+          fieldWrap.appendChild(label);
+          var group = document.createElement('div');
+          group.className = 'checkbox-group';
+          group.setAttribute('data-field-name', f.key);
+          group.setAttribute('data-required', f.required === true ? '1' : '0');
+          String(f.options || '').split(',').map(function(o){ return o.trim(); }).filter(Boolean).forEach(function(opt, oi){
+            var optLabel = document.createElement('label');
+            optLabel.className = 'checkbox-option';
+            var cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.name = f.key;
+            cb.value = opt;
+            cb.id = f.key + '_' + oi;
+            var span = document.createElement('span');
+            span.textContent = opt;
+            optLabel.appendChild(cb);
+            optLabel.appendChild(span);
+            group.appendChild(optLabel);
+          });
+          fieldWrap.appendChild(group);
+          fieldsContainer.appendChild(fieldWrap);
+          return;
+        }
+
+        label.setAttribute('for', f.key);
         fieldWrap.appendChild(label);
 
         var input;

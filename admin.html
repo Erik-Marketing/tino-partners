@@ -1187,23 +1187,13 @@
     ]},
     { key: 'proyectos', title: 'Nuestros proyectos', custom: 'proyectos' },
     { key: 'ticker', title: 'Cinta de palabras', custom: 'ticker' },
-    { key: 'diferenciales', title: 'Lo que nos hace diferentes', fields: [
-        { path: 'eyebrow', label: 'Etiqueta de la sección', type: 'text' },
-        { path: 'heading', label: 'Título', type: 'text' },
-        { path: 'texto', label: 'Párrafo', type: 'textarea' },
-        { path: 'video', label: 'Video', type: 'video' }
-    ]},
+    { key: 'diferenciales', title: 'Lo que nos hace diferentes', custom: 'diferenciales' },
     { key: 'stats', title: 'Números', custom: 'stats' },
-    { key: 'quehacemos', title: 'Qué hacemos', custom: 'quehacemos' },
+    { key: 'quehacemos', title: 'Partner de negocio', custom: 'quehacemos' },
     { key: 'marcas', title: 'Marcas', fields: [
         { path: 'items', label: 'Nombres separados por coma', type: 'text', plain: true }
     ]},
-    { key: 'testimonios', title: 'Testimonios', fields: [
-        { path: 'quote', label: 'Cita (sin comillas, se agregan solas)', type: 'textarea' },
-        { path: 'nombre', label: 'Nombre', type: 'text' },
-        { path: 'rol', label: 'Rol / cargo', type: 'text' },
-        { path: 'flag', label: 'Etiqueta (ej: "Ejemplo")', type: 'text' }
-    ]},
+    { key: 'testimonios', title: 'Testimonios', custom: 'testimonios' },
     { key: 'blog', title: 'Contenido interesante (blog)', custom: 'blog' },
     { key: 'footer', title: 'Datos de contacto', fields: [
         { path: 'email', label: 'Email', type: 'text', plain: true },
@@ -1702,18 +1692,111 @@
     return wrap;
   }
 
+  function renderToggleRow(labelText, getVal, setVal){
+    var toggleRow = document.createElement('label');
+    toggleRow.className = 'cms-toggle-row';
+    var toggleInput = document.createElement('input');
+    toggleInput.type = 'checkbox';
+    toggleInput.checked = getVal() !== false;
+    toggleInput.addEventListener('change', function(){ setVal(toggleInput.checked); });
+    var toggleLabel = document.createElement('span');
+    toggleLabel.textContent = labelText;
+    toggleRow.appendChild(toggleInput);
+    toggleRow.appendChild(toggleLabel);
+    return toggleRow;
+  }
+
   function renderQuehacemosSection(){
     var wrap = document.createElement('div');
     wrap.className = 'cms-fields';
-    (homeContent.quehacemos.items || []).forEach(function(item, i){
-      var group = document.createElement('div');
-      group.className = 'cms-subgroup';
-      group.appendChild(renderGroupTitleInput(item, 'Ítem ' + (i + 1)));
-      group.appendChild(renderRichField({ label: 'Título', type: 'text' }, function(){ return item.title; }, function(v){ item.title = v; }));
-      group.appendChild(renderRichField({ label: 'Descripción', type: 'textarea' }, function(){ return item.texto; }, function(v){ item.texto = v; }));
-      group.appendChild(renderPlainFieldFor({ label: 'Etiquetas separadas por coma', type: 'text' }, function(){ return item.tags; }, function(v){ item.tags = v; }));
-      wrap.appendChild(group);
+    var q = homeContent.quehacemos;
+    wrap.appendChild(renderToggleRow('Mostrar esta sección en el sitio', function(){ return q.enabled; }, function(v){ q.enabled = v; }));
+    wrap.appendChild(renderPlainFieldFor({ label: 'Etiqueta de la sección', type: 'text' }, function(){ return q.eyebrow; }, function(v){ q.eyebrow = v; }));
+    wrap.appendChild(renderRichField({ label: 'Título', type: 'text' }, function(){ return q.heading; }, function(v){ q.heading = v; }));
+    wrap.appendChild(renderRichField({ label: 'Párrafo 1', type: 'textarea' }, function(){ return q.texto1; }, function(v){ q.texto1 = v; }));
+    wrap.appendChild(renderRichField({ label: 'Párrafo 2', type: 'textarea' }, function(){ return q.texto2; }, function(v){ q.texto2 = v; }));
+    wrap.appendChild(renderPlainFieldFor({ label: 'Texto del botón', type: 'text' }, function(){ return q.ctaText; }, function(v){ q.ctaText = v; }));
+    return wrap;
+  }
+
+  function renderDiferencialesSection(){
+    var wrap = document.createElement('div');
+    wrap.className = 'cms-fields';
+    var d = homeContent.diferenciales;
+    if (!d.invertir) d.invertir = { texto: '', ctaText: 'Hablemos' };
+    if (!d.franCard) d.franCard = { photo: { url: '', posX: 50, posY: 50 }, statLine1: '', statLine2: '', ctaText: 'Quiero escalar mi negocio' };
+
+    wrap.appendChild(renderPlainFieldFor({ label: 'Etiqueta de la sección', type: 'text' }, function(){ return d.eyebrow; }, function(v){ d.eyebrow = v; }));
+    wrap.appendChild(renderRichField({ label: 'Título', type: 'text' }, function(){ return d.heading; }, function(v){ d.heading = v; }));
+    wrap.appendChild(renderRichField({ label: 'Párrafo', type: 'textarea' }, function(){ return d.texto; }, function(v){ d.texto = v; }));
+
+    var invertirTitle = document.createElement('div');
+    invertirTitle.className = 'cms-subgroup-title';
+    invertirTitle.textContent = 'Bloque de calificación (rango de inversión)';
+    var invertirGroup = document.createElement('div');
+    invertirGroup.className = 'cms-subgroup';
+    invertirGroup.appendChild(invertirTitle);
+    invertirGroup.appendChild(renderRichField({ label: 'Texto', type: 'textarea' }, function(){ return d.invertir.texto; }, function(v){ d.invertir.texto = v; }));
+    invertirGroup.appendChild(renderPlainFieldFor({ label: 'Texto del botón', type: 'text' }, function(){ return d.invertir.ctaText; }, function(v){ d.invertir.ctaText = v; }));
+    wrap.appendChild(invertirGroup);
+
+    var franTitle = document.createElement('div');
+    franTitle.className = 'cms-subgroup-title';
+    franTitle.textContent = 'Tarjeta de la derecha (foto + números)';
+    var franGroup = document.createElement('div');
+    franGroup.className = 'cms-subgroup';
+    franGroup.appendChild(franTitle);
+    franGroup.appendChild(renderMediaField(d.franCard.photo, { type: 'image', portrait: true, label: 'Foto' }));
+    franGroup.appendChild(renderPlainFieldFor({ label: 'Dato 1 (ej: +100 Cuentas publicitarias gestionadas)', type: 'text' }, function(){ return d.franCard.statLine1; }, function(v){ d.franCard.statLine1 = v; }));
+    franGroup.appendChild(renderPlainFieldFor({ label: 'Dato 2 (ej: +Más de USD 500K invertidos en publicidad digital)', type: 'text' }, function(){ return d.franCard.statLine2; }, function(v){ d.franCard.statLine2 = v; }));
+    franGroup.appendChild(renderPlainFieldFor({ label: 'Texto del cartel violeta', type: 'text' }, function(){ return d.franCard.ctaText; }, function(v){ d.franCard.ctaText = v; }));
+    wrap.appendChild(franGroup);
+
+    return wrap;
+  }
+
+  function renderTestimoniosSection(){
+    var wrap = document.createElement('div');
+    wrap.className = 'cms-fields';
+    var t = homeContent.testimonios;
+    if (!t.items) t.items = [];
+    wrap.appendChild(renderToggleRow('Mostrar esta sección en el sitio', function(){ return t.enabled; }, function(v){ t.enabled = v; }));
+
+    var itemsWrap = document.createElement('div');
+    itemsWrap.style.cssText = 'display:flex; flex-direction:column; gap:14px; margin:4px 0;';
+
+    function renderItems(){
+      itemsWrap.innerHTML = '';
+      t.items.forEach(function(item, i){
+        var group = document.createElement('div');
+        group.className = 'cms-subgroup cms-list-item';
+        group.appendChild(renderGroupTitleInput(item, 'Testimonio ' + (i + 1)));
+
+        if (t.items.length > 1) {
+          var removeBtn = document.createElement('button');
+          removeBtn.type = 'button'; removeBtn.className = 'cms-remove-btn'; removeBtn.textContent = '×'; removeBtn.title = 'Quitar este testimonio';
+          removeBtn.addEventListener('click', function(){ t.items.splice(i, 1); renderItems(); });
+          group.appendChild(removeBtn);
+        }
+
+        group.appendChild(renderRichField({ label: 'Cita (sin comillas, se agregan solas)', type: 'textarea' }, function(){ return item.quote; }, function(v){ item.quote = v; }));
+        group.appendChild(renderPlainFieldFor({ label: 'Nombre', type: 'text' }, function(){ return item.nombre; }, function(v){ item.nombre = v; }));
+        group.appendChild(renderPlainFieldFor({ label: 'Rol / cargo', type: 'text' }, function(){ return item.rol; }, function(v){ item.rol = v; }));
+        group.appendChild(renderPlainFieldFor({ label: 'Etiqueta (ej: "Ejemplo")', type: 'text' }, function(){ return item.flag; }, function(v){ item.flag = v; }));
+        itemsWrap.appendChild(group);
+      });
+    }
+    renderItems();
+    wrap.appendChild(itemsWrap);
+
+    var addBtn = document.createElement('button');
+    addBtn.type = 'button'; addBtn.className = 'cms-add-btn'; addBtn.textContent = '+ Agregar testimonio';
+    addBtn.addEventListener('click', function(){
+      t.items.push({ quote: '', nombre: '', rol: '', flag: '', adminLabel: 'Testimonio ' + (t.items.length + 1) });
+      renderItems();
     });
+    wrap.appendChild(addBtn);
+
     return wrap;
   }
 
@@ -1797,6 +1880,8 @@
 
         if (!tile.video) tile.video = { url: '', posX: 50, posY: 50 };
         group.appendChild(renderMediaField(tile.video, { type: 'video', portrait: true, label: 'Video (opcional)' }));
+        if (!tile.logo) tile.logo = { url: '', posX: 50, posY: 50 };
+        group.appendChild(renderMediaField(tile.logo, { type: 'image', label: 'Logo arriba del video (opcional)' }));
 
         tilesWrap.appendChild(group);
       });
@@ -1807,7 +1892,7 @@
     var addBtn = document.createElement('button');
     addBtn.type = 'button'; addBtn.className = 'cms-add-btn'; addBtn.textContent = '+ Agregar proyecto';
     addBtn.addEventListener('click', function(){
-      p.tiles.push({ title: 'Nuevo proyecto', status: 'Próximamente', category: '', video: null });
+      p.tiles.push({ title: 'Nuevo proyecto', status: 'Próximamente', category: '', video: null, logo: { url: '', posX: 50, posY: 50 } });
       renderTiles();
     });
     wrap.appendChild(addBtn);
@@ -1907,6 +1992,8 @@
     else if (section.custom === 'proyectos') body = renderProyectosSection();
     else if (section.custom === 'ticker') body = renderTickerSection();
     else if (section.custom === 'blog') body = renderBlogSection();
+    else if (section.custom === 'diferenciales') body = renderDiferencialesSection();
+    else if (section.custom === 'testimonios') body = renderTestimoniosSection();
     else {
       body = document.createElement('div');
       body.className = 'cms-fields';
@@ -2022,6 +2109,15 @@
     { value: 'estandar', label: 'Estándar (portada + texto)' },
     { value: 'video', label: 'Con video destacado' },
     { value: 'galeria', label: 'Galería de fotos' }
+  ];
+
+  // Must match the 3 fixed blocks rendered in portfolio.html's "otros
+  // casos" section — a caso not tagged with one of these still saves fine,
+  // it just falls back to the first block.
+  var TIPOS_NEGOCIO = [
+    { value: 'ecommerce', label: 'Ecommerce' },
+    { value: 'marcas-servicios', label: 'Marcas & Servicios' },
+    { value: 'eventos-experiencias', label: 'Eventos & Experiencias' }
   ];
 
   function slugify(text){
@@ -2345,7 +2441,8 @@
     { value: 'text', label: 'Texto corto' },
     { value: 'email', label: 'Email' },
     { value: 'textarea', label: 'Texto largo' },
-    { value: 'select', label: 'Opción múltiple (desplegable)' },
+    { value: 'select', label: 'Opción única (desplegable)' },
+    { value: 'checkbox-group', label: 'Selección múltiple (casilleros)' },
   ];
 
   function renderFormCms(){
@@ -2393,7 +2490,7 @@
         function renderTypeExtras(){
           placeholderSlot.innerHTML = '';
           optionsSlot.innerHTML = '';
-          if (field.type === 'select') {
+          if (field.type === 'select' || field.type === 'checkbox-group') {
             optionsSlot.appendChild(renderPlainFieldFor({ label: 'Opciones separadas por coma', type: 'textarea' }, function(){ return field.options; }, function(v){ field.options = v; }));
           } else {
             placeholderSlot.appendChild(renderPlainFieldFor({ label: 'Texto de ejemplo (placeholder)', type: 'text' }, function(){ return field.placeholder; }, function(v){ field.placeholder = v; }));
@@ -2551,9 +2648,40 @@
       tileGroup.appendChild(renderRichField({ label: 'Categoría', type: 'text' }, function(){ return tile.category; }, function(v){ tile.category = v; }));
       tileGroup.appendChild(renderRichField({ label: 'Título', type: 'text' }, function(){ return tile.title; }, function(v){ tile.title = v; title.textContent = v || title.textContent; }));
       tileGroup.appendChild(renderRichField({ label: 'Detalle (ej: Campaña X — 2026)', type: 'text' }, function(){ return tile.meta; }, function(v){ tile.meta = v; }));
+      if (!tile.logo) tile.logo = { url: '', posX: 50, posY: 50 };
+      tileGroup.appendChild(renderMediaField(tile.logo, { type: 'image', label: 'Logo arriba del video (opcional)' }));
       tilesGroup.appendChild(tileGroup);
     });
     portfolioCmsBody.appendChild(tilesGroup);
+
+    var respaldoGroup = cmsSubgroup('Experiencia que nos respalda (franja de logos)');
+    if (!p.respaldo) p.respaldo = { eyebrow: '', heading: '', flagLabel: '', logos: [] };
+    if (!p.respaldo.logos) p.respaldo.logos = [];
+    respaldoGroup.appendChild(renderField({ path: 'flagLabel', label: 'Título de la franja', type: 'text' }, 'portfolio.respaldo'));
+    respaldoGroup.appendChild(renderField({ path: 'eyebrow', label: 'Etiqueta del concepto general', type: 'text' }, 'portfolio.respaldo'));
+    respaldoGroup.appendChild(renderField({ path: 'heading', label: 'Título del concepto general', type: 'text' }, 'portfolio.respaldo'));
+    var logosWrap = document.createElement('div');
+    logosWrap.style.cssText = 'display:flex; flex-direction:column; gap:14px; margin:4px 0;';
+    function renderLogos(){
+      logosWrap.innerHTML = '';
+      p.respaldo.logos.forEach(function(logo, li){
+        var row = document.createElement('div');
+        row.className = 'cms-subgroup cms-list-item';
+        var removeBtn = document.createElement('button');
+        removeBtn.type = 'button'; removeBtn.className = 'cms-remove-btn'; removeBtn.textContent = '×'; removeBtn.title = 'Quitar este logo';
+        removeBtn.addEventListener('click', function(){ p.respaldo.logos.splice(li, 1); renderLogos(); });
+        row.appendChild(removeBtn);
+        row.appendChild(renderMediaField(logo, { type: 'image', label: 'Logo ' + (li + 1) }));
+        logosWrap.appendChild(row);
+      });
+    }
+    renderLogos();
+    respaldoGroup.appendChild(logosWrap);
+    var addLogoBtn = document.createElement('button');
+    addLogoBtn.type = 'button'; addLogoBtn.className = 'cms-add-btn'; addLogoBtn.textContent = '+ Agregar logo';
+    addLogoBtn.addEventListener('click', function(){ p.respaldo.logos.push({ url: '', posX: 50, posY: 50 }); renderLogos(); });
+    respaldoGroup.appendChild(addLogoBtn);
+    portfolioCmsBody.appendChild(respaldoGroup);
 
     var ctaGroup = cmsSubgroup('Cierre / CTA');
     ctaGroup.appendChild(renderField({ path: 'eyebrow', label: 'Texto chico arriba del título', type: 'text' }, 'portfolio.cta'));
@@ -2589,6 +2717,20 @@
     if (!caso.template) caso.template = 'estandar';
     templateField.appendChild(select);
     wrap.appendChild(templateField);
+
+    var tipoField = document.createElement('div');
+    tipoField.className = 'cms-field';
+    tipoField.appendChild(makeLabel('Tipo de negocio (agrupa este caso en el Portfolio)'));
+    var tipoSelect = document.createElement('select');
+    TIPOS_NEGOCIO.forEach(function(t){
+      var o = document.createElement('option'); o.value = t.value; o.textContent = t.label;
+      if (caso.tipo === t.value) o.selected = true;
+      tipoSelect.appendChild(o);
+    });
+    if (!caso.tipo) caso.tipo = TIPOS_NEGOCIO[0].value;
+    tipoSelect.addEventListener('change', function(){ caso.tipo = tipoSelect.value; });
+    tipoField.appendChild(tipoSelect);
+    wrap.appendChild(tipoField);
 
     wrap.appendChild(renderPlainFieldFor({ label: 'Categoría (ej: Producción)', type: 'text' }, function(){ return caso.categoria; }, function(v){ caso.categoria = v; }));
     wrap.appendChild(renderRichField({ label: 'Cliente', type: 'text' }, function(){ return caso.cliente; }, function(v){ caso.cliente = v; }));
