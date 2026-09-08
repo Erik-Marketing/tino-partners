@@ -564,9 +564,27 @@
 
   // menu links are editable from the admin panel — load and apply them,
   // falling back to the links already in the HTML above if this fails
+  // Apply a cached logo synchronously (if any) before the network
+  // round trip even starts — same idea as index.html's full content
+  // cache, kept small here since this page doesn't need the rest of
+  // the Home content. Without this the default icon+wordmark flashed
+  // first on every single load, not just a first-ever visit.
+  try {
+    var cachedLogo = JSON.parse(localStorage.getItem('tp_logo_cache_v1') || 'null');
+    if (cachedLogo && cachedLogo.url) {
+      var cachedBrandEl = document.querySelector('.brand');
+      var cachedBrandImg = document.getElementById('cms-brand-logo');
+      if (cachedBrandEl && cachedBrandImg) {
+        cachedBrandImg.src = cachedLogo.url;
+        cachedBrandImg.style.height = (cachedLogo.height || 34) + 'px';
+        cachedBrandEl.classList.add('has-custom-logo');
+      }
+    }
+  } catch (e) {}
+
   fetch('/api/content?t=' + Date.now()).then(function(r){ return r.ok ? r.json() : null; }).then(function(c){
     if (!c) return;
-    if (c && c.logo && c.logo.url) {
+    if (c && c.logo && c.logo.url && /^(\/|https?:\/\/|data:)/.test(c.logo.url.trim())) {
       var brandEl = document.querySelector('.brand');
       var brandLogoImg = document.getElementById('cms-brand-logo');
       if (brandEl && brandLogoImg) {
@@ -574,6 +592,9 @@
         brandLogoImg.style.height = (c.logo.height || 34) + 'px';
         brandEl.classList.add('has-custom-logo');
       }
+      try { localStorage.setItem('tp_logo_cache_v1', JSON.stringify({ url: c.logo.url, height: c.logo.height })); } catch (e) {}
+    } else if (c) {
+      try { localStorage.removeItem('tp_logo_cache_v1'); } catch (e) {}
     }
 
     if (c.meta && c.meta.nobrand) {

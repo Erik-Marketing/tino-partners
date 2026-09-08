@@ -870,14 +870,12 @@
 
 <script>
 
-  // nav scroll state — stays transparent through the whole hero (text + photo)
-  // so the fixed nav never overlaps/hides part of the hero photo; only turns
-  // solid once the hero has fully scrolled past.
+  // nav scroll state — same small threshold as every other page (Portfolio,
+  // Nosotros, NOBRAND): transparent at the very top, solid/blurred white as
+  // soon as you scroll at all, transparent again back at the top.
   var nav = document.getElementById('siteNav');
-  var heroEl = document.getElementById('home');
   var onScroll = function(){
-    var heroBottom = heroEl ? heroEl.getBoundingClientRect().bottom : 0;
-    if(heroBottom <= nav.offsetHeight){ nav.classList.add('is-scrolled'); }
+    if(window.scrollY > 12){ nav.classList.add('is-scrolled'); }
     else { nav.classList.remove('is-scrolled'); }
   };
   document.addEventListener('scroll', onScroll, { passive:true });
@@ -1024,6 +1022,21 @@
   var menuSectionObserver = null;
   function applyContent(c){
     if (!c) return;
+    // Must run from here, not from the fetch().then() below — this
+    // function also gets called synchronously with the localStorage-cached
+    // copy (see below) before the network round-trip even starts. Putting
+    // this in the fetch callback only meant the old icon+wordmark always
+    // flashed first on every load, cached copy or not, since it never ran
+    // early enough to matter.
+    if (c.logo && c.logo.url) {
+      var brandEl = document.querySelector('.brand');
+      var brandLogoImg = document.getElementById('cms-brand-logo');
+      if (brandEl && brandLogoImg && /^(\/|https?:\/\/|data:)/.test(c.logo.url.trim())) {
+        brandLogoImg.src = c.logo.url;
+        brandLogoImg.style.height = (c.logo.height || 34) + 'px';
+        brandEl.classList.add('has-custom-logo');
+      }
+    }
     function setText(id, val){ var el = document.getElementById(id); if (el && val != null && val !== '') el.textContent = val; }
     function setHtml(id, val){ var el = document.getElementById(id); if (el && val != null && val !== '') el.innerHTML = val; }
     function setTags(id, csv){
@@ -1600,15 +1613,6 @@
 
   fetch('/api/content?t=' + Date.now()).then(function(r){ return r.ok ? r.json() : null; }).then(function(c){
     if (!c) return;
-    if (c && c.logo && c.logo.url) {
-      var brandEl = document.querySelector('.brand');
-      var brandLogoImg = document.getElementById('cms-brand-logo');
-      if (brandEl && brandLogoImg) {
-        brandLogoImg.src = c.logo.url;
-        brandLogoImg.style.height = (c.logo.height || 34) + 'px';
-        brandEl.classList.add('has-custom-logo');
-      }
-    }
     applyContent(c);
     try { localStorage.setItem(CONTENT_CACHE_KEY, JSON.stringify(c)); } catch (e) {}
   }).catch(function(){ /* keep the defaults already in the page */ });
