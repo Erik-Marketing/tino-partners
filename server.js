@@ -537,6 +537,7 @@ async function loadMergedContent() {
     saved.diferenciales && saved.diferenciales.franCard
   );
   merged.quehacemos = Object.assign({}, DEFAULT_CONTENT.quehacemos, saved.quehacemos);
+  merged.logo = Object.assign({}, DEFAULT_CONTENT.logo, saved.logo);
   merged.marcas = Object.assign({}, DEFAULT_CONTENT.marcas, saved.marcas);
   merged.logosBand = Object.assign({}, DEFAULT_CONTENT.logosBand, saved.logosBand);
   merged.testimonios = normalizeTestimonios(saved.testimonios);
@@ -1123,10 +1124,34 @@ const ALLOWED_TYPES = {
   'image/png': { ext: ['png'], magic: (b) => b.length >= 8 && b.slice(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) },
   'image/gif': { ext: ['gif'], magic: (b) => b.length >= 3 && b.slice(0, 3).toString('ascii') === 'GIF' },
   'image/webp': { ext: ['webp'], magic: (b) => b.length >= 12 && b.slice(0, 4).toString('ascii') === 'RIFF' && b.slice(8, 12).toString('ascii') === 'WEBP' },
+  // SVG is text, not a binary signature — accept it if the first bytes look
+  // like an XML/SVG document at all. sanitizeSvg() below is what actually
+  // keeps a malicious upload from doing anything (never trust this magic
+  // check alone the way the binary ones can be trusted).
+  'image/svg+xml': { ext: ['svg'], magic: (b) => /^\s*(<\?xml|<svg)/i.test(b.slice(0, 300).toString('utf8')) },
   'video/mp4': { ext: ['mp4'], magic: (b) => b.length >= 8 && b.slice(4, 8).toString('ascii') === 'ftyp' },
   'video/quicktime': { ext: ['mov'], magic: (b) => b.length >= 8 && b.slice(4, 8).toString('ascii') === 'ftyp' },
   'video/webm': { ext: ['webm'], magic: (b) => b.length >= 4 && b.slice(0, 4).equals(Buffer.from([0x1a, 0x45, 0xdf, 0xa3])) },
 };
+
+// SVG is served back same-origin under /media — a <script> or an
+// on*="..." handler inside an uploaded SVG would run with that origin if
+// anyone ever opened the file directly (not just via <img>, which doesn't
+// execute it). Strips scripts/handlers/javascript: URIs before the file
+// ever touches disk. Regex-based, not a full XML parse — good enough for
+// "authenticated CMS user uploads a logo," not a defense against a
+// determined attacker who already has panel access (nothing else uploaded
+// through this endpoint is sandboxed from them either).
+function sanitizeSvg(buffer) {
+  let text = buffer.toString('utf8');
+  text = text.replace(/<script[\s\S]*?<\/script\s*>/gi, '');
+  text = text.replace(/<foreignObject[\s\S]*?<\/foreignObject\s*>/gi, '');
+  text = text.replace(/\son\w+\s*=\s*(".*?"|'.*?')/gi, '');
+  text = text.replace(/(xlink:href|href)\s*=\s*(".*?"|'.*?')/gi, (m, attr, val) => {
+    return /^["']\s*javascript:/i.test(val) ? `${attr}="#"` : m;
+  });
+  return Buffer.from(text, 'utf8');
+}
 
 const uploadLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -1209,13 +1234,15 @@ app.post('/api/upload-media', requireAuth, uploadLimiter, express.json({ limit: 
   if (!spec.magic(buffer)) {
     return res.status(400).json({ error: 'El archivo no parece ser realmente del tipo declarado' });
   }
+  const isSvg = String(contentType).toLowerCase() === 'image/svg+xml';
+  const outBuffer = isSvg ? sanitizeSvg(buffer) : buffer;
 
   if (!isVideo) {
     const safeName = String(filename).toLowerCase().replace(/[^a-z0-9.\-]+/g, '-').slice(-80);
     const relPath = `uploads/${Date.now()}-${safeName}`;
     const fullPath = path.join(MEDIA_DIR, relPath);
     try {
-      await fs.writeFile(fullPath, buffer);
+      await fs.writeFile(fullPath, outBuffer);
       return res.status(200).json({ url: `/media/${relPath}` });
     } catch (err) {
       console.error('upload-media failed', err);

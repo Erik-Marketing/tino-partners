@@ -155,6 +155,10 @@ const DEFAULT_CONTENT = {
       { key: 'mensaje', label: 'Contanos tu principal desafío hoy', type: 'textarea', required: true, placeholder: 'Contanos sobre tu marca y qué necesitás' },
     ],
   },
+  // Logotipo del header. Vacío = se usa el lockup original (el ícono SVG
+  // + "TINO/PARTNERS" que está escrito en el HTML de cada página). Si se
+  // sube una imagen, reemplaza ese lockup completo en todas las páginas.
+  logo: { url: '', height: 34 },
   menu: {
     items: [
       { label: 'Home', url: 'index.html' },
@@ -419,6 +423,7 @@ const PERMISSION_KEYS = [
   'home-cms.stats', 'home-cms.quehacemos', 'home-cms.marcas', 'home-cms.testimonios',
   'home-cms.blog', 'home-cms.footer',
   'blog-cms.new', 'blog-cms.list',
+  'logo-cms',
   'menu-cms',
   'form-cms',
   'nosotros-cms',
@@ -453,6 +458,7 @@ const CONTENT_PATHS = {
   'home-cms.footer': [{ path: 'footer', type: 'object' }],
   'blog-cms.new': [{ path: 'blog.articles', type: 'array' }],
   'blog-cms.list': [{ path: 'blog.articles', type: 'array' }],
+  'logo-cms': [{ path: 'logo', type: 'object' }],
   'menu-cms': [{ path: 'menu', type: 'object' }],
   'form-cms': [{ path: 'form', type: 'object' }],
   'nosotros-cms': [{ path: 'nosotros', type: 'object' }],

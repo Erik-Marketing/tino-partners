@@ -287,6 +287,9 @@
   }
   .cms-media-preview.is-portrait{ aspect-ratio:9/16; max-width:200px; }
   .cms-media-preview img, .cms-media-preview video{ width:100%; height:100%; object-fit:cover; display:block; }
+  /* para logos: se ve completo, sin recortar, y no se reencuadra */
+  .cms-media-preview.is-contain{ background:var(--paper-dim); cursor:default; }
+  .cms-media-preview.is-contain img{ object-fit:contain; }
   .cms-media-marker{
     position:absolute; width:18px; height:18px; border-radius:50%; border:2px solid #fff;
     background:rgba(238,96,198,.85); transform:translate(-50%,-50%); pointer-events:none;
@@ -415,6 +418,10 @@
           <a class="sb-sublink" href="#" data-blogview="new">Nuevo artículo</a>
           <a class="sb-sublink" href="#" data-blogview="list">Artículos</a>
         </div>
+        <a class="sb-link" href="#logo" data-view="logo-cms">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="1" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="23"/><line x1="1" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="23" y2="12"/></svg>
+          Logo
+        </a>
         <a class="sb-link" href="#menu" data-view="menu-cms">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
           Menú
@@ -508,6 +515,18 @@
           <div class="cms-savebar" id="blogSavebar" style="display:none;">
             <button class="btn-primary" type="button" id="blogSaveBtn">Guardar cambios</button>
             <span class="cms-save-status" id="blogSaveStatus"></span>
+          </div>
+        </div>
+
+        <div id="view-logo-cms" style="display:none;">
+          <div class="main-head">
+            <h2>Logo</h2>
+            <p>El logotipo del encabezado, en todas las páginas del sitio. Si no subís nada, se usa el logo original (el ícono con "TINO PARTNERS").</p>
+          </div>
+          <div id="logoCmsBody"><p class="state-msg">Cargando...</p></div>
+          <div class="cms-savebar" id="logoSavebar" style="display:none;">
+            <button class="btn-primary" type="button" id="logoSaveBtn">Guardar cambios</button>
+            <span class="cms-save-status" id="logoSaveStatus"></span>
           </div>
         </div>
 
@@ -644,10 +663,10 @@
 
   // ---------- view switching (Consultas / Home) ----------
   var viewLinks = Array.prototype.slice.call(document.querySelectorAll('.sb-link[data-view]'));
-  var views = { consultas: document.getElementById('view-consultas'), 'home-cms': document.getElementById('view-home-cms'), 'blog-cms': document.getElementById('view-blog-cms'), 'menu-cms': document.getElementById('view-menu-cms'), 'form-cms': document.getElementById('view-form-cms'), 'nosotros-cms': document.getElementById('view-nosotros-cms'), 'portfolio-cms': document.getElementById('view-portfolio-cms'), 'seo-cms': document.getElementById('view-seo-cms'), 'usuarios-cms': document.getElementById('view-usuarios-cms'), 'no-access': document.getElementById('view-no-access') };
+  var views = { consultas: document.getElementById('view-consultas'), 'home-cms': document.getElementById('view-home-cms'), 'blog-cms': document.getElementById('view-blog-cms'), 'logo-cms': document.getElementById('view-logo-cms'), 'menu-cms': document.getElementById('view-menu-cms'), 'form-cms': document.getElementById('view-form-cms'), 'nosotros-cms': document.getElementById('view-nosotros-cms'), 'portfolio-cms': document.getElementById('view-portfolio-cms'), 'seo-cms': document.getElementById('view-seo-cms'), 'usuarios-cms': document.getElementById('view-usuarios-cms'), 'no-access': document.getElementById('view-no-access') };
   var topbarTitle = document.querySelector('.topbar-title');
   var homeCmsLoaded = false;
-  var VIEW_TITLES = { consultas: 'Consultas', 'home-cms': 'Home', 'blog-cms': 'Blog', 'menu-cms': 'Menú', 'form-cms': 'Form', 'nosotros-cms': 'Nosotros', 'portfolio-cms': 'Portfolio', 'seo-cms': 'SEO', 'usuarios-cms': 'Usuarios', 'no-access': 'Sin acceso' };
+  var VIEW_TITLES = { consultas: 'Consultas', 'home-cms': 'Home', 'blog-cms': 'Blog', 'logo-cms': 'Logo', 'menu-cms': 'Menú', 'form-cms': 'Form', 'nosotros-cms': 'Nosotros', 'portfolio-cms': 'Portfolio', 'seo-cms': 'SEO', 'usuarios-cms': 'Usuarios', 'no-access': 'Sin acceso' };
 
   // ---------- permissions ----------
   // Populated from GET /api/me right after login/bootstrap. `allAccess`
@@ -666,10 +685,10 @@
   // Priority order used to pick a fallback view when the requested one
   // isn't allowed (stale sessionStorage, a hand-typed hash, a role that
   // lost a permission after the tab already loaded).
-  var VIEW_PERMISSION_ORDER = ['consultas', 'home-cms', 'blog-cms', 'menu-cms', 'form-cms', 'nosotros-cms', 'portfolio-cms', 'seo-cms', 'usuarios-cms'];
+  var VIEW_PERMISSION_ORDER = ['consultas', 'home-cms', 'blog-cms', 'logo-cms', 'menu-cms', 'form-cms', 'nosotros-cms', 'portfolio-cms', 'seo-cms', 'usuarios-cms'];
   function canSeeView(name){
     if (name === 'usuarios-cms') return hasGroupPermission('usuarios');
-    if (name === 'menu-cms' || name === 'form-cms' || name === 'nosotros-cms' || name === 'seo-cms' || name === 'consultas') return hasPermission(name);
+    if (name === 'logo-cms' || name === 'menu-cms' || name === 'form-cms' || name === 'nosotros-cms' || name === 'seo-cms' || name === 'consultas') return hasPermission(name);
     return hasGroupPermission(name); // home-cms, blog-cms, portfolio-cms
   }
   function firstAllowedView(){
@@ -1527,24 +1546,30 @@
     if (opts.label) wrap.appendChild(makeLabel(opts.label));
 
     var preview = document.createElement('div');
-    preview.className = 'cms-media-preview' + (opts.portrait ? ' is-portrait' : '');
+    preview.className = 'cms-media-preview' + (opts.portrait ? ' is-portrait' : '') + (opts.contain ? ' is-contain' : '');
     var mediaEl = document.createElement(opts.type === 'video' ? 'video' : 'img');
     if (opts.type === 'video') { mediaEl.muted = true; mediaEl.loop = true; mediaEl.playsInline = true; mediaEl.autoplay = true; }
     if (mediaObj.url) mediaEl.src = mediaObj.url;
     mediaEl.style.objectPosition = mediaObj.posX + '% ' + mediaObj.posY + '%';
     preview.appendChild(mediaEl);
+    // Un logo se muestra completo (object-fit:contain), así que no tiene
+    // sentido reencuadrarlo: no va el marcador ni el arrastre.
     var marker = document.createElement('div');
-    marker.className = 'cms-media-marker';
-    marker.style.left = mediaObj.posX + '%';
-    marker.style.top = mediaObj.posY + '%';
-    preview.appendChild(marker);
+    if (!opts.contain) {
+      marker.className = 'cms-media-marker';
+      marker.style.left = mediaObj.posX + '%';
+      marker.style.top = mediaObj.posY + '%';
+      preview.appendChild(marker);
+    }
     wrap.appendChild(preview);
 
     var hint = document.createElement('p');
     hint.className = 'cms-media-hint';
-    hint.textContent = opts.optional
-      ? 'Opcional — si no subís nada acá, en mobile se usa la misma foto de desktop. Tocá o arrastrá para centrar.'
-      : 'Tocá o arrastrá dentro de la foto/video para centrar la parte que querés mostrar.';
+    hint.textContent = opts.contain
+      ? 'Se muestra completo, sin recortar. Ideal PNG o SVG con fondo transparente.'
+      : (opts.optional
+        ? 'Opcional — si no subís nada acá, en mobile se usa la misma foto de desktop. Tocá o arrastrá para centrar.'
+        : 'Tocá o arrastrá dentro de la foto/video para centrar la parte que querés mostrar.');
     wrap.appendChild(hint);
 
     function setPos(clientX, clientY){
@@ -1598,7 +1623,9 @@
       status.textContent = opts.type === 'video' ? 'Subiendo y comprimiendo el video — puede tardar un minuto...' : 'Subiendo...';
 
       var prep = Promise.resolve(file);
-      if (opts.type !== 'video' && file.size > 700 * 1024) {
+      // SVG nunca pasa por el canvas de compresión: lo rasterizaría (pierde
+      // ser vector/editable) y lo convertiría a JPG (pierde transparencia).
+      if (opts.type !== 'video' && file.type !== 'image/svg+xml' && file.size > 700 * 1024) {
         prep = compressImage(file, 1600, 0.82);
       }
 
@@ -1610,10 +1637,24 @@
             : 'El archivo pesa más de 3MB incluso comprimido. Pediselo a Claude para subir algo tan pesado, o pegá la URL directamente arriba.');
         }
         return fileToBase64(fileOrBlob).then(function(base64){
+          // fileOrBlob.type is the real type of whatever's actually being
+          // sent — the original file, or the always-JPEG output of
+          // compressImage above. Hardcoding 'image/jpeg' here regardless of
+          // the source file meant a PNG/SVG straight upload (untouched by
+          // compression, since it was small enough, or — for SVG — skipped
+          // on purpose) got declared as JPEG and rejected by the server's
+          // magic-byte check. The filename's extension must also match
+          // whatever type is actually being sent (not the original file's
+          // name) — compressing a "logo.png" always yields a JPEG blob, so
+          // sending the old ".png" name would fail that same check the
+          // other way around.
+          var EXT_BY_TYPE = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/gif': 'gif', 'image/webp': 'webp', 'image/svg+xml': 'svg', 'video/mp4': 'mp4', 'video/quicktime': 'mov', 'video/webm': 'webm' };
+          var sendType = fileOrBlob.type || file.type;
+          var sendName = 'upload.' + (EXT_BY_TYPE[sendType] || (file.name.split('.').pop() || 'jpg'));
           return fetch('/api/upload-media', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filename: file.name, contentType: opts.type === 'video' ? file.type : 'image/jpeg', dataBase64: base64 })
+            body: JSON.stringify({ filename: sendName, contentType: sendType, dataBase64: base64 })
           });
         });
       })
@@ -2142,6 +2183,7 @@
   }
   wireSaveButton('cmsSaveBtn', 'cmsSaveStatus');
   wireSaveButton('blogSaveBtn', 'blogSaveStatus');
+  wireSaveButton('logoSaveBtn', 'logoSaveStatus');
   wireSaveButton('menuSaveBtn', 'menuSaveStatus');
   wireSaveButton('formSaveBtn', 'formSaveStatus');
   wireSaveButton('nosotrosSaveBtn', 'nosotrosSaveStatus');
@@ -2443,6 +2485,47 @@
       if (!homeCmsLoaded) loadContent(renderBlogCms);
       else renderBlogCms();
     }
+  });
+
+  // ---------- Logo CMS ----------
+  var logoCmsBody = document.getElementById('logoCmsBody');
+
+  function renderLogoCms(){
+    logoCmsBody.innerHTML = '';
+    if (!homeContent.logo) homeContent.logo = { url: '', height: 34 };
+    var l = homeContent.logo;
+    if (!l.posX) l.posX = 50;
+    if (!l.posY) l.posY = 50;
+
+    logoCmsBody.appendChild(renderMediaField(l, { type: 'image', label: 'Logotipo', contain: true, optional: true }));
+
+    var heightField = document.createElement('div');
+    heightField.className = 'cms-field';
+    heightField.appendChild(makeLabel('Alto en el header (px) — el ancho se ajusta solo'));
+    var heightInput = document.createElement('input');
+    heightInput.type = 'number'; heightInput.min = '16'; heightInput.max = '80'; heightInput.step = '1';
+    heightInput.value = l.height || 34;
+    heightInput.addEventListener('input', function(){ l.height = Number(heightInput.value) || 34; });
+    heightField.appendChild(heightInput);
+    logoCmsBody.appendChild(heightField);
+
+    var revertRow = document.createElement('label');
+    revertRow.className = 'cms-toggle-row';
+    var revertBtn = document.createElement('button');
+    revertBtn.type = 'button'; revertBtn.className = 'cms-add-btn'; revertBtn.textContent = 'Volver al logo original (sacar la imagen subida)';
+    revertBtn.style.marginTop = '4px';
+    revertBtn.addEventListener('click', function(){
+      l.url = '';
+      renderLogoCms();
+    });
+    logoCmsBody.appendChild(revertBtn);
+
+    document.getElementById('logoSavebar').style.display = 'flex';
+  }
+
+  document.querySelector('.sb-link[data-view="logo-cms"]').addEventListener('click', function(){
+    if (!homeCmsLoaded) loadContent(renderLogoCms);
+    else renderLogoCms();
   });
 
   // ---------- Menú CMS ----------
@@ -3112,6 +3195,7 @@
     { key: 'consultas', label: 'Consultas' },
     { key: 'home-cms', label: 'Home', children: SECTIONS.map(function(s){ return { key: s.key, label: s.title }; }) },
     { key: 'blog-cms', label: 'Blog', children: [{ key: 'new', label: 'Nuevo artículo' }, { key: 'list', label: 'Artículos' }] },
+    { key: 'logo-cms', label: 'Logo' },
     { key: 'menu-cms', label: 'Menú' },
     { key: 'form-cms', label: 'Form' },
     { key: 'nosotros-cms', label: 'Nosotros' },
@@ -3706,7 +3790,7 @@
         renderUsuariosCms();
       } else {
         showView(state.view);
-        var renderers = { 'menu-cms': renderMenuCms, 'form-cms': renderFormCms, 'nosotros-cms': renderNosotrosCms, 'seo-cms': renderSeoCms };
+        var renderers = { 'logo-cms': renderLogoCms, 'menu-cms': renderMenuCms, 'form-cms': renderFormCms, 'nosotros-cms': renderNosotrosCms, 'seo-cms': renderSeoCms };
         if (renderers[state.view]) renderers[state.view]();
       }
       restoreAdminScroll(state.scrollY);

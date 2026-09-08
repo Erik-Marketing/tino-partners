@@ -88,6 +88,9 @@
   .brand svg{ width:30px; height:30px; flex:none; }
   .brand-word{ font-family:'Big Shoulders Display', sans-serif; font-weight:800; font-size:1.28rem; letter-spacing:.01em; text-transform:uppercase; }
   .brand-word span{ display:block; font-family:'IBM Plex Mono', monospace; font-size:.55rem; font-weight:600; letter-spacing:.22em; color:var(--ink-soft); text-transform:uppercase; margin-top:-2px; }
+  .brand-logo-img{ display:none; width:auto; }
+  .brand.has-custom-logo svg, .brand.has-custom-logo .brand-word{ display:none; }
+  .brand.has-custom-logo .brand-logo-img{ display:block; }
 
   .nav-toggle{
     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
@@ -237,6 +240,7 @@
       <line x1="0" y1="20" x2="7" y2="20" stroke="currentColor" stroke-width="1.4"/>
       <line x1="33" y1="20" x2="40" y2="20" stroke="currentColor" stroke-width="1.4"/>
     </svg>
+    <img class="brand-logo-img" id="cms-brand-logo" alt="Tino Partners">
     <span class="brand-word">Tino<span>Partners</span></span>
   </a>
   <button class="nav-toggle" id="navToggle" aria-label="Abrir menú" aria-expanded="false">
@@ -379,6 +383,15 @@
   var slug = params.get('s');
 
   fetch('/api/content?t=' + Date.now()).then(function(r){ return r.ok ? r.json() : null; }).then(function(c){
+    if (c && c.logo && c.logo.url) {
+      var brandEl = document.querySelector('.brand');
+      var brandLogoImg = document.getElementById('cms-brand-logo');
+      if (brandEl && brandLogoImg) {
+        brandLogoImg.src = c.logo.url;
+        brandLogoImg.style.height = (c.logo.height || 34) + 'px';
+        brandEl.classList.add('has-custom-logo');
+      }
+    }
     if (c && c.menu && c.menu.items && c.menu.items.length) {
       var menuNav = document.getElementById('siteMenu');
       if (menuNav) {
