@@ -73,7 +73,7 @@ const DEFAULT_CONTENT = {
   quehacemos: {
     enabled: true,
     eyebrow: '¿Agencia o partner?',
-    heading: 'No somos una agencia de Marketing. Somos tu Partner de Negocio.',
+    heading: 'No somos una agencia de Marketing. Somos tu <span style="color:#171221">Partner de Negocio.</span>',
     texto1: 'No esperamos que nos digas qué hacer: somos proactivos y te decimos cuál creemos que es el mejor camino. No solo ejecutamos — evaluamos y determinamos si una acción es o no la más conveniente para tu negocio, incluso cuando esa respuesta no sea la que esperabas. Esa transparencia es parte de nuestro profesionalismo.',
     texto2: 'Trabajamos con empresas que ya tienen trayectoria, un negocio funcionando, un equipo detrás y presupuesto real para invertir en crecimiento.',
     ctaText: 'Contactanos',
