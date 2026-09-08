@@ -13,8 +13,8 @@ const { spawn } = require('child_process');
 const express = require('express');
 const rateLimit = require('express-rate-limit');
 const {
-  DEFAULT_CONTENT, normalizeArticles, normalizeCasos, validateSlugs, SLUG_PAGE_FILES,
-  CONTENT_PATHS, DEFAULT_ROLES,
+  DEFAULT_CONTENT, normalizeArticles, normalizeCasos, normalizeTestimonios, normalizeFormFields,
+  validateSlugs, SLUG_PAGE_FILES, CONTENT_PATHS, DEFAULT_ROLES,
 } = require('./content-defaults');
 
 const ROOT = __dirname;
@@ -523,6 +523,15 @@ async function loadMergedContent() {
   // so a newly-added key (e.g. "admin") always gets its default.
   merged.slugs = Object.assign({}, DEFAULT_CONTENT.slugs, saved.slugs);
   merged.meta = Object.assign({}, DEFAULT_CONTENT.meta, saved.meta);
+  // Same reasoning for these — a sub-field added to one of these objects
+  // after a site already had it saved (invertir/franCard on diferenciales,
+  // the enabled toggle + copy on quehacemos) must still show up.
+  merged.diferenciales = Object.assign({}, DEFAULT_CONTENT.diferenciales, saved.diferenciales);
+  merged.quehacemos = Object.assign({}, DEFAULT_CONTENT.quehacemos, saved.quehacemos);
+  merged.testimonios = normalizeTestimonios(saved.testimonios);
+  merged.form = Object.assign({}, DEFAULT_CONTENT.form, saved.form, {
+    fields: normalizeFormFields(saved.form && saved.form.fields),
+  });
   return merged;
 }
 

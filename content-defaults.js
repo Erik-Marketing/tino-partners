@@ -358,6 +358,42 @@ function normalizeCasos(casos) {
   });
 }
 
+// Migrates the pre-carousel single-testimonial shape ({quote,nombre,rol,flag})
+// into the current {enabled, items:[]} shape — without this, a site that
+// already had a saved `testimonios` value keeps that exact old shape forever
+// (loadMergedContent's top-level merge is shallow), silently losing whatever
+// real quote/name was there instead of promoting it into items[0].
+function normalizeTestimonios(saved) {
+  if (saved && Array.isArray(saved.items)) return Object.assign({}, DEFAULT_CONTENT.testimonios, saved);
+  if (saved && (saved.quote || saved.nombre || saved.rol || saved.flag)) {
+    return {
+      enabled: false,
+      items: [{ quote: saved.quote || '', nombre: saved.nombre || '', rol: saved.rol || '', flag: saved.flag || '' }],
+    };
+  }
+  return DEFAULT_CONTENT.testimonios;
+}
+
+// New default questions added after some sites already had a saved
+// `form.fields` array — appends any default field whose `key` is missing,
+// leaving Erik's own fields/order/edits untouched. Also relabels the old
+// "Mensaje" field to the new copy, but only when it's still exactly the
+// untouched default label, never overwriting a custom relabel.
+function normalizeFormFields(savedFields) {
+  const fields = Array.isArray(savedFields) && savedFields.length
+    ? savedFields.slice()
+    : DEFAULT_CONTENT.form.fields.map((f) => Object.assign({}, f));
+  const existingKeys = new Set(fields.map((f) => f.key));
+  DEFAULT_CONTENT.form.fields.forEach((defaultField) => {
+    if (!existingKeys.has(defaultField.key)) fields.push(Object.assign({}, defaultField));
+  });
+  const oldMensajeLabel = 'Mensaje';
+  const newMensajeLabel = DEFAULT_CONTENT.form.fields.find((f) => f.key === 'mensaje').label;
+  return fields.map((f) => (f.key === 'mensaje' && f.label === oldMensajeLabel)
+    ? Object.assign({}, f, { label: newMensajeLabel })
+    : f);
+}
+
 // ---------- users/roles ----------
 // Permission keys mirror the admin.html sidebar's own data-view/
 // data-blogview/data-portfolioview/SECTIONS[].key strings exactly, on
@@ -437,6 +473,8 @@ module.exports = {
   slugify,
   normalizeArticles,
   normalizeCasos,
+  normalizeTestimonios,
+  normalizeFormFields,
   validateSlugs,
   SLUG_PAGE_FILES,
 };
