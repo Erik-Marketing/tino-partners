@@ -431,7 +431,7 @@ app.get('/', async (req, res) => {
   const content = await loadMergedContent();
   const homeSlug = (content.slugs || {}).home;
   if (homeSlug) return res.redirect(301, '/' + homeSlug);
-  return res.sendFile(path.join(ROOT, 'index.html'));
+  return sendPageFile(res, path.join(ROOT, 'index.html'));
 });
 
 // pages whose .html path is also reachable through a custom slug (see
@@ -457,6 +457,25 @@ async function canServePage(req, content, key) {
   return Boolean(await getRequestUser(req));
 }
 
+// Every page route below serves the live HTML fresh from disk (content
+// updates go into content.json anyway, fetched separately by the page's own
+// JS) — but plain res.sendFile() defaults to `Cache-Control: public,
+// max-age=0` plus an ETag/Last-Modified pair, which still leaves it up to
+// the browser (or a proxy in between) to decide when to actually revalidate
+// on a plain reload. That let more than one deploy in this project go
+// unnoticed until a hard refresh. no-store removes that judgment call
+// entirely: the page is refetched from the origin every single time.
+function sendPageFile(res, filePath) {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  // Belt and suspenders on top of no-store: skip sendFile's own ETag/
+  // Last-Modified entirely, so there's no conditional-request pair left for
+  // a browser or an in-between proxy to revalidate against in the first
+  // place, however it interprets the Cache-Control above.
+  return res.sendFile(filePath, { etag: false, lastModified: false });
+}
+
 // blog-post.html and caso.html aren't in SLUG_PAGE_FILES — an individual
 // post/caso is addressed by a "?s=" query param, not a page-level custom
 // slug — so they're served directly here instead of through the catch-all
@@ -465,12 +484,12 @@ async function canServePage(req, content, key) {
 app.get('/blog-post.html', async (req, res, next) => {
   const content = await loadMergedContent();
   if (!(await canServePage(req, content, 'blog'))) return next();
-  return res.sendFile(path.join(ROOT, 'blog-post.html'));
+  return sendPageFile(res, path.join(ROOT, 'blog-post.html'));
 });
 app.get('/caso.html', async (req, res, next) => {
   const content = await loadMergedContent();
   if (!(await canServePage(req, content, 'portfolio'))) return next();
-  return res.sendFile(path.join(ROOT, 'caso.html'));
+  return sendPageFile(res, path.join(ROOT, 'caso.html'));
 });
 
 // admin.html gets no redirect route at all (see the comment on
@@ -1336,7 +1355,7 @@ app.get('/:seg', async (req, res, next) => {
   const matchKey = Object.keys(SLUG_PAGE_FILES).find((k) => slugs[k] === seg);
   if (!matchKey) return next();
   if (TOGGLABLE_PAGES.includes(matchKey) && !(await canServePage(req, content, matchKey))) return next();
-  return res.sendFile(path.join(ROOT, SLUG_PAGE_FILES[matchKey]));
+  return sendPageFile(res, path.join(ROOT, SLUG_PAGE_FILES[matchKey]));
 });
 
 // Global error handler (4 args — Express only calls this shape for
