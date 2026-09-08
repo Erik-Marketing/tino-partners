@@ -194,14 +194,16 @@ const DEFAULT_CONTENT = {
   portfolio: {
     hero: {
       eyebrow: 'Portfolio',
-      headline: 'El formato del portfolio, antes que los primeros casos.',
-      lede: 'Todavía no tenemos proyectos reales para mostrar acá — pero ya estamos trabajando con las primeras marcas. Así vamos a presentar cada caso apenas cerremos una entrega: qué hicimos, con qué estrategia, y qué resultado dejó.',
-      previewFlag: 'Vista previa del formato — contenido de ejemplo',
+      headline: 'Tres tipos de negocio. Un mismo equipo.',
+      lede: 'Producción audiovisual, estrategia y tecnología aplicadas a cada tipo de negocio — así trabajamos en Ecommerce, Marcas &amp; Servicios y Eventos &amp; Experiencias.',
     },
+    // The 3 highlight reels are fixed business-type showcases (not specific
+    // clients) — each one is a different reel Erik uploads per category,
+    // matching the same 3 tipos used to group real casos further down.
     tiles: [
-      { key: 'tile1', status: 'Cliente', category: 'Producción', title: 'NOBRAND', meta: 'Campaña Margen — 2026', logo: { url: '', posX: 50, posY: 50 } },
-      { key: 'tile2', status: 'Ejemplo', category: 'Estrategia', title: 'Marca Ejemplo 02', meta: 'Campaña de lanzamiento — 2026', logo: { url: '', posX: 50, posY: 50 } },
-      { key: 'tile3', status: 'Ejemplo', category: 'Tecnología', title: 'Marca Ejemplo 03', meta: 'Automatización &amp; medición — 2026', logo: { url: '', posX: 50, posY: 50 } },
+      { key: 'tile1', title: 'Ecommerce', video: { url: '', posX: 50, posY: 50 }, logo: { url: '', posX: 50, posY: 50 } },
+      { key: 'tile2', title: 'Marcas &amp; Servicios', video: { url: '', posX: 50, posY: 50 }, logo: { url: '', posX: 50, posY: 50 } },
+      { key: 'tile3', title: 'Eventos &amp; Experiencias', video: { url: '', posX: 50, posY: 50 }, logo: { url: '', posX: 50, posY: 50 } },
     ],
     respaldo: {
       eyebrow: 'Tres especialidades. Un mismo equipo.',
@@ -211,30 +213,9 @@ const DEFAULT_CONTENT = {
     },
     // Each caso is tagged with `tipo` so the portfolio page can group them
     // into the 3 fixed business-type blocks (ecommerce / marcas-servicios /
-    // eventos-experiencias) instead of one flat "otros casos" grid. One
-    // flagged example per block so the new grouping is visible on the page
-    // before Erik has real cases to put in each one — same "Marca Ejemplo"
-    // convention already used for the highlights tiles above.
-    casos: [
-      {
-        tipo: 'ecommerce', categoria: 'Ecommerce', cliente: 'Marca Ejemplo — Ecommerce',
-        meta: 'Campaña de escalamiento — 2026',
-        resumen: 'Tienda online con catálogo completo y pauta segmentada para escalar ventas, medida de punta a punta.',
-        template: 'estandar', cover: null, cuerpo: '', gallery: [], slug: 'marca-ejemplo-ecommerce',
-      },
-      {
-        tipo: 'marcas-servicios', categoria: 'Estrategia de marca', cliente: 'Marca Ejemplo — Servicios',
-        meta: 'Reposicionamiento de marca — 2026',
-        resumen: 'Reposicionamiento de marca con estrategia de contenido y medios para una empresa de servicios profesionales.',
-        template: 'estandar', cover: null, cuerpo: '', gallery: [], slug: 'marca-ejemplo-servicios',
-      },
-      {
-        tipo: 'eventos-experiencias', categoria: 'Producción de eventos', cliente: 'Marca Ejemplo — Eventos',
-        meta: 'Cobertura de evento corporativo — 2026',
-        resumen: 'Cobertura y producción audiovisual de un evento corporativo, de principio a fin.',
-        template: 'estandar', cover: null, cuerpo: '', gallery: [], slug: 'marca-ejemplo-eventos',
-      },
-    ],
+    // eventos-experiencias) instead of one flat "otros casos" grid — stays
+    // empty (and hidden) until Erik adds real cases from the panel.
+    casos: [],
     cta: {
       eyebrow: '¿Hablamos?',
       heading: 'Sé parte del primer caso real acá.',

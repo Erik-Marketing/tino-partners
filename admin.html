@@ -2633,21 +2633,19 @@
     heroGroup.appendChild(renderField({ path: 'eyebrow', label: 'Texto chico arriba del título', type: 'text' }, 'portfolio.hero'));
     heroGroup.appendChild(renderField({ path: 'headline', label: 'Título', type: 'text' }, 'portfolio.hero'));
     heroGroup.appendChild(renderField({ path: 'lede', label: 'Bajada', type: 'textarea' }, 'portfolio.hero'));
-    heroGroup.appendChild(renderField({ path: 'previewFlag', label: 'Etiqueta de vista previa', type: 'text' }, 'portfolio.hero'));
     portfolioCmsBody.appendChild(heroGroup);
 
-    var tilesGroup = cmsSubgroup('Tarjetas destacadas');
+    var tilesGroup = cmsSubgroup('Reels destacados (uno por tipo de negocio)');
     p.tiles.forEach(function(tile, i){
       var tileGroup = document.createElement('div');
       tileGroup.className = 'cms-subgroup cms-list-item';
       var title = document.createElement('div');
       title.className = 'cms-subgroup-title';
-      title.textContent = tile.title || ('Tarjeta ' + (i + 1));
+      title.textContent = tile.title || ('Reel ' + (i + 1));
       tileGroup.appendChild(title);
-      tileGroup.appendChild(renderRichField({ label: 'Etiqueta (Cliente / Ejemplo / Próximamente)', type: 'text' }, function(){ return tile.status; }, function(v){ tile.status = v; }));
-      tileGroup.appendChild(renderRichField({ label: 'Categoría', type: 'text' }, function(){ return tile.category; }, function(v){ tile.category = v; }));
-      tileGroup.appendChild(renderRichField({ label: 'Título', type: 'text' }, function(){ return tile.title; }, function(v){ tile.title = v; title.textContent = v || title.textContent; }));
-      tileGroup.appendChild(renderRichField({ label: 'Detalle (ej: Campaña X — 2026)', type: 'text' }, function(){ return tile.meta; }, function(v){ tile.meta = v; }));
+      tileGroup.appendChild(renderRichField({ label: 'Título (tipo de negocio)', type: 'text' }, function(){ return tile.title; }, function(v){ tile.title = v; title.textContent = v || title.textContent; }));
+      if (!tile.video) tile.video = { url: '', posX: 50, posY: 50 };
+      tileGroup.appendChild(renderMediaField(tile.video, { type: 'video', portrait: true, label: 'Video' }));
       if (!tile.logo) tile.logo = { url: '', posX: 50, posY: 50 };
       tileGroup.appendChild(renderMediaField(tile.logo, { type: 'image', label: 'Logo arriba del video (opcional)' }));
       tilesGroup.appendChild(tileGroup);

@@ -167,13 +167,6 @@
   .page-hero .lede{
     margin-top:22px; max-width:60ch; font-size:1.06rem; line-height:1.6; color:var(--ink-soft);
   }
-  .preview-flag{
-    display:inline-flex; align-items:center; gap:8px; margin-top:24px;
-    font-family:'IBM Plex Mono',monospace; font-size:.68rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase;
-    color:var(--coral-fill); border:1px solid var(--coral-fill); border-radius:var(--radius-pill); padding:7px 16px;
-  }
-  .preview-flag svg{ width:13px; height:13px; flex:none; }
-
   .btn-primary{
     display:inline-flex; align-items:center; justify-content:center; gap:10px; text-decoration:none;
     background:var(--gradient-vivid); color:#fff; font-family:'IBM Plex Mono',monospace;
@@ -525,21 +518,17 @@
   <section class="page-hero">
     <span class="blob-shape blob-fill hero-blob" aria-hidden="true"></span>
     <p class="eyebrow reveal" id="cms-port-hero-eyebrow">Portfolio</p>
-    <h1 class="reveal" id="cms-port-hero-h1">El formato del portfolio, antes que los primeros casos.</h1>
-    <p class="lede reveal" id="cms-port-hero-lede">Todavía no tenemos proyectos reales para mostrar acá — pero ya estamos trabajando con las primeras marcas. Así vamos a presentar cada caso apenas cerremos una entrega: qué hicimos, con qué estrategia, y qué resultado dejó.</p>
-    <span class="preview-flag reveal">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>
-      <span id="cms-port-hero-flag">Vista previa del formato — contenido de ejemplo</span>
-    </span>
+    <h1 class="reveal" id="cms-port-hero-h1">Tres tipos de negocio. Un mismo equipo.</h1>
+    <p class="lede reveal" id="cms-port-hero-lede">Producción audiovisual, estrategia y tecnología aplicadas a cada tipo de negocio — así trabajamos en Ecommerce, Marcas &amp; Servicios y Eventos &amp; Experiencias.</p>
   </section>
 
   <section class="highlights">
     <div class="section-inner">
       <div class="work-grid">
-        <div class="work-tile has-video reveal">
+        <div class="work-tile has-video reveal" id="cms-port-tile1">
           <div class="video-frame" data-video>
             <img class="tile-logo" id="cms-port-tile1-logo" alt="" style="display:none;">
-            <video src="https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/trailer-vertical.mp4" muted loop playsinline preload="metadata"></video>
+            <video id="cms-port-tile1-video" muted loop playsinline preload="metadata"></video>
             <div class="video-controls">
               <button class="v-btn v-mute" type="button" aria-label="Activar sonido">
                 <svg class="icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
@@ -551,28 +540,46 @@
             </div>
           </div>
           <div class="tile-overlay">
-            <span class="wt-status" id="cms-port-tile1-status">Cliente</span>
-            <div>
-              <span class="eyebrow" id="cms-port-tile1-category">Producción</span>
-              <div class="wt-title" id="cms-port-tile1-title">NOBRAND</div>
-              <div class="wt-meta" id="cms-port-tile1-meta">Campaña Margen — 2026</div>
+            <span class="wt-status" id="cms-port-tile1-badge" style="display:none;">Próximamente</span>
+            <div><div class="wt-title" id="cms-port-tile1-title">Ecommerce</div></div>
+          </div>
+        </div>
+        <div class="work-tile has-video reveal" id="cms-port-tile2">
+          <div class="video-frame" data-video>
+            <img class="tile-logo" id="cms-port-tile2-logo" alt="" style="display:none;">
+            <video id="cms-port-tile2-video" muted loop playsinline preload="metadata"></video>
+            <div class="video-controls">
+              <button class="v-btn v-mute" type="button" aria-label="Activar sonido">
+                <svg class="icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                <svg class="icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+              </button>
+              <button class="v-btn v-expand" type="button" aria-label="Ampliar video">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+              </button>
             </div>
           </div>
-        </div>
-        <div class="work-tile reveal">
-          <span class="wt-status" id="cms-port-tile2-status">Ejemplo</span>
-          <div>
-            <span class="eyebrow" id="cms-port-tile2-category">Estrategia</span>
-            <div class="wt-title" id="cms-port-tile2-title">Marca Ejemplo 02</div>
-            <div class="wt-meta" id="cms-port-tile2-meta">Campaña de lanzamiento — 2026</div>
+          <div class="tile-overlay">
+            <span class="wt-status" id="cms-port-tile2-badge" style="display:none;">Próximamente</span>
+            <div><div class="wt-title" id="cms-port-tile2-title">Marcas &amp; Servicios</div></div>
           </div>
         </div>
-        <div class="work-tile reveal">
-          <span class="wt-status" id="cms-port-tile3-status">Ejemplo</span>
-          <div>
-            <span class="eyebrow" id="cms-port-tile3-category">Tecnología</span>
-            <div class="wt-title" id="cms-port-tile3-title">Marca Ejemplo 03</div>
-            <div class="wt-meta" id="cms-port-tile3-meta">Automatización &amp; medición — 2026</div>
+        <div class="work-tile has-video reveal" id="cms-port-tile3">
+          <div class="video-frame" data-video>
+            <img class="tile-logo" id="cms-port-tile3-logo" alt="" style="display:none;">
+            <video id="cms-port-tile3-video" muted loop playsinline preload="metadata"></video>
+            <div class="video-controls">
+              <button class="v-btn v-mute" type="button" aria-label="Activar sonido">
+                <svg class="icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                <svg class="icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+              </button>
+              <button class="v-btn v-expand" type="button" aria-label="Ampliar video">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="tile-overlay">
+            <span class="wt-status" id="cms-port-tile3-badge" style="display:none;">Próximamente</span>
+            <div><div class="wt-title" id="cms-port-tile3-title">Eventos &amp; Experiencias</div></div>
           </div>
         </div>
       </div>
@@ -943,16 +950,24 @@
         setHtml('cms-port-hero-eyebrow', p.hero.eyebrow);
         setHtml('cms-port-hero-h1', p.hero.headline);
         setHtml('cms-port-hero-lede', p.hero.lede);
-        setHtml('cms-port-hero-flag', p.hero.previewFlag);
       }
       (p.tiles || []).forEach(function(tile){
         if (!tile.key) return;
-        setHtml('cms-port-' + tile.key + '-status', tile.status);
-        setHtml('cms-port-' + tile.key + '-category', tile.category);
         setHtml('cms-port-' + tile.key + '-title', tile.title);
-        setHtml('cms-port-' + tile.key + '-meta', tile.meta);
         var logoImg = document.getElementById('cms-port-' + tile.key + '-logo');
         if (logoImg && tile.logo && tile.logo.url) { logoImg.src = tile.logo.url; logoImg.style.display = ''; }
+        var videoEl = document.getElementById('cms-port-' + tile.key + '-video');
+        var badge = document.getElementById('cms-port-' + tile.key + '-badge');
+        if (tile.video && tile.video.url) {
+          if (videoEl) {
+            videoEl.src = tile.video.url;
+            var x = (tile.video.posX != null ? tile.video.posX : 50) + '% ' + (tile.video.posY != null ? tile.video.posY : 50) + '%';
+            videoEl.style.objectPosition = x;
+          }
+          if (badge) badge.style.display = 'none';
+        } else if (badge) {
+          badge.style.display = '';
+        }
       });
 
       if (p.respaldo && p.respaldo.logos && p.respaldo.logos.length) {
