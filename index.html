@@ -1156,6 +1156,30 @@
       if (bar.labelEl) bar.labelEl.textContent = parsed.description;
       if (!parsed.hasNumber && bar.numEl) bar.numEl.textContent = parsed.raw;
     }
+
+    // ---- "Números" stats: each one counts up from 0 the first time it
+    // scrolls into view (reuses the same prefix/number/unit parsing as the
+    // diferenciales bars, just played once instead of tied to scroll) ----
+    var statNumsObserver = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if (!entry.isIntersecting) return;
+        animateStatNum(entry.target);
+        statNumsObserver.unobserve(entry.target);
+      });
+    }, { threshold: .4 });
+    function animateStatNum(el){
+      var parsed = parseFranStat(el.getAttribute('data-stat-raw') || '');
+      if (!parsed.hasNumber) return;
+      var duration = 1400, start = null;
+      function step(ts){
+        if (!start) start = ts;
+        var progress = Math.min((ts - start) / duration, 1);
+        var current = parsed.target * progress;
+        el.textContent = parsed.prefix + (parsed.isInt ? Math.round(current) : current.toFixed(1)) + parsed.unit;
+        if (progress < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
     function updateFranChart(){
       var card = document.getElementById('cms-fran-card');
       if (!card) return;
@@ -1365,7 +1389,15 @@
           el.innerHTML =
             '<span class="stat-blob blob-shape blob-fill" style="position:relative;"></span>' +
             '<div class="stat-num"></div><div class="stat-label"></div>';
-          el.querySelector('.stat-num').innerHTML = item.num || '';
+          var numEl = el.querySelector('.stat-num');
+          var parsedStat = parseFranStat(item.num || '');
+          if (parsedStat.hasNumber) {
+            numEl.setAttribute('data-stat-raw', item.num || '');
+            numEl.textContent = parsedStat.prefix + '0' + parsedStat.unit;
+            statNumsObserver.observe(numEl);
+          } else {
+            numEl.innerHTML = item.num || '';
+          }
           el.querySelector('.stat-label').innerHTML = item.label || '';
           statsGrid.appendChild(el);
           io.observe(el);
