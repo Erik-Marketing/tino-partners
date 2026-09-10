@@ -1809,15 +1809,11 @@
     var izqGroup = cmsSubgroup('Columna izquierda');
     izqGroup.appendChild(renderPlainFieldFor({ label: 'Referencia', type: 'text' }, function(){ return e.legendLabel; }, function(v){ e.legendLabel = v; }));
     izqGroup.appendChild(renderPlainFieldFor({ label: 'Referencia — nota chica', type: 'text' }, function(){ return e.legendNota; }, function(v){ e.legendNota = v; }));
-    izqGroup.appendChild(renderRichField({ label: 'Título del bloque de abajo', type: 'text' }, function(){ return e.notaTitulo; }, function(v){ e.notaTitulo = v; }));
-    izqGroup.appendChild(renderRichField({ label: 'Texto del bloque de abajo', type: 'textarea' }, function(){ return e.notaTexto; }, function(v){ e.notaTexto = v; }));
     wrap.appendChild(izqGroup);
 
     var derGroup = cmsSubgroup('Columna derecha');
-    derGroup.appendChild(renderRichField({ label: 'Párrafo de arriba', type: 'textarea' }, function(){ return e.intro; }, function(v){ e.intro = v; }));
-    derGroup.appendChild(renderPlainFieldFor({ label: 'Línea chica violeta', type: 'text' }, function(){ return e.introTag; }, function(v){ e.introTag = v; }));
-    derGroup.appendChild(renderRichField({ label: 'Título del bloque del medio', type: 'text' }, function(){ return e.resultadoTitulo; }, function(v){ e.resultadoTitulo = v; }));
-    derGroup.appendChild(renderRichField({ label: 'Texto del bloque del medio', type: 'textarea' }, function(){ return e.resultadoTexto; }, function(v){ e.resultadoTexto = v; }));
+    derGroup.appendChild(renderRichField({ label: 'Título del bloque', type: 'text' }, function(){ return e.resultadoTitulo; }, function(v){ e.resultadoTitulo = v; }));
+    derGroup.appendChild(renderRichField({ label: 'Texto del bloque', type: 'textarea' }, function(){ return e.resultadoTexto; }, function(v){ e.resultadoTexto = v; }));
     wrap.appendChild(derGroup);
 
     var ctaGroup = cmsSubgroup('Recuadro de cierre (con el botón al formulario)');
@@ -1865,8 +1861,8 @@
         orderRow.appendChild(upBtn); orderRow.appendChild(downBtn);
         group.appendChild(orderRow);
 
-        group.appendChild(renderPlainFieldFor({ label: 'Título', type: 'text' }, function(){ return item.title; }, function(v){ item.title = v; title.textContent = (i + 1) + '. ' + (v || 'Segmento'); }));
-        group.appendChild(renderPlainFieldFor({ label: 'Descripción', type: 'textarea' }, function(){ return item.texto; }, function(v){ item.texto = v; }));
+        group.appendChild(renderPlainFieldFor({ label: 'Título (lo único que se ve en el círculo)', type: 'text' }, function(){ return item.title; }, function(v){ item.title = v; title.textContent = (i + 1) + '. ' + (v || 'Segmento'); }));
+        group.appendChild(renderPlainFieldFor({ label: 'Descripción (solo se usa en la lista de pantallas chicas)', type: 'textarea' }, function(){ return item.texto; }, function(v){ item.texto = v; }));
         group.appendChild(renderEcoSelect('Ícono', ECO_ICONOS, function(){ return item.icon || 'estrategia'; }, function(v){ item.icon = v; }));
         itemsWrap.appendChild(group);
       });

@@ -375,13 +375,6 @@
     text-transform:uppercase; font-size:clamp(1.05rem,1.6vw,1.4rem); line-height:1.05; letter-spacing:.01em;
   }
   .eco-note p{ margin:0; font-size:.83rem; line-height:1.6; color:var(--ink-soft); }
-  .eco-intro{ margin:0; font-size:.88rem; line-height:1.62; color:var(--ink-soft); }
-  .eco-tag{
-    display:flex; align-items:center; gap:10px; margin:15px 0 0;
-    font-family:'IBM Plex Mono',monospace; font-size:.66rem; font-weight:600;
-    letter-spacing:.12em; text-transform:uppercase; color:var(--v-500);
-  }
-  .eco-tag span:first-child{ width:22px; height:1px; background:var(--v-500); flex:none; }
   .eco-cta{
     border:1px solid color-mix(in srgb, var(--v-500) 45%, transparent); border-radius:16px; padding:20px;
     background:linear-gradient(160deg, color-mix(in srgb, var(--v-700) 16%, transparent), color-mix(in srgb, var(--v-700) 4%, transparent));
@@ -425,18 +418,13 @@
      del anillo, no contra el fondo. */
   .eco-label-ico{ width:19px; height:19px; flex:none; color:#fff; }
   .eco-label-ico svg{ width:100%; height:100%; display:block; }
+  /* el circulo solo muestra el titulo de cada disciplina (sin bajada):
+     la descripcion completa vive en la lista de abajo, que reemplaza al
+     anillo en pantallas chicas. */
   .eco-label h4{
-    margin:0 0 3px; font-family:'Big Shoulders Display',sans-serif; font-weight:800;
-    font-size:clamp(.62rem,1.02vw,.84rem); line-height:1.05; text-transform:uppercase; letter-spacing:.01em;
+    margin:0; font-family:'Big Shoulders Display',sans-serif; font-weight:800;
+    font-size:clamp(.62rem,1.02vw,.84rem); line-height:1.15; text-transform:uppercase; letter-spacing:.01em;
     color:#fff;
-  }
-  /* el recorte a 4 renglones es lo que mantiene la rueda prolija: son 10
-     etiquetas dentro del anillo y, sin tope, una descripcion larga cargada
-     desde el panel se monta sobre la de al lado. El texto completo siempre
-     esta en la lista de abajo (la que se muestra en pantallas chicas). */
-  .eco-label p{
-    margin:0; font-size:clamp(.5rem,.78vw,.64rem); line-height:1.38; color:#b3aec6;
-    display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;
   }
 
   /* lista equivalente para pantallas donde la rueda no puede llevar texto */
@@ -460,11 +448,9 @@
     .eco-col{ gap:14px; }
     .eco-legend{ gap:10px; }
     .eco-note{ padding-top:12px; }
-    .eco-note p, .eco-intro, .eco-cta p{ font-size:.76rem; line-height:1.5; }
+    .eco-note p, .eco-cta p{ font-size:.76rem; line-height:1.5; }
     .eco-note h3, .eco-cta h3{ font-size:1rem; margin-bottom:6px; }
     .eco-cta{ padding:14px; }
-    .eco-tag{ margin-top:10px; }
-    .eco-label p{ -webkit-line-clamp:2; }
   }
   @media (max-width: 1100px){
     .eco-track{ height:auto; }
@@ -834,21 +820,17 @@
               <span class="eco-dot"></span>
               <span><strong id="cms-eco-legend-label">Somos especialistas en</strong><em id="cms-eco-legend-nota">Las 10 disciplinas que mueven tu negocio</em></span>
             </p>
-            <div class="eco-note">
-              <h3 id="cms-eco-nota-titulo">Un solo equipo, todas las disciplinas.</h3>
-              <p id="cms-eco-nota-texto">No coordinamos entre proveedores sueltos ni perdemos tiempo en traspasos: todo lo que ves en la rueda lo hacemos nosotros, desde el primer día.</p>
-            </div>
           </div>
 
           <div class="eco-wheel" id="cms-eco-wheel">
             <svg class="eco-svg" viewBox="0 0 800 800" aria-hidden="true">
               <defs>
-                <linearGradient id="ecoGradA" x1="0.1" y1="0" x2="0.9" y2="1">
-                  <stop offset="0%" stop-color="var(--v-900)"/>
-                  <stop offset="100%" stop-color="var(--v-500)"/>
-                </linearGradient>
-                <linearGradient id="ecoGradB" x1="0.1" y1="0" x2="0.9" y2="1">
-                  <stop offset="0%" stop-color="var(--v-700)"/>
+                <!-- un solo degradado para los 10 gajos (misma receta que
+                     --gradient-vivid: los botones y bandas de marca del
+                     sitio), en vez de alternar entre dos combinaciones
+                     distintas de color. -->
+                <linearGradient id="ecoGrad" x1="0.1" y1="0" x2="0.9" y2="1">
+                  <stop offset="0%" stop-color="var(--v-500)"/>
                   <stop offset="100%" stop-color="var(--pink-500)"/>
                 </linearGradient>
               </defs>
@@ -870,10 +852,6 @@
           </div>
 
           <div class="eco-col">
-            <div>
-              <p class="eco-intro" id="cms-eco-intro">Hacemos todo lo que tu negocio necesita para crecer: contenido, adquisición, datos y tecnología, conectados en un mismo equipo.</p>
-              <p class="eco-tag"><span></span><span id="cms-eco-intro-tag">Estrategia + Ejecución + Resultados</span></p>
-            </div>
             <div class="eco-note">
               <h3 id="cms-eco-resultado-titulo">Lo importante es el resultado.</h3>
               <p id="cms-eco-resultado-texto">Nos enfocamos en lo que sabemos hacer muy bien y tenemos un impacto directo en tus ventas, tu crecimiento y la eficiencia de tu negocio.</p>
@@ -1447,14 +1425,10 @@
 
       setHtml('cms-eco-eyebrow', eco.eyebrow);
       setHtml('cms-eco-heading', eco.heading);
-      setHtml('cms-eco-intro', eco.intro);
-      setText('cms-eco-intro-tag', eco.introTag);
       setText('cms-eco-focus', (eco.focusLabel || '').toUpperCase());
       setHtml('cms-eco-center-title', eco.centerTitle);
       setText('cms-eco-legend-label', eco.legendLabel);
       setText('cms-eco-legend-nota', eco.legendNota);
-      setHtml('cms-eco-nota-titulo', eco.notaTitulo);
-      setHtml('cms-eco-nota-texto', eco.notaTexto);
       setHtml('cms-eco-resultado-titulo', eco.resultadoTitulo);
       setHtml('cms-eco-resultado-texto', eco.resultadoTexto);
       setHtml('cms-eco-cta-titulo', eco.ctaTitulo);
@@ -1472,8 +1446,9 @@
 
       var n = items.length, step = 360 / n, gap = Math.min(2.2, step * 0.07);
       items.forEach(function(it, i){
-        // no hay mas una mitad "con socios": el degradado alterna solo por
-        // ritmo visual entre las dos variantes de marca definidas en el svg.
+        // todos los gajos comparten el mismo degradado (#ecoGrad, definido
+        // en el svg) -- no hay mas una mitad "con socios" ni alternancia
+        // entre dos combinaciones de color.
         var a0 = i * step + gap / 2, a1 = (i + 1) * step - gap / 2;
         var p0 = ecoPoint(ECO_MID, a0), p1 = ecoPoint(ECO_MID, a1);
         var seg = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -1481,7 +1456,7 @@
         seg.setAttribute('d', 'M' + p0[0].toFixed(1) + ' ' + p0[1].toFixed(1) +
           ' A' + ECO_MID + ' ' + ECO_MID + ' 0 ' + ((a1 - a0) > 180 ? 1 : 0) + ' 1 ' +
           p1[0].toFixed(1) + ' ' + p1[1].toFixed(1));
-        seg.setAttribute('stroke', (i % 2 === 0) ? 'url(#ecoGradA)' : 'url(#ecoGradB)');
+        seg.setAttribute('stroke', 'url(#ecoGrad)');
         seg.setAttribute('stroke-width', ECO_BAND);
         var len = ECO_MID * (a1 - a0) * Math.PI / 180;
         seg.style.strokeDasharray = String(len);
@@ -1494,9 +1469,8 @@
         label.className = 'eco-label';
         label.style.left = (lp[0] / 800 * 100).toFixed(2) + '%';
         label.style.top = (lp[1] / 800 * 100).toFixed(2) + '%';
-        label.innerHTML = '<span class="eco-label-ico">' + ecoIcon(it.icon) + '</span><span><h4></h4><p></p></span>';
+        label.innerHTML = '<span class="eco-label-ico">' + ecoIcon(it.icon) + '</span><span><h4></h4></span>';
         label.querySelector('h4').textContent = it.title || '';
-        label.querySelector('p').textContent = it.texto || '';
         labelWrap.appendChild(label);
         ECO.labels.push(label);
 
