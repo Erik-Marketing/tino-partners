@@ -1207,7 +1207,7 @@
     { key: 'logosBand', title: 'Logos de marcas (carrusel)', custom: 'logosBand' },
     { key: 'proyectos', title: 'Nuestros proyectos', custom: 'proyectos' },
     { key: 'ticker', title: 'Cinta de palabras', custom: 'ticker' },
-    { key: 'diferenciales', title: 'Lo que nos hace diferentes', custom: 'diferenciales' },
+    { key: 'ecosistema', title: 'Rueda del ecosistema', custom: 'ecosistema' },
     { key: 'stats', title: 'Números', custom: 'stats' },
     { key: 'quehacemos', title: 'Partner de negocio', custom: 'quehacemos' },
     { key: 'marcas', title: 'Marcas', custom: 'marcas' },
@@ -1761,39 +1761,133 @@
     return wrap;
   }
 
-  function renderDiferencialesSection(){
+  var ECO_TIPOS = [
+    { value: 'propio', label: 'Lo que hacemos (violeta)' },
+    { value: 'socio', label: 'Con socios (gris)' }
+  ];
+  var ECO_ICONOS = [
+    { value: 'camara', label: 'Cámara / audiovisual' },
+    { value: 'grafico', label: 'Gráfico / pauta' },
+    { value: 'datos', label: 'Base de datos / analytics' },
+    { value: 'engranaje', label: 'Engranaje / automatización' },
+    { value: 'monitor', label: 'Monitor / web' },
+    { value: 'tienda', label: 'Tienda / ventas' },
+    { value: 'megafono', label: 'Megáfono / PR' },
+    { value: 'personas', label: 'Personas / redes' },
+    { value: 'lampara', label: 'Lámpara / branding' },
+    { value: 'estrategia', label: 'Bandera / estrategia' }
+  ];
+  function renderEcoSelect(labelText, opciones, getVal, setVal){
+    var field = document.createElement('div');
+    field.className = 'cms-field';
+    field.appendChild(makeLabel(labelText));
+    var select = document.createElement('select');
+    opciones.forEach(function(o){
+      var opt = document.createElement('option');
+      opt.value = o.value;
+      opt.textContent = o.label;
+      if (getVal() === o.value) opt.selected = true;
+      select.appendChild(opt);
+    });
+    select.addEventListener('change', function(){ setVal(select.value); });
+    field.appendChild(select);
+    return field;
+  }
+
+  function renderEcosistemaSection(){
     var wrap = document.createElement('div');
     wrap.className = 'cms-fields';
-    var d = homeContent.diferenciales;
-    if (!d.invertir) d.invertir = { texto: '', ctaText: 'Hablemos' };
-    if (!d.franCard) d.franCard = { photo: { url: '', posX: 50, posY: 50 }, statLine1: '', statLine2: '', statLine3: '', statLine4: '' };
+    var e = homeContent.ecosistema;
+    if (!e.items) e.items = [];
 
-    wrap.appendChild(renderPlainFieldFor({ label: 'Etiqueta de la sección', type: 'text' }, function(){ return d.eyebrow; }, function(v){ d.eyebrow = v; }));
-    wrap.appendChild(renderRichField({ label: 'Título', type: 'text' }, function(){ return d.heading; }, function(v){ d.heading = v; }));
-    wrap.appendChild(renderRichField({ label: 'Párrafo', type: 'textarea' }, function(){ return d.texto; }, function(v){ d.texto = v; }));
+    wrap.appendChild(renderToggleRow('Mostrar esta sección en el sitio', function(){ return e.enabled; }, function(v){ e.enabled = v; }));
+    wrap.appendChild(renderPlainFieldFor({ label: 'Etiqueta de la sección', type: 'text' }, function(){ return e.eyebrow; }, function(v){ e.eyebrow = v; }));
+    wrap.appendChild(renderRichField({ label: 'Título', type: 'text' }, function(){ return e.heading; }, function(v){ e.heading = v; }));
 
-    var invertirTitle = document.createElement('div');
-    invertirTitle.className = 'cms-subgroup-title';
-    invertirTitle.textContent = 'Bloque de calificación (rango de inversión)';
-    var invertirGroup = document.createElement('div');
-    invertirGroup.className = 'cms-subgroup';
-    invertirGroup.appendChild(invertirTitle);
-    invertirGroup.appendChild(renderRichField({ label: 'Texto', type: 'textarea' }, function(){ return d.invertir.texto; }, function(v){ d.invertir.texto = v; }));
-    invertirGroup.appendChild(renderPlainFieldFor({ label: 'Texto del botón', type: 'text' }, function(){ return d.invertir.ctaText; }, function(v){ d.invertir.ctaText = v; }));
-    wrap.appendChild(invertirGroup);
+    var centroGroup = cmsSubgroup('Centro de la rueda');
+    centroGroup.appendChild(renderPlainFieldFor({ label: 'Nombre', type: 'text' }, function(){ return e.centerTitle; }, function(v){ e.centerTitle = v; }));
+    centroGroup.appendChild(renderPlainFieldFor({ label: 'Bajada (se separa sola en renglones por los "+" y el "=")', type: 'text' }, function(){ return e.centerTagline; }, function(v){ e.centerTagline = v; }));
+    centroGroup.appendChild(renderPlainFieldFor({ label: 'Texto del arco ("Nuestro foco")', type: 'text' }, function(){ return e.focusLabel; }, function(v){ e.focusLabel = v; }));
+    wrap.appendChild(centroGroup);
 
-    var franTitle = document.createElement('div');
-    franTitle.className = 'cms-subgroup-title';
-    franTitle.textContent = 'Tarjeta de la derecha (foto + números)';
-    var franGroup = document.createElement('div');
-    franGroup.className = 'cms-subgroup';
-    franGroup.appendChild(franTitle);
-    franGroup.appendChild(renderMediaField(d.franCard.photo, { type: 'image', portrait: true, label: 'Foto' }));
-    franGroup.appendChild(renderPlainFieldFor({ label: 'Dato 1 — Cuentas (ej: +100 Cuentas publicitarias gestionadas)', type: 'text' }, function(){ return d.franCard.statLine1; }, function(v){ d.franCard.statLine1 = v; }));
-    franGroup.appendChild(renderPlainFieldFor({ label: 'Dato 2 — Ventas (ej: +8000 Ventas realizadas)', type: 'text' }, function(){ return d.franCard.statLine3; }, function(v){ d.franCard.statLine3 = v; }));
-    franGroup.appendChild(renderPlainFieldFor({ label: 'Dato 3 — ROAS (ej: +60 ROAS Alcanzados)', type: 'text' }, function(){ return d.franCard.statLine4; }, function(v){ d.franCard.statLine4 = v; }));
-    franGroup.appendChild(renderPlainFieldFor({ label: 'Dato 4 — Inversión (ej: +Más de USD 500K invertidos en publicidad digital)', type: 'text' }, function(){ return d.franCard.statLine2; }, function(v){ d.franCard.statLine2 = v; }));
-    wrap.appendChild(franGroup);
+    var izqGroup = cmsSubgroup('Columna izquierda');
+    izqGroup.appendChild(renderPlainFieldFor({ label: 'Referencia violeta', type: 'text' }, function(){ return e.legendPropio; }, function(v){ e.legendPropio = v; }));
+    izqGroup.appendChild(renderPlainFieldFor({ label: 'Referencia violeta — nota chica', type: 'text' }, function(){ return e.legendPropioNota; }, function(v){ e.legendPropioNota = v; }));
+    izqGroup.appendChild(renderPlainFieldFor({ label: 'Referencia gris', type: 'text' }, function(){ return e.legendSocio; }, function(v){ e.legendSocio = v; }));
+    izqGroup.appendChild(renderPlainFieldFor({ label: 'Referencia gris — nota chica', type: 'text' }, function(){ return e.legendSocioNota; }, function(v){ e.legendSocioNota = v; }));
+    izqGroup.appendChild(renderRichField({ label: 'Título del bloque de abajo', type: 'text' }, function(){ return e.notaTitulo; }, function(v){ e.notaTitulo = v; }));
+    izqGroup.appendChild(renderRichField({ label: 'Texto del bloque de abajo', type: 'textarea' }, function(){ return e.notaTexto; }, function(v){ e.notaTexto = v; }));
+    wrap.appendChild(izqGroup);
+
+    var derGroup = cmsSubgroup('Columna derecha');
+    derGroup.appendChild(renderRichField({ label: 'Párrafo de arriba', type: 'textarea' }, function(){ return e.intro; }, function(v){ e.intro = v; }));
+    derGroup.appendChild(renderPlainFieldFor({ label: 'Línea chica violeta', type: 'text' }, function(){ return e.introTag; }, function(v){ e.introTag = v; }));
+    derGroup.appendChild(renderRichField({ label: 'Título del bloque del medio', type: 'text' }, function(){ return e.resultadoTitulo; }, function(v){ e.resultadoTitulo = v; }));
+    derGroup.appendChild(renderRichField({ label: 'Texto del bloque del medio', type: 'textarea' }, function(){ return e.resultadoTexto; }, function(v){ e.resultadoTexto = v; }));
+    wrap.appendChild(derGroup);
+
+    var ctaGroup = cmsSubgroup('Recuadro de cierre (con el botón al formulario)');
+    ctaGroup.appendChild(renderRichField({ label: 'Título', type: 'text' }, function(){ return e.ctaTitulo; }, function(v){ e.ctaTitulo = v; }));
+    ctaGroup.appendChild(renderRichField({ label: 'Texto', type: 'textarea' }, function(){ return e.ctaTexto; }, function(v){ e.ctaTexto = v; }));
+    ctaGroup.appendChild(renderPlainFieldFor({ label: 'Texto del botón', type: 'text' }, function(){ return e.ctaBoton; }, function(v){ e.ctaBoton = v; }));
+    wrap.appendChild(ctaGroup);
+
+    var itemsTitle = cmsSubgroup('Segmentos de la rueda');
+    var hint = document.createElement('p');
+    hint.className = 'cms-media-hint';
+    hint.textContent = 'Se dibujan arrancando a las 12 en punto y girando en sentido horario, en este mismo orden. Conviene poner primero los violetas (lo que hacemos) y después los grises.';
+    itemsTitle.appendChild(hint);
+    wrap.appendChild(itemsTitle);
+
+    var itemsWrap = document.createElement('div');
+    itemsWrap.style.cssText = 'display:flex; flex-direction:column; gap:14px; margin:4px 0;';
+    function renderItems(){
+      itemsWrap.innerHTML = '';
+      e.items.forEach(function(item, i){
+        var group = document.createElement('div');
+        group.className = 'cms-subgroup cms-list-item';
+        var title = document.createElement('div');
+        title.className = 'cms-subgroup-title';
+        title.textContent = (i + 1) + '. ' + (item.title || 'Segmento');
+        group.appendChild(title);
+
+        if (e.items.length > 1) {
+          var removeBtn = document.createElement('button');
+          removeBtn.type = 'button'; removeBtn.className = 'cms-remove-btn'; removeBtn.textContent = '\u00d7'; removeBtn.title = 'Quitar este segmento';
+          removeBtn.addEventListener('click', function(){ e.items.splice(i, 1); renderItems(); });
+          group.appendChild(removeBtn);
+        }
+
+        var orderRow = document.createElement('div');
+        orderRow.style.cssText = 'display:flex; gap:8px; margin-bottom:12px;';
+        var upBtn = document.createElement('button');
+        upBtn.type = 'button'; upBtn.className = 'cms-file-btn'; upBtn.textContent = '\u2191 Subir';
+        upBtn.disabled = i === 0;
+        upBtn.addEventListener('click', function(){ var t = e.items[i - 1]; e.items[i - 1] = e.items[i]; e.items[i] = t; renderItems(); });
+        var downBtn = document.createElement('button');
+        downBtn.type = 'button'; downBtn.className = 'cms-file-btn'; downBtn.textContent = '\u2193 Bajar';
+        downBtn.disabled = i === e.items.length - 1;
+        downBtn.addEventListener('click', function(){ var t = e.items[i + 1]; e.items[i + 1] = e.items[i]; e.items[i] = t; renderItems(); });
+        orderRow.appendChild(upBtn); orderRow.appendChild(downBtn);
+        group.appendChild(orderRow);
+
+        group.appendChild(renderPlainFieldFor({ label: 'Título', type: 'text' }, function(){ return item.title; }, function(v){ item.title = v; title.textContent = (i + 1) + '. ' + (v || 'Segmento'); }));
+        group.appendChild(renderPlainFieldFor({ label: 'Descripción', type: 'textarea' }, function(){ return item.texto; }, function(v){ item.texto = v; }));
+        group.appendChild(renderEcoSelect('Color', ECO_TIPOS, function(){ return item.tipo || 'propio'; }, function(v){ item.tipo = v; }));
+        group.appendChild(renderEcoSelect('Ícono', ECO_ICONOS, function(){ return item.icon || 'estrategia'; }, function(v){ item.icon = v; }));
+        itemsWrap.appendChild(group);
+      });
+    }
+    renderItems();
+    wrap.appendChild(itemsWrap);
+
+    var addBtn = document.createElement('button');
+    addBtn.type = 'button'; addBtn.className = 'cms-add-btn'; addBtn.textContent = '+ Agregar segmento';
+    addBtn.addEventListener('click', function(){
+      e.items.push({ tipo: 'propio', icon: 'estrategia', title: 'Nuevo segmento', texto: '' });
+      renderItems();
+    });
+    wrap.appendChild(addBtn);
 
     return wrap;
   }
@@ -2119,7 +2213,7 @@
     else if (section.custom === 'proyectos') body = renderProyectosSection();
     else if (section.custom === 'ticker') body = renderTickerSection();
     else if (section.custom === 'blog') body = renderBlogSection();
-    else if (section.custom === 'diferenciales') body = renderDiferencialesSection();
+    else if (section.custom === 'ecosistema') body = renderEcosistemaSection();
     else if (section.custom === 'testimonios') body = renderTestimoniosSection();
     else if (section.custom === 'marcas') body = renderMarcasSection();
     else if (section.custom === 'logosBand') body = renderLogosBandSection();

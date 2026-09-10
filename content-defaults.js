@@ -46,26 +46,47 @@ const DEFAULT_CONTENT = {
     row1: 'Branding, Manual de marca, Filmaker, Tiendas Online, Ecommerce, Foto producto, Redes Sociales, Estrategia creativa, Google Ads, Engagement, Identidad visual, Linkedin Ads',
     row2: 'Contenido orgánico, Landing Page, Branding, Páginas Web, Diseño Gráfico, Catálogos, Ecommerce, Estrategia creativa, Manual de marca, Google Ads, Meta Ads, TikTok Ads',
   },
-  diferenciales: {
-    eyebrow: 'Lo que nos hace diferentes',
-    heading: 'Un mismo equipo, de punta a punta.',
-    texto: 'Tino Partners está pensado para empresas que ya venden, ya invierten en marketing y necesitan escalar su negocio trabajando contenido, pauta, data y tecnología con un mismo objetivo en común.',
-    invertir: {
-      texto: 'Nuestro foco está en marcas o empresas con capacidad de invertir entre USD 3.000 y 20.000 en medios. ¿Tu empresa está en esta etapa?',
-      ctaText: 'Hablemos',
-    },
-    // Field names don't match their on-screen order — statLine1/2 predate
-    // statLine3/4 and keep their original keys so nothing Erik already
-    // edited gets orphaned by a rename. The visual order (Cuentas, Ventas,
-    // ROAS, Inversión) is applied in index.html/admin.html by picking which
-    // field renders into which chart slot, not by field declaration order.
-    franCard: {
-      photo: { url: '', posX: 50, posY: 50 },
-      statLine1: '+100 Cuentas publicitarias gestionadas',
-      statLine2: '+Más de USD 500K invertidos en publicidad digital',
-      statLine3: '+8000 Ventas realizadas',
-      statLine4: '+60 ROAS Alcanzados',
-    },
+  // Rueda del ecosistema — reemplaza a la vieja sección "Lo que nos hace
+  // diferentes" (copy + tarjeta de barras). El bloque de calificación por
+  // rango de inversión y su botón se conservan acá, en el recuadro de cierre.
+  //
+  // `items` se dibuja arrancando a las 12 en punto y girando en sentido
+  // horario, así que el orden del array ES el orden en la rueda: primero los
+  // propios (mitad derecha, de arriba hacia abajo), después los de socios
+  // (mitad izquierda, de abajo hacia arriba). `tipo` decide el color:
+  // 'propio' = violeta, 'socio' = gris.
+  ecosistema: {
+    enabled: true,
+    eyebrow: 'El marketing es un ecosistema.',
+    heading: 'Nosotros cubrimos lo que realmente mueve tu negocio.',
+    intro: 'No hacemos todo. Hacemos lo que más impacto genera: contenido, adquisición, datos y tecnología, conectados para que tu negocio crezca.',
+    introTag: 'Estrategia + Ejecución + Resultados',
+    focusLabel: 'Nuestro foco',
+    centerTitle: 'Tino Partners',
+    centerTagline: 'Contenido + Data + Tecnología = Crecimiento',
+    legendPropio: 'Lo que hacemos',
+    legendPropioNota: 'Tino Partners',
+    legendSocio: 'Lo que no hacemos',
+    legendSocioNota: '(o trabajamos con socios)',
+    notaTitulo: 'Cada negocio es distinto.',
+    notaTexto: 'Si hay áreas que hoy no cubrimos en tu proyecto, trabajamos con una red de socios de confianza para armar un equipo completo cuando hace falta.',
+    resultadoTitulo: 'Lo importante es el resultado.',
+    resultadoTexto: 'Nos enfocamos en lo que sabemos hacer muy bien y tenemos un impacto directo en tus ventas, tu crecimiento y la eficiencia de tu negocio.',
+    ctaTitulo: 'Un equipo. Un mismo objetivo.',
+    ctaTexto: 'Nuestro foco está en marcas o empresas con capacidad de invertir entre USD 3.000 y 20.000 en medios. ¿Tu empresa está en esta etapa?',
+    ctaBoton: 'Hablemos',
+    items: [
+      { tipo: 'propio', icon: 'camara', title: 'Producción audiovisual', texto: 'Video, foto, contenido para redes, podcasts, dirección de arte.' },
+      { tipo: 'propio', icon: 'grafico', title: 'Pauta en Meta y Google', texto: 'Estrategia, gestión, optimización y escalamiento.' },
+      { tipo: 'propio', icon: 'datos', title: 'Datos y analytics', texto: 'Medición, reportes y toma de decisiones en base a datos.' },
+      { tipo: 'propio', icon: 'engranaje', title: 'Automatizaciones e IA', texto: 'Procesos, CRM, flujos de comunicación, integraciones y apps.' },
+      { tipo: 'propio', icon: 'monitor', title: 'Desarrollo web y landings', texto: 'Sitios, landings, UX/UI orientado a conversión.' },
+      { tipo: 'socio', icon: 'tienda', title: 'Ventas directas y atención al cliente', texto: 'Gestión comercial, equipos de venta, atención al cliente.' },
+      { tipo: 'socio', icon: 'megafono', title: 'PR y medios', texto: 'Relaciones públicas, prensa, influencers.' },
+      { tipo: 'socio', icon: 'personas', title: 'Gestión de redes sociales', texto: 'Community management y atención al cliente.' },
+      { tipo: 'socio', icon: 'lampara', title: 'Branding', texto: 'Identidad de marca, diseño de logo, manual de marca.' },
+      { tipo: 'socio', icon: 'estrategia', title: 'Estrategia de negocio', texto: 'Consultoría empresarial, finanzas, pricing, modelo de negocio.' },
+    ],
   },
   stats: {
     items: [
@@ -419,7 +440,7 @@ function normalizeFormFields(savedFields) {
 // never translated between the two.
 const PERMISSION_KEYS = [
   'consultas',
-  'home-cms.hero', 'home-cms.logosBand', 'home-cms.proyectos', 'home-cms.ticker', 'home-cms.diferenciales',
+  'home-cms.hero', 'home-cms.logosBand', 'home-cms.proyectos', 'home-cms.ticker', 'home-cms.ecosistema',
   'home-cms.stats', 'home-cms.quehacemos', 'home-cms.marcas', 'home-cms.testimonios',
   'home-cms.blog', 'home-cms.footer',
   'blog-cms.new', 'blog-cms.list',
@@ -444,7 +465,7 @@ const CONTENT_PATHS = {
   'home-cms.hero': [{ path: 'hero', type: 'object' }],
   'home-cms.proyectos': [{ path: 'proyectos', type: 'object' }],
   'home-cms.ticker': [{ path: 'ticker', type: 'object' }],
-  'home-cms.diferenciales': [{ path: 'diferenciales', type: 'object' }],
+  'home-cms.ecosistema': [{ path: 'ecosistema', type: 'object' }],
   'home-cms.stats': [{ path: 'stats', type: 'object' }],
   'home-cms.quehacemos': [{ path: 'quehacemos', type: 'object' }],
   'home-cms.marcas': [{ path: 'marcas', type: 'object' }],

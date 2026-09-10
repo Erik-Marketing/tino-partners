@@ -62,7 +62,14 @@
     color:var(--ink);
     font-family:'Work Sans', ui-sans-serif, system-ui, sans-serif;
     -webkit-font-smoothing:antialiased;
+    /* Tiene que ser `clip`, no `hidden`: con `hidden` el body pasa a ser un
+       contenedor de scroll y el `position:sticky` de la rueda del ecosistema
+       deja de pegarse (la pagina la scrollea el viewport, el body queda en
+       scrollTop 0). `clip` recorta igual los adornos que se van de ancho
+       (los orbes de #trabajos) pero sin crear contenedor de scroll. El
+       `hidden` de arriba queda como fallback para navegadores sin `clip`. */
     overflow-x:hidden;
+    overflow-x:clip;
   }
   h1,h2,h3{
     font-family:'Big Shoulders Display', 'Arial Narrow', sans-serif;
@@ -316,26 +323,163 @@
     object-fit:contain; background:rgba(255,255,255,.92); border-radius:8px; padding:5px 8px;
   }
 
-  /* ---- lo que nos hace diferentes ---- */
-  .different{ background:var(--paper-dim); padding:clamp(72px,10vh,120px) 0; border-bottom:1px solid var(--line); }
-  .different-grid{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(32px,5vw,56px); align-items:center; }
-  .different-copy h2{ font-size:clamp(2rem,4.2vw,3rem); margin-bottom:18px; }
-  .different-copy p{ font-size:1.05rem; line-height:1.65; color:var(--ink-soft); max-width:52ch; }
-  .invertir-block{ margin-top:26px; padding-top:22px; border-top:1px solid var(--line); }
-  .invertir-block p{ font-size:1.05rem; line-height:1.65; color:var(--ink-soft); max-width:52ch; margin-bottom:16px; }
-
-  .fran-card{
-    background:var(--paper-flat); border:1px solid var(--line); border-radius:var(--radius);
-    box-shadow:var(--shadow); padding:clamp(28px,4vw,44px); max-width:600px; width:100%;
-    display:flex; flex-direction:column; gap:24px; align-items:center; text-align:center;
+  /* ---- rueda del ecosistema ----
+     .eco-track es alto (lo fija el JS) y .eco-stage queda pegada arriba: eso
+     da el recorrido de scroll con el que se van dibujando los segmentos. En
+     pantallas chicas y con "reducir movimiento" se desarma: altura auto,
+     nada pegado, y la rueda se completa apenas entra en pantalla. */
+  .eco{ background:#0d0d1a; color:#fff; }
+  .eco.is-off{ display:none; }
+  .eco-track{ height:var(--eco-track-h, auto); }
+  .eco-stage{
+    position:sticky; top:0; min-height:100vh; overflow:hidden;
+    display:flex; flex-direction:column; justify-content:center;
+    padding:clamp(84px,11vh,120px) clamp(20px,4vw,56px) clamp(40px,6vh,72px);
   }
-  .fran-photo{ width:96px; height:96px; border-radius:50%; object-fit:cover; }
-  .fran-chart{ display:flex; align-items:flex-end; justify-content:space-between; gap:clamp(20px,4vw,40px); width:100%; }
-  .fran-bar-col{ display:flex; flex-direction:column; align-items:center; flex:1; min-width:0; }
-  .fran-bar-num{ font-family:'Big Shoulders Display',sans-serif; font-weight:800; font-size:clamp(.9rem,2vw,1.3rem); color:var(--v-500); margin-bottom:10px; white-space:nowrap; }
-  .fran-bar-track{ width:100%; max-width:110px; height:130px; background:var(--paper-dim); border-radius:10px 10px 4px 4px; display:flex; align-items:flex-end; overflow:hidden; }
-  .fran-bar-fill{ width:100%; height:0%; background:var(--gradient-vivid); border-radius:10px 10px 4px 4px; }
-  .fran-bar-label{ margin-top:10px; font-size:clamp(.66rem,1.4vw,.74rem); color:var(--ink-soft); line-height:1.3; }
+  .eco.is-static .eco-track{ height:auto; }
+  .eco.is-static .eco-stage{ position:static; min-height:0; }
+  .eco-stage::before{
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(58% 58% at 64% 46%, rgba(107,33,255,.20), transparent 72%);
+  }
+  .eco-inner{
+    position:relative; width:100%; max-width:1400px; margin:0 auto;
+    display:grid; grid-template-columns:minmax(250px,1fr) minmax(0,700px) minmax(250px,1fr);
+    gap:clamp(20px,2.6vw,44px); align-items:stretch;
+  }
+  .eco-col{ display:flex; flex-direction:column; justify-content:space-between; gap:clamp(20px,3vh,36px); min-width:0; }
+  .eco-eyebrow{
+    margin:0 0 12px; font-family:'IBM Plex Mono',monospace; font-size:.7rem; font-weight:600;
+    letter-spacing:.13em; text-transform:uppercase; color:#a855f7;
+  }
+  .eco-heading{
+    margin:0; font-family:'Big Shoulders Display',sans-serif; font-weight:800; text-transform:uppercase;
+    font-size:clamp(1.5rem,2.5vw,2.3rem); line-height:1.02; letter-spacing:.01em;
+  }
+  .eco-legend{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:14px; }
+  .eco-legend li{ display:flex; align-items:flex-start; gap:12px; }
+  .eco-dot{ width:19px; height:19px; border-radius:50%; flex:none; margin-top:3px; }
+  .eco-dot--propio{ background:linear-gradient(135deg,#6b21ff,#a855f7); box-shadow:0 0 18px rgba(139,60,255,.55); }
+  .eco-dot--socio{ background:#3a3a4d; }
+  .eco-legend strong{
+    display:block; font-family:'Big Shoulders Display',sans-serif; font-weight:800;
+    font-size:1.02rem; text-transform:uppercase; letter-spacing:.02em; line-height:1.1;
+  }
+  .eco-legend em{
+    display:block; font-style:normal; font-family:'IBM Plex Mono',monospace; font-size:.6rem;
+    letter-spacing:.11em; text-transform:uppercase; color:#8b87a0; margin-top:3px;
+  }
+  .eco-note{ border-top:1px solid rgba(255,255,255,.13); padding-top:18px; }
+  .eco-note h3, .eco-cta h3{
+    margin:0 0 9px; font-family:'Big Shoulders Display',sans-serif; font-weight:800;
+    text-transform:uppercase; font-size:clamp(1.05rem,1.6vw,1.4rem); line-height:1.05; letter-spacing:.01em;
+  }
+  .eco-note p{ margin:0; font-size:.83rem; line-height:1.6; color:#a9a5bd; }
+  .eco-intro{ margin:0; font-size:.88rem; line-height:1.62; color:#cfcbdd; }
+  .eco-tag{
+    display:flex; align-items:center; gap:10px; margin:15px 0 0;
+    font-family:'IBM Plex Mono',monospace; font-size:.66rem; font-weight:600;
+    letter-spacing:.12em; text-transform:uppercase; color:#a855f7;
+  }
+  .eco-tag span:first-child{ width:22px; height:1px; background:#a855f7; flex:none; }
+  .eco-cta{
+    border:1px solid rgba(168,85,247,.45); border-radius:16px; padding:20px;
+    background:linear-gradient(160deg, rgba(107,33,255,.16), rgba(107,33,255,.04));
+  }
+  .eco-cta-arrow{ display:block; color:#a855f7; font-size:1.05rem; line-height:1; margin-bottom:10px; }
+  .eco-cta p{ margin:0; font-size:.83rem; line-height:1.6; color:#b6b2c9; }
+  .eco-cta .btn-primary{ margin-top:16px; }
+
+  /* align-self:center es imprescindible: como item de grid la rueda se
+     estiraria a lo alto de la fila, el aspect-ratio quedaria sin efecto y
+     las etiquetas (que se ubican en % de esta caja) se irian de lugar. */
+  .eco-wheel{ position:relative; width:100%; aspect-ratio:1; align-self:center; margin:0 auto; max-width:min(700px, 74vh); }
+  .eco-svg{ width:100%; height:100%; display:block; overflow:visible; }
+  .eco-seg{ fill:none; stroke-linecap:butt; }
+  .eco-focus-text{
+    font-family:'IBM Plex Mono',monospace; font-size:15px; font-weight:600;
+    letter-spacing:5.5px; fill:#a855f7;
+  }
+  .eco-hub{
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    width:36%; display:flex; flex-direction:column; align-items:center; gap:9px; text-align:center;
+  }
+  .eco-hub-title{
+    font-family:'Big Shoulders Display',sans-serif; font-weight:800; text-transform:uppercase;
+    font-size:clamp(.95rem,2.1vw,1.6rem); line-height:.95; letter-spacing:.02em;
+  }
+  .eco-hub-rule{ width:24px; height:2px; background:#a855f7; }
+  .eco-hub-tagline{
+    font-family:'IBM Plex Mono',monospace; font-size:clamp(.46rem,.82vw,.62rem); font-weight:600;
+    letter-spacing:.13em; text-transform:uppercase; line-height:1.85; color:#b9b5cc;
+  }
+  .eco-hub-tagline b{ color:#a855f7; font-weight:600; }
+  .eco-labels{ position:absolute; inset:0; pointer-events:none; }
+  .eco-label{
+    position:absolute; width:clamp(90px,18%,150px); display:flex; gap:7px;
+    opacity:0; transform:translate(-50%,-50%); text-align:left;
+  }
+  .eco-label-ico{ width:19px; height:19px; flex:none; color:#fff; }
+  .eco-label-ico svg{ width:100%; height:100%; display:block; }
+  .eco-label h4{
+    margin:0 0 3px; font-family:'Big Shoulders Display',sans-serif; font-weight:800;
+    font-size:clamp(.62rem,1.02vw,.84rem); line-height:1.05; text-transform:uppercase; letter-spacing:.01em;
+  }
+  /* el recorte a 4 renglones es lo que mantiene la rueda prolija: son 10
+     etiquetas dentro del anillo y, sin tope, una descripcion larga cargada
+     desde el panel se monta sobre la de al lado. El texto completo siempre
+     esta en la lista de abajo (la que se muestra en pantallas chicas). */
+  .eco-label p{
+    margin:0; font-size:clamp(.5rem,.78vw,.64rem); line-height:1.38; color:#b3aec6;
+    display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;
+  }
+  .eco-label--socio .eco-label-ico{ color:#a9a5bd; }
+  .eco-label--socio h4{ color:#d3cfe0; }
+  .eco-label--socio p{ color:#8b87a0; }
+
+  /* lista equivalente para pantallas donde la rueda no puede llevar texto */
+  .eco-list{ display:none; list-style:none; margin:34px auto 0; padding:0; gap:12px; max-width:560px; width:100%; }
+  .eco-list li{
+    display:flex; gap:12px; padding:14px 16px; border-radius:12px;
+    border:1px solid rgba(255,255,255,.10); background:rgba(255,255,255,.03);
+  }
+  .eco-list li.is-propio{ border-color:rgba(168,85,247,.35); background:rgba(107,33,255,.10); }
+  .eco-list h4{ margin:0 0 4px; font-family:'Big Shoulders Display',sans-serif; font-weight:800; font-size:.95rem; text-transform:uppercase; line-height:1.1; }
+  .eco-list p{ margin:0; font-size:.78rem; line-height:1.5; color:#a9a5bd; }
+
+  /* Pantallas anchas pero bajas (notebooks de 1366x768, ventanas a media
+     altura): el escenario tiene que entrar completo en 100vh porque queda
+     pegado arriba, asi que se compacta la tipografia y los aires, y las
+     descripciones de la rueda se recortan a 2 renglones para que las 10
+     etiquetas no se pisen con la rueda mas chica. */
+  @media (min-width:1101px) and (max-height:860px){
+    .eco-stage{ padding:clamp(70px,9vh,100px) clamp(20px,4vw,56px) clamp(26px,4vh,56px); }
+    .eco-heading{ font-size:clamp(1.25rem,2vw,1.8rem); }
+    .eco-col{ gap:14px; }
+    .eco-legend{ gap:10px; }
+    .eco-note{ padding-top:12px; }
+    .eco-note p, .eco-intro, .eco-cta p{ font-size:.76rem; line-height:1.5; }
+    .eco-note h3, .eco-cta h3{ font-size:1rem; margin-bottom:6px; }
+    .eco-cta{ padding:14px; }
+    .eco-tag{ margin-top:10px; }
+    .eco-label p{ -webkit-line-clamp:2; }
+  }
+  @media (max-width: 1100px){
+    .eco-track{ height:auto; }
+    .eco-stage{ position:static; min-height:0; padding:clamp(64px,9vh,96px) clamp(20px,5vw,40px); }
+    .eco-inner{ grid-template-columns:1fr; gap:32px; }
+    .eco-col{ justify-content:flex-start; }
+    .eco-wheel{ max-width:min(620px, 88vw); }
+    /* orden apilado: columna izquierda, rueda, lista, columna derecha */
+    .eco-inner > :nth-child(3){ order:2; }
+    .eco-inner > :nth-child(4){ order:1; }
+    .eco-heading{ font-size:clamp(1.6rem,5.4vw,2.1rem); }
+  }
+  @media (max-width: 780px){
+    .eco-labels{ display:none; }
+    .eco-list{ display:grid; }
+    .eco-wheel{ max-width:min(360px, 78vw); }
+  }
 
   /* ---- stats ---- */
   .stats{ padding:clamp(56px,8vh,88px) 0 clamp(72px,9vh,104px); text-align:center; }
@@ -533,8 +677,6 @@
     .hero-copy{ padding-top:112px; order:1; }
     .hero-media{ order:2; min-height:340px; }
     .work-grid{ grid-template-columns:1fr; }
-    .different-grid{ grid-template-columns:1fr; }
-    .fran-card{ margin-inline:auto; }
     .stats-grid{ grid-template-columns:repeat(2,1fr); row-gap:32px; }
     .testimonial-grid{ grid-template-columns:1fr; }
     .contact-grid{ grid-template-columns:1fr; }
@@ -676,46 +818,80 @@
     </div>
   </section>
 
-  <section class="different">
-    <div class="section-inner different-grid">
-      <div class="different-copy reveal">
-        <p class="eyebrow" style="margin-bottom:16px;" id="cms-dif-eyebrow">Lo que nos hace diferentes</p>
-        <h2 id="cms-dif-heading">Un mismo equipo, de punta a punta.</h2>
-        <p id="cms-dif-texto">No coordinamos entre tres proveedores distintos: producimos el contenido, armamos la estrategia de medios y construimos la tecnología de medición bajo un mismo techo. Eso significa menos idas y vueltas, y decisiones que consideran el negocio completo, no solo la pieza que le toca a cada uno.</p>
-        <a href="nosotros.html" class="arrow-link" style="margin-top:22px;">
-          Conocé al equipo
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg>
-        </a>
-        <div class="invertir-block reveal">
-          <p id="cms-dif-invertir-texto">Nuestro foco está en marcas o empresas con capacidad de invertir entre USD 3.000 y 20.000 en medios. ¿Tu empresa está en esta etapa?</p>
-          <a href="#contacto" class="btn-primary" id="cms-dif-invertir-cta">Hablemos →</a>
-        </div>
-      </div>
-      <div class="different-video reveal">
-        <div class="fran-card reveal" id="cms-fran-card">
-          <img class="fran-photo" id="cms-fran-photo" alt="" style="display:none;">
-          <div class="fran-chart">
-            <div class="fran-bar-col">
-              <div class="fran-bar-num" id="cms-fran-num-1"></div>
-              <div class="fran-bar-track"><div class="fran-bar-fill" id="cms-fran-bar-1"></div></div>
-              <div class="fran-bar-label" id="cms-fran-label-1"></div>
+  <section class="eco is-off" id="cms-eco">
+    <div class="eco-track" id="cms-eco-track">
+      <div class="eco-stage">
+        <div class="eco-inner">
+
+          <div class="eco-col">
+            <div>
+              <p class="eco-eyebrow" id="cms-eco-eyebrow">El marketing es un ecosistema.</p>
+              <h2 class="eco-heading" id="cms-eco-heading">Nosotros cubrimos lo que realmente mueve tu negocio.</h2>
             </div>
-            <div class="fran-bar-col">
-              <div class="fran-bar-num" id="cms-fran-num-2"></div>
-              <div class="fran-bar-track"><div class="fran-bar-fill" id="cms-fran-bar-2"></div></div>
-              <div class="fran-bar-label" id="cms-fran-label-2"></div>
-            </div>
-            <div class="fran-bar-col">
-              <div class="fran-bar-num" id="cms-fran-num-3"></div>
-              <div class="fran-bar-track"><div class="fran-bar-fill" id="cms-fran-bar-3"></div></div>
-              <div class="fran-bar-label" id="cms-fran-label-3"></div>
-            </div>
-            <div class="fran-bar-col">
-              <div class="fran-bar-num" id="cms-fran-num-4"></div>
-              <div class="fran-bar-track"><div class="fran-bar-fill" id="cms-fran-bar-4"></div></div>
-              <div class="fran-bar-label" id="cms-fran-label-4"></div>
+            <ul class="eco-legend">
+              <li>
+                <span class="eco-dot eco-dot--propio"></span>
+                <span><strong id="cms-eco-legend-propio">Lo que hacemos</strong><em id="cms-eco-legend-propio-nota">Tino Partners</em></span>
+              </li>
+              <li>
+                <span class="eco-dot eco-dot--socio"></span>
+                <span><strong id="cms-eco-legend-socio">Lo que no hacemos</strong><em id="cms-eco-legend-socio-nota">(o trabajamos con socios)</em></span>
+              </li>
+            </ul>
+            <div class="eco-note">
+              <h3 id="cms-eco-nota-titulo">Cada negocio es distinto.</h3>
+              <p id="cms-eco-nota-texto">Si hay áreas que hoy no cubrimos en tu proyecto, trabajamos con una red de socios de confianza para armar un equipo completo cuando hace falta.</p>
             </div>
           </div>
+
+          <div class="eco-wheel" id="cms-eco-wheel">
+            <svg class="eco-svg" viewBox="0 0 800 800" aria-hidden="true">
+              <defs>
+                <linearGradient id="ecoGradPropio" x1="0.1" y1="0" x2="0.9" y2="1">
+                  <stop offset="0%" stop-color="#6b21ff"/>
+                  <stop offset="100%" stop-color="#b167f9"/>
+                </linearGradient>
+                <linearGradient id="ecoGradSocio" x1="0.9" y1="0" x2="0.1" y2="1">
+                  <stop offset="0%" stop-color="#34344a"/>
+                  <stop offset="100%" stop-color="#1d1d29"/>
+                </linearGradient>
+              </defs>
+              <circle cx="400" cy="400" r="360" fill="none" stroke="rgba(255,255,255,.06)"/>
+              <g id="cms-eco-segs"></g>
+              <circle cx="400" cy="400" r="168" fill="#0d0d1a" stroke="rgba(255,255,255,.10)"/>
+              <path id="ecoFocusArc" d="M454.6 11.8 A392 392 0 0 1 786 468.1" fill="none" stroke="rgba(168,85,247,.45)" stroke-width="2"/>
+              <path d="M441 3 L427 9.5 L441.5 16.5" fill="none" stroke="rgba(168,85,247,.75)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+              <text class="eco-focus-text">
+                <textPath href="#ecoFocusArc" startOffset="52%" text-anchor="middle" id="cms-eco-focus">NUESTRO FOCO</textPath>
+              </text>
+            </svg>
+            <div class="eco-hub">
+              <span class="eco-hub-title" id="cms-eco-center-title">Tino Partners</span>
+              <span class="eco-hub-rule"></span>
+              <span class="eco-hub-tagline" id="cms-eco-center-tagline"></span>
+            </div>
+            <div class="eco-labels" id="cms-eco-labels"></div>
+          </div>
+
+          <div class="eco-col">
+            <div>
+              <p class="eco-intro" id="cms-eco-intro">No hacemos todo. Hacemos lo que más impacto genera: contenido, adquisición, datos y tecnología, conectados para que tu negocio crezca.</p>
+              <p class="eco-tag"><span></span><span id="cms-eco-intro-tag">Estrategia + Ejecución + Resultados</span></p>
+            </div>
+            <div class="eco-note">
+              <h3 id="cms-eco-resultado-titulo">Lo importante es el resultado.</h3>
+              <p id="cms-eco-resultado-texto">Nos enfocamos en lo que sabemos hacer muy bien y tenemos un impacto directo en tus ventas, tu crecimiento y la eficiencia de tu negocio.</p>
+            </div>
+            <div class="eco-cta">
+              <span class="eco-cta-arrow">&#8599;</span>
+              <h3 id="cms-eco-cta-titulo">Un equipo. Un mismo objetivo.</h3>
+              <p id="cms-eco-cta-texto">Nuestro foco está en marcas o empresas con capacidad de invertir entre USD 3.000 y 20.000 en medios. ¿Tu empresa está en esta etapa?</p>
+              <a href="#contacto" class="btn-primary" id="cms-eco-cta-boton">Hablemos →</a>
+            </div>
+          </div>
+
+          <ul class="eco-list" id="cms-eco-list"></ul>
+
         </div>
       </div>
     </div>
@@ -1171,20 +1347,9 @@
       });
     }
 
-    // ---- "diferenciales" right-side card: a small bar chart tied directly
-    // to scroll position, not a play-once animation — the bars (and the
-    // numbers above them) grow or shrink continuously as the card moves
-    // through the viewport, in either scroll direction.
-    var FRAN_BARS = [
-      { numEl: null, fillEl: null, labelEl: null, hasNumber: false, target: 0, prefix: '', unit: '', isInt: true },
-      { numEl: null, fillEl: null, labelEl: null, hasNumber: false, target: 0, prefix: '', unit: '', isInt: true },
-      { numEl: null, fillEl: null, labelEl: null, hasNumber: false, target: 0, prefix: '', unit: '', isInt: true },
-      { numEl: null, fillEl: null, labelEl: null, hasNumber: false, target: 0, prefix: '', unit: '', isInt: true },
-    ];
-    // Parsing is kept separate from DOM assignment so all 4 stats can be
-    // read first, sorted smallest-to-largest, and only then placed into
-    // the 4 fixed chart slots in that order.
-    function parseFranStat(text){
+    // ---- valores tipo "+100 Cuentas" / "+Mas de USD 500K": se separa el
+    // prefijo, el numero y la unidad, para poder animar solo el numero.
+    function parseStatValue(text){
       var result = { hasNumber: false, target: 0, prefix: '', unit: '', description: '', raw: text || '' };
       if (!text) return result;
       var match = String(text).match(/^(.*?)(\d+(?:[.,]\d+)?)(\S*)\s*(.*)$/);
@@ -1195,30 +1360,11 @@
       result.isInt = match[2].indexOf('.') === -1 && match[2].indexOf(',') === -1;
       result.unit = match[3];
       result.description = match[4];
-      // Sorting needs the real magnitude, not just the bare digits — "500K"
-      // must outrank "8000" even though 500 < 8000 as raw numbers.
-      var unitLower = result.unit.toLowerCase();
-      var multiplier = unitLower.indexOf('m') === 0 ? 1000000 : unitLower.indexOf('k') === 0 ? 1000 : 1;
-      result.sortValue = result.target * multiplier;
       return result;
     }
-    function applyFranBar(index, parsed){
-      var bar = FRAN_BARS[index];
-      bar.numEl = document.getElementById('cms-fran-num-' + (index + 1));
-      bar.fillEl = document.getElementById('cms-fran-bar-' + (index + 1));
-      bar.labelEl = document.getElementById('cms-fran-label-' + (index + 1));
-      bar.hasNumber = parsed.hasNumber;
-      bar.target = parsed.target;
-      bar.prefix = parsed.prefix;
-      bar.unit = parsed.unit;
-      bar.isInt = parsed.isInt;
-      if (bar.labelEl) bar.labelEl.textContent = parsed.description;
-      if (!parsed.hasNumber && bar.numEl) bar.numEl.textContent = parsed.raw;
-    }
 
-    // ---- "Números" stats: each one counts up from 0 the first time it
-    // scrolls into view (reuses the same prefix/number/unit parsing as the
-    // diferenciales bars, just played once instead of tied to scroll) ----
+    // ---- "Números": cada cifra cuenta desde 0 la primera vez que la
+    // sección entra en pantalla (una sola vez, no atado al scroll) ----
     var statNumsObserver = new IntersectionObserver(function(entries){
       entries.forEach(function(entry){
         if (!entry.isIntersecting) return;
@@ -1227,7 +1373,7 @@
       });
     }, { threshold: .4 });
     function animateStatNum(el){
-      var parsed = parseFranStat(el.getAttribute('data-stat-raw') || '');
+      var parsed = parseStatValue(el.getAttribute('data-stat-raw') || '');
       if (!parsed.hasNumber) return;
       var duration = 1400, start = null;
       function step(ts){
@@ -1239,47 +1385,184 @@
       }
       requestAnimationFrame(step);
     }
-    function updateFranChart(){
-      var card = document.getElementById('cms-fran-card');
-      if (!card) return;
-      var rect = card.getBoundingClientRect();
-      // Reaches 100% right when the card's center lines up with the
-      // viewport's center — not just whenever the card enters the screen —
-      // and eases back down if you scroll back past that point.
-      var cardCenter = rect.top + rect.height / 2;
-      var progress = Math.max(0, Math.min(1, (window.innerHeight - cardCenter) / (window.innerHeight / 2)));
-      FRAN_BARS.forEach(function(bar){
-        if (bar.fillEl) bar.fillEl.style.height = (progress * 100) + '%';
-        if (bar.numEl && bar.hasNumber) {
-          var current = bar.target * progress;
-          bar.numEl.textContent = bar.prefix + (bar.isInt ? Math.round(current) : current.toFixed(1)) + bar.unit;
+
+    // ---- rueda del ecosistema ----------------------------------------
+    // Cada segmento es un arco cuyo grosor es todo el ancho del anillo, y se
+    // dibuja con stroke-dashoffset: eso da el barrido angular. El avance
+    // esta atado a la posicion de scroll dentro de .eco-track (mas alto que
+    // la pantalla, con el escenario pegado arriba), no a un temporizador,
+    // asi que se puede ir y volver con el scroll.
+    var ECO_R_OUT = 360, ECO_R_IN = 168, ECO_MID = (ECO_R_OUT + ECO_R_IN) / 2, ECO_BAND = ECO_R_OUT - ECO_R_IN;
+    var ECO = { segs: [], labels: [], on: false };
+    var ECO_ICONS = {
+      camara: '<path d="M2.5 7.5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-8a2 2 0 0 1-2-2z"/><path d="M14.5 10.8 21.5 7v10l-7-3.8z"/>',
+      grafico: '<path d="M3 3v18h18"/><path d="M7 15.5 11 10l3 3 5.5-7.5"/><path d="M19.5 5.5h-4m4 0v4"/>',
+      datos: '<ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.66 3.58 3 8 3s8-1.34 8-3V6"/><path d="M4 12v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/>',
+      engranaje: '<circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.2 5.2 7.3 7.3M16.7 16.7l2.1 2.1M18.8 5.2 16.7 7.3M7.3 16.7l-2.1 2.1"/>',
+      monitor: '<rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M8.5 21h7M12 17v4"/>',
+      tienda: '<path d="M3 9.5 4.6 4h14.8L21 9.5"/><path d="M4.5 9.5V20h15V9.5"/><path d="M3 9.5a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/>',
+      megafono: '<path d="M3 10v4a1 1 0 0 0 1 1h3l6 4V5L7 9H4a1 1 0 0 0-1 1z"/><path d="M17 9.2a4 4 0 0 1 0 5.6"/>',
+      personas: '<circle cx="9" cy="8" r="3.4"/><path d="M2.6 20a6.4 6.4 0 0 1 12.8 0"/><path d="M16.6 5.3a3.4 3.4 0 0 1 0 5.9M18 14.6A6.4 6.4 0 0 1 21.4 20"/>',
+      lampara: '<path d="M9.6 18h4.8M10.4 21h3.2"/><path d="M12 3a6 6 0 0 0-3.4 10.9c.6.5 1 1.2 1 2h4.8c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/>',
+      estrategia: '<path d="M5.5 21V3.5"/><path d="M5.5 4h11l-2 3.6 2 3.6h-11z"/>'
+    };
+    function ecoIcon(name){
+      return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' +
+        (ECO_ICONS[name] || ECO_ICONS.estrategia) + '</svg>';
+    }
+    // punto del anillo: 0 grados = 12 en punto, creciendo en sentido horario
+    function ecoPoint(r, deg){
+      var t = (deg - 90) * Math.PI / 180;
+      return [400 + r * Math.cos(t), 400 + r * Math.sin(t)];
+    }
+    // el tagline del centro se apila renglon por renglon, cortando en los
+    // "+" y el "=", con la ultima palabra resaltada (como en la infografia)
+    function ecoTagline(el, text){
+      el.innerHTML = '';
+      var parts = String(text || '').split(/\s*([+=])\s*/).filter(function(x){ return x !== ''; });
+      parts.forEach(function(part, i){
+        var line = document.createElement('span');
+        line.style.display = 'block';
+        if (i === parts.length - 1 && parts.length > 1) {
+          var b = document.createElement('b');
+          b.textContent = part;
+          line.appendChild(b);
+        } else {
+          line.textContent = part;
         }
+        el.appendChild(line);
       });
     }
-    var franChartTicking = false;
-    function requestFranChartUpdate(){
-      if (franChartTicking) return;
-      franChartTicking = true;
-      requestAnimationFrame(function(){ updateFranChart(); franChartTicking = false; });
-    }
-    window.addEventListener('scroll', requestFranChartUpdate, { passive: true });
-    window.addEventListener('resize', requestFranChartUpdate);
-    function setupFranCard(franCard){
-      var photo = document.getElementById('cms-fran-photo');
-      if (photo && franCard.photo && franCard.photo.url) {
-        setMedia(photo, franCard.photo);
-        photo.style.display = '';
+    function setupEcosistema(eco){
+      var section = document.getElementById('cms-eco');
+      var segWrap = document.getElementById('cms-eco-segs');
+      var labelWrap = document.getElementById('cms-eco-labels');
+      var listWrap = document.getElementById('cms-eco-list');
+      var track = document.getElementById('cms-eco-track');
+      if (!section || !segWrap || !labelWrap || !listWrap || !track) return;
+
+      var items = (eco.items || []).filter(function(it){ return it && (it.title || it.texto); });
+      if (eco.enabled === false || !items.length) {
+        section.classList.add('is-off');
+        ECO.on = false;
+        return;
       }
-      // On-screen order is always smallest number to largest, left to
-      // right — recomputed from whatever the 4 fields currently say
-      // (see the comment on franCard in content-defaults.js for why the
-      // field names themselves don't match any particular on-screen order).
-      var parsed = [franCard.statLine1, franCard.statLine3, franCard.statLine4, franCard.statLine2]
-        .map(parseFranStat)
-        .sort(function(a, b){ return (a.hasNumber ? a.sortValue : Infinity) - (b.hasNumber ? b.sortValue : Infinity); });
-      parsed.forEach(function(p, i){ applyFranBar(i, p); });
-      updateFranChart();
+      section.classList.remove('is-off');
+
+      setHtml('cms-eco-eyebrow', eco.eyebrow);
+      setHtml('cms-eco-heading', eco.heading);
+      setHtml('cms-eco-intro', eco.intro);
+      setText('cms-eco-intro-tag', eco.introTag);
+      setText('cms-eco-focus', (eco.focusLabel || '').toUpperCase());
+      setHtml('cms-eco-center-title', eco.centerTitle);
+      setText('cms-eco-legend-propio', eco.legendPropio);
+      setText('cms-eco-legend-propio-nota', eco.legendPropioNota);
+      setText('cms-eco-legend-socio', eco.legendSocio);
+      setText('cms-eco-legend-socio-nota', eco.legendSocioNota);
+      setHtml('cms-eco-nota-titulo', eco.notaTitulo);
+      setHtml('cms-eco-nota-texto', eco.notaTexto);
+      setHtml('cms-eco-resultado-titulo', eco.resultadoTitulo);
+      setHtml('cms-eco-resultado-texto', eco.resultadoTexto);
+      setHtml('cms-eco-cta-titulo', eco.ctaTitulo);
+      setHtml('cms-eco-cta-texto', eco.ctaTexto);
+      var ctaBtn = document.getElementById('cms-eco-cta-boton');
+      if (ctaBtn && eco.ctaBoton) ctaBtn.textContent = eco.ctaBoton + ' \u2192';
+      var tagline = document.getElementById('cms-eco-center-tagline');
+      if (tagline) ecoTagline(tagline, eco.centerTagline);
+
+      segWrap.innerHTML = '';
+      labelWrap.innerHTML = '';
+      listWrap.innerHTML = '';
+      ECO.segs = [];
+      ECO.labels = [];
+
+      var n = items.length, step = 360 / n, gap = Math.min(2.2, step * 0.07);
+      items.forEach(function(it, i){
+        var esSocio = it.tipo === 'socio';
+        var a0 = i * step + gap / 2, a1 = (i + 1) * step - gap / 2;
+        var p0 = ecoPoint(ECO_MID, a0), p1 = ecoPoint(ECO_MID, a1);
+        var seg = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        seg.setAttribute('class', 'eco-seg');
+        seg.setAttribute('d', 'M' + p0[0].toFixed(1) + ' ' + p0[1].toFixed(1) +
+          ' A' + ECO_MID + ' ' + ECO_MID + ' 0 ' + ((a1 - a0) > 180 ? 1 : 0) + ' 1 ' +
+          p1[0].toFixed(1) + ' ' + p1[1].toFixed(1));
+        seg.setAttribute('stroke', esSocio ? 'url(#ecoGradSocio)' : 'url(#ecoGradPropio)');
+        seg.setAttribute('stroke-width', ECO_BAND);
+        var len = ECO_MID * (a1 - a0) * Math.PI / 180;
+        seg.style.strokeDasharray = String(len);
+        seg.style.strokeDashoffset = String(len);
+        segWrap.appendChild(seg);
+        ECO.segs.push({ el: seg, len: len });
+
+        var mid = (a0 + a1) / 2, lp = ecoPoint(ECO_MID, mid);
+        var label = document.createElement('div');
+        label.className = 'eco-label' + (esSocio ? ' eco-label--socio' : '');
+        label.style.left = (lp[0] / 800 * 100).toFixed(2) + '%';
+        label.style.top = (lp[1] / 800 * 100).toFixed(2) + '%';
+        label.innerHTML = '<span class="eco-label-ico">' + ecoIcon(it.icon) + '</span><span><h4></h4><p></p></span>';
+        label.querySelector('h4').textContent = it.title || '';
+        label.querySelector('p').textContent = it.texto || '';
+        labelWrap.appendChild(label);
+        ECO.labels.push(label);
+
+        var li = document.createElement('li');
+        li.className = esSocio ? 'is-socio' : 'is-propio';
+        li.innerHTML = '<span class="eco-label-ico">' + ecoIcon(it.icon) + '</span><div><h4></h4><p></p></div>';
+        li.querySelector('h4').textContent = it.title || '';
+        li.querySelector('p').textContent = it.texto || '';
+        listWrap.appendChild(li);
+      });
+
+      // "reducir movimiento": nada pegado y la rueda ya dibujada
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      section.classList.toggle('is-static', reduce);
+      // el recorrido de scroll crece con la cantidad de segmentos, pero
+      // acotado: ~2 pantallas extra, no una por segmento
+      track.style.setProperty('--eco-track-h', reduce ? 'auto' : (110 + Math.min(n, 12) * 20) + 'vh');
+
+      ECO.on = true;
+      updateEcosistema();
     }
+    function updateEcosistema(){
+      if (!ECO.on || !ECO.segs.length) return;
+      var track = document.getElementById('cms-eco-track');
+      if (!track) return;
+      var n = ECO.segs.length, p;
+      var apilado = window.matchMedia('(max-width: 1100px)').matches;
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reduce) {
+        p = 1;
+      } else if (apilado) {
+        // sin pin: se completa mientras la rueda cruza la pantalla
+        var r = track.getBoundingClientRect();
+        p = (window.innerHeight - r.top) / (window.innerHeight * 0.85);
+      } else {
+        var rect = track.getBoundingClientRect();
+        var total = track.offsetHeight - window.innerHeight;
+        p = total > 0 ? (-rect.top / total) : 0;
+      }
+      p = Math.max(0, Math.min(1, p));
+      // aire al entrar y al salir, para que el ultimo segmento no quede
+      // justo pegado al borde del recorrido
+      var q = Math.max(0, Math.min(1, (p - 0.06) / 0.80));
+      for (var i = 0; i < n; i++) {
+        var sp = Math.max(0, Math.min(1, q * n - i));
+        var seg = ECO.segs[i];
+        seg.el.style.strokeDashoffset = String(seg.len * (1 - sp));
+        var lo = Math.max(0, Math.min(1, (sp - 0.45) / 0.4));
+        var label = ECO.labels[i];
+        label.style.opacity = lo;
+        label.style.transform = 'translate(-50%,-50%) scale(' + (0.93 + 0.07 * lo).toFixed(3) + ')';
+      }
+    }
+    var ecoTicking = false;
+    function requestEcoUpdate(){
+      if (ecoTicking) return;
+      ecoTicking = true;
+      requestAnimationFrame(function(){ updateEcosistema(); ecoTicking = false; });
+    }
+    window.addEventListener('scroll', requestEcoUpdate, { passive: true });
+    window.addEventListener('resize', requestEcoUpdate);
 
     // ---- client logos carousel above "Nuestros proyectos" ----
     function fillLogosBand(band){
@@ -1430,17 +1713,7 @@
       fillTicker('cms-ticker-row1', c.ticker.row1);
       fillTicker('cms-ticker-row2', c.ticker.row2);
     }
-    if (c.diferenciales) {
-      setHtml('cms-dif-eyebrow', c.diferenciales.eyebrow);
-      setHtml('cms-dif-heading', c.diferenciales.heading);
-      setHtml('cms-dif-texto', c.diferenciales.texto);
-      if (c.diferenciales.invertir) {
-        setHtml('cms-dif-invertir-texto', c.diferenciales.invertir.texto);
-        var invertirCta = document.getElementById('cms-dif-invertir-cta');
-        if (invertirCta && c.diferenciales.invertir.ctaText) invertirCta.textContent = c.diferenciales.invertir.ctaText + ' →';
-      }
-      if (c.diferenciales.franCard) setupFranCard(c.diferenciales.franCard);
-    }
+    if (c.ecosistema) setupEcosistema(c.ecosistema);
     if (c.stats) {
       var statsGrid = document.getElementById('cms-stats-grid');
       if (statsGrid && c.stats.items && c.stats.items.length) {
@@ -1452,7 +1725,7 @@
             '<span class="stat-blob blob-shape blob-fill" style="position:relative;"></span>' +
             '<div class="stat-num"></div><div class="stat-label"></div>';
           var numEl = el.querySelector('.stat-num');
-          var parsedStat = parseFranStat(item.num || '');
+          var parsedStat = parseStatValue(item.num || '');
           if (parsedStat.hasNumber) {
             numEl.setAttribute('data-stat-raw', item.num || '');
             numEl.textContent = parsedStat.prefix + '0' + parsedStat.unit;

@@ -543,18 +543,9 @@ async function loadMergedContent() {
   merged.slugs = Object.assign({}, DEFAULT_CONTENT.slugs, saved.slugs);
   merged.meta = Object.assign({}, DEFAULT_CONTENT.meta, saved.meta);
   // Same reasoning for these — a sub-field added to one of these objects
-  // after a site already had it saved (invertir/franCard on diferenciales,
-  // the enabled toggle + copy on quehacemos) must still show up.
-  merged.diferenciales = Object.assign({}, DEFAULT_CONTENT.diferenciales, saved.diferenciales);
-  // franCard is nested inside diferenciales, so it needs its own deeper
-  // merge too — the line above only stops "diferenciales" itself from
-  // losing new sibling keys, it doesn't reach inside an already-saved
-  // franCard object (same shallow-merge trap one level down).
-  merged.diferenciales.franCard = Object.assign(
-    {},
-    DEFAULT_CONTENT.diferenciales.franCard,
-    saved.diferenciales && saved.diferenciales.franCard
-  );
+  // after a site already had it saved (the enabled toggle + copy on
+  // quehacemos, the copy around the wheel on ecosistema) must still show up.
+  merged.ecosistema = Object.assign({}, DEFAULT_CONTENT.ecosistema, saved.ecosistema);
   merged.quehacemos = Object.assign({}, DEFAULT_CONTENT.quehacemos, saved.quehacemos);
   merged.logo = Object.assign({}, DEFAULT_CONTENT.logo, saved.logo);
   merged.marcas = Object.assign({}, DEFAULT_CONTENT.marcas, saved.marcas);
