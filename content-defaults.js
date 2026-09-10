@@ -53,20 +53,23 @@ const DEFAULT_CONTENT = {
   // `items` se dibuja arrancando a las 12 en punto y girando en sentido
   // horario, así que el orden del array ES el orden en la rueda. Todos los
   // segmentos son disciplinas propias — ya no hay una mitad "con socios" —
-  // así que el color solo alterna por ritmo visual entre los dos degradados
-  // de marca según la posición (ver ecoGrad en index.html), no según ningún
-  // campo del dato. `texto` ya no se muestra en el círculo (solo el
-  // título) — sigue viajando porque lo usa la lista equivalente en
-  // pantallas chicas, donde la rueda no entra.
+  // el anillo entero usa un solo degradado violeta oscuro (#ecoGrad en
+  // index.html), no según ningún campo del dato. `texto` ya no se muestra
+  // en el círculo (solo el título) — sigue viajando porque lo usa la lista
+  // equivalente en pantallas chicas, donde la rueda no entra.
   ecosistema: {
     enabled: true,
     eyebrow: 'El marketing es un ecosistema.',
     heading: 'Nosotros cubrimos lo que realmente mueve tu negocio.',
+    intro: 'Hacemos todo lo que tu negocio necesita para crecer: contenido, adquisición, datos y tecnología, conectados en un mismo equipo.',
+    introTag: 'Estrategia + Ejecución + Resultados',
     focusLabel: 'Nuestro foco',
     centerTitle: 'Tino Partners',
     centerTagline: 'Contenido + Data + Tecnología = Crecimiento',
     legendLabel: 'Somos especialistas en',
     legendNota: 'Las 10 disciplinas que mueven tu negocio',
+    notaTitulo: 'Un solo equipo, todas las disciplinas.',
+    notaTexto: 'No coordinamos entre proveedores sueltos ni perdemos tiempo en traspasos: todo lo que ves en la rueda lo hacemos nosotros, desde el primer día.',
     resultadoTitulo: 'Lo importante es el resultado.',
     resultadoTexto: 'Nos enfocamos en lo que sabemos hacer muy bien y tenemos un impacto directo en tus ventas, tu crecimiento y la eficiencia de tu negocio.',
     ctaTitulo: 'Un equipo. Un mismo objetivo.',
