@@ -328,7 +328,7 @@
      da el recorrido de scroll con el que se van dibujando los segmentos. En
      pantallas chicas y con "reducir movimiento" se desarma: altura auto,
      nada pegado, y la rueda se completa apenas entra en pantalla. */
-  .eco{ background:#0d0d1a; color:#fff; }
+  .eco{ background:var(--paper-dim); color:var(--ink); }
   .eco.is-off{ display:none; }
   .eco-track{ height:var(--eco-track-h, auto); }
   .eco-stage{
@@ -340,7 +340,7 @@
   .eco.is-static .eco-stage{ position:static; min-height:0; }
   .eco-stage::before{
     content:""; position:absolute; inset:0; pointer-events:none;
-    background:radial-gradient(58% 58% at 64% 46%, rgba(107,33,255,.20), transparent 72%);
+    background:radial-gradient(58% 58% at 64% 46%, color-mix(in srgb, var(--v-500) 10%, transparent), transparent 72%);
   }
   .eco-inner{
     position:relative; width:100%; max-width:1400px; margin:0 auto;
@@ -350,44 +350,44 @@
   .eco-col{ display:flex; flex-direction:column; justify-content:space-between; gap:clamp(20px,3vh,36px); min-width:0; }
   .eco-eyebrow{
     margin:0 0 12px; font-family:'IBM Plex Mono',monospace; font-size:.7rem; font-weight:600;
-    letter-spacing:.13em; text-transform:uppercase; color:#a855f7;
+    letter-spacing:.13em; text-transform:uppercase; color:var(--v-500);
   }
   .eco-heading{
     margin:0; font-family:'Big Shoulders Display',sans-serif; font-weight:800; text-transform:uppercase;
     font-size:clamp(1.5rem,2.5vw,2.3rem); line-height:1.02; letter-spacing:.01em;
   }
-  .eco-legend{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:14px; }
-  .eco-legend li{ display:flex; align-items:flex-start; gap:12px; }
-  .eco-dot{ width:19px; height:19px; border-radius:50%; flex:none; margin-top:3px; }
-  .eco-dot--propio{ background:linear-gradient(135deg,#6b21ff,#a855f7); box-shadow:0 0 18px rgba(139,60,255,.55); }
-  .eco-dot--socio{ background:#3a3a4d; }
+  .eco-legend{ margin:0; display:flex; align-items:flex-start; gap:12px; }
+  .eco-dot{
+    width:19px; height:19px; border-radius:50%; flex:none; margin-top:3px;
+    background:var(--gradient-vivid); box-shadow:var(--glow);
+  }
   .eco-legend strong{
     display:block; font-family:'Big Shoulders Display',sans-serif; font-weight:800;
     font-size:1.02rem; text-transform:uppercase; letter-spacing:.02em; line-height:1.1;
   }
   .eco-legend em{
     display:block; font-style:normal; font-family:'IBM Plex Mono',monospace; font-size:.6rem;
-    letter-spacing:.11em; text-transform:uppercase; color:#8b87a0; margin-top:3px;
+    letter-spacing:.11em; text-transform:uppercase; color:var(--ink-soft); margin-top:3px;
   }
-  .eco-note{ border-top:1px solid rgba(255,255,255,.13); padding-top:18px; }
+  .eco-note{ border-top:1px solid var(--line); padding-top:18px; }
   .eco-note h3, .eco-cta h3{
     margin:0 0 9px; font-family:'Big Shoulders Display',sans-serif; font-weight:800;
     text-transform:uppercase; font-size:clamp(1.05rem,1.6vw,1.4rem); line-height:1.05; letter-spacing:.01em;
   }
-  .eco-note p{ margin:0; font-size:.83rem; line-height:1.6; color:#a9a5bd; }
-  .eco-intro{ margin:0; font-size:.88rem; line-height:1.62; color:#cfcbdd; }
+  .eco-note p{ margin:0; font-size:.83rem; line-height:1.6; color:var(--ink-soft); }
+  .eco-intro{ margin:0; font-size:.88rem; line-height:1.62; color:var(--ink-soft); }
   .eco-tag{
     display:flex; align-items:center; gap:10px; margin:15px 0 0;
     font-family:'IBM Plex Mono',monospace; font-size:.66rem; font-weight:600;
-    letter-spacing:.12em; text-transform:uppercase; color:#a855f7;
+    letter-spacing:.12em; text-transform:uppercase; color:var(--v-500);
   }
-  .eco-tag span:first-child{ width:22px; height:1px; background:#a855f7; flex:none; }
+  .eco-tag span:first-child{ width:22px; height:1px; background:var(--v-500); flex:none; }
   .eco-cta{
-    border:1px solid rgba(168,85,247,.45); border-radius:16px; padding:20px;
-    background:linear-gradient(160deg, rgba(107,33,255,.16), rgba(107,33,255,.04));
+    border:1px solid color-mix(in srgb, var(--v-500) 45%, transparent); border-radius:16px; padding:20px;
+    background:linear-gradient(160deg, color-mix(in srgb, var(--v-700) 16%, transparent), color-mix(in srgb, var(--v-700) 4%, transparent));
   }
-  .eco-cta-arrow{ display:block; color:#a855f7; font-size:1.05rem; line-height:1; margin-bottom:10px; }
-  .eco-cta p{ margin:0; font-size:.83rem; line-height:1.6; color:#b6b2c9; }
+  .eco-cta-arrow{ display:block; color:var(--pink-500); font-size:1.05rem; line-height:1; margin-bottom:10px; }
+  .eco-cta p{ margin:0; font-size:.83rem; line-height:1.6; color:var(--ink-soft); }
   .eco-cta .btn-primary{ margin-top:16px; }
 
   /* align-self:center es imprescindible: como item de grid la rueda se
@@ -398,7 +398,7 @@
   .eco-seg{ fill:none; stroke-linecap:butt; }
   .eco-focus-text{
     font-family:'IBM Plex Mono',monospace; font-size:15px; font-weight:600;
-    letter-spacing:5.5px; fill:#a855f7;
+    letter-spacing:5.5px; fill:var(--v-500);
   }
   .eco-hub{
     position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
@@ -408,22 +408,27 @@
     font-family:'Big Shoulders Display',sans-serif; font-weight:800; text-transform:uppercase;
     font-size:clamp(.95rem,2.1vw,1.6rem); line-height:.95; letter-spacing:.02em;
   }
-  .eco-hub-rule{ width:24px; height:2px; background:#a855f7; }
+  .eco-hub-rule{ width:24px; height:2px; background:var(--v-500); }
   .eco-hub-tagline{
     font-family:'IBM Plex Mono',monospace; font-size:clamp(.46rem,.82vw,.62rem); font-weight:600;
-    letter-spacing:.13em; text-transform:uppercase; line-height:1.85; color:#b9b5cc;
+    letter-spacing:.13em; text-transform:uppercase; line-height:1.85; color:var(--ink-soft);
   }
-  .eco-hub-tagline b{ color:#a855f7; font-weight:600; }
+  .eco-hub-tagline b{ color:var(--pink-500); font-weight:600; }
   .eco-labels{ position:absolute; inset:0; pointer-events:none; }
   .eco-label{
     position:absolute; width:clamp(90px,18%,150px); display:flex; gap:7px;
     opacity:0; transform:translate(-50%,-50%); text-align:left;
   }
+  /* las etiquetas se dibujan encima de los gajos de color (no del fondo de
+     la seccion), asi que texto e icono se mantienen claros pase lo que
+     pase con .eco: necesitan contraste contra el degradado violeta/rosa
+     del anillo, no contra el fondo. */
   .eco-label-ico{ width:19px; height:19px; flex:none; color:#fff; }
   .eco-label-ico svg{ width:100%; height:100%; display:block; }
   .eco-label h4{
     margin:0 0 3px; font-family:'Big Shoulders Display',sans-serif; font-weight:800;
     font-size:clamp(.62rem,1.02vw,.84rem); line-height:1.05; text-transform:uppercase; letter-spacing:.01em;
+    color:#fff;
   }
   /* el recorte a 4 renglones es lo que mantiene la rueda prolija: son 10
      etiquetas dentro del anillo y, sin tope, una descripcion larga cargada
@@ -433,19 +438,16 @@
     margin:0; font-size:clamp(.5rem,.78vw,.64rem); line-height:1.38; color:#b3aec6;
     display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;
   }
-  .eco-label--socio .eco-label-ico{ color:#a9a5bd; }
-  .eco-label--socio h4{ color:#d3cfe0; }
-  .eco-label--socio p{ color:#8b87a0; }
 
   /* lista equivalente para pantallas donde la rueda no puede llevar texto */
   .eco-list{ display:none; list-style:none; margin:34px auto 0; padding:0; gap:12px; max-width:560px; width:100%; }
   .eco-list li{
     display:flex; gap:12px; padding:14px 16px; border-radius:12px;
-    border:1px solid rgba(255,255,255,.10); background:rgba(255,255,255,.03);
+    border:1px solid color-mix(in srgb, var(--v-500) 35%, transparent);
+    background:color-mix(in srgb, var(--v-700) 10%, transparent);
   }
-  .eco-list li.is-propio{ border-color:rgba(168,85,247,.35); background:rgba(107,33,255,.10); }
   .eco-list h4{ margin:0 0 4px; font-family:'Big Shoulders Display',sans-serif; font-weight:800; font-size:.95rem; text-transform:uppercase; line-height:1.1; }
-  .eco-list p{ margin:0; font-size:.78rem; line-height:1.5; color:#a9a5bd; }
+  .eco-list p{ margin:0; font-size:.78rem; line-height:1.5; color:var(--ink-soft); }
 
   /* Pantallas anchas pero bajas (notebooks de 1366x768, ventanas a media
      altura): el escenario tiene que entrar completo en 100vh porque queda
@@ -828,39 +830,33 @@
               <p class="eco-eyebrow" id="cms-eco-eyebrow">El marketing es un ecosistema.</p>
               <h2 class="eco-heading" id="cms-eco-heading">Nosotros cubrimos lo que realmente mueve tu negocio.</h2>
             </div>
-            <ul class="eco-legend">
-              <li>
-                <span class="eco-dot eco-dot--propio"></span>
-                <span><strong id="cms-eco-legend-propio">Lo que hacemos</strong><em id="cms-eco-legend-propio-nota">Tino Partners</em></span>
-              </li>
-              <li>
-                <span class="eco-dot eco-dot--socio"></span>
-                <span><strong id="cms-eco-legend-socio">Lo que no hacemos</strong><em id="cms-eco-legend-socio-nota">(o trabajamos con socios)</em></span>
-              </li>
-            </ul>
+            <p class="eco-legend">
+              <span class="eco-dot"></span>
+              <span><strong id="cms-eco-legend-label">Somos especialistas en</strong><em id="cms-eco-legend-nota">Las 10 disciplinas que mueven tu negocio</em></span>
+            </p>
             <div class="eco-note">
-              <h3 id="cms-eco-nota-titulo">Cada negocio es distinto.</h3>
-              <p id="cms-eco-nota-texto">Si hay áreas que hoy no cubrimos en tu proyecto, trabajamos con una red de socios de confianza para armar un equipo completo cuando hace falta.</p>
+              <h3 id="cms-eco-nota-titulo">Un solo equipo, todas las disciplinas.</h3>
+              <p id="cms-eco-nota-texto">No coordinamos entre proveedores sueltos ni perdemos tiempo en traspasos: todo lo que ves en la rueda lo hacemos nosotros, desde el primer día.</p>
             </div>
           </div>
 
           <div class="eco-wheel" id="cms-eco-wheel">
             <svg class="eco-svg" viewBox="0 0 800 800" aria-hidden="true">
               <defs>
-                <linearGradient id="ecoGradPropio" x1="0.1" y1="0" x2="0.9" y2="1">
-                  <stop offset="0%" stop-color="#6b21ff"/>
-                  <stop offset="100%" stop-color="#b167f9"/>
+                <linearGradient id="ecoGradA" x1="0.1" y1="0" x2="0.9" y2="1">
+                  <stop offset="0%" stop-color="var(--v-900)"/>
+                  <stop offset="100%" stop-color="var(--v-500)"/>
                 </linearGradient>
-                <linearGradient id="ecoGradSocio" x1="0.9" y1="0" x2="0.1" y2="1">
-                  <stop offset="0%" stop-color="#34344a"/>
-                  <stop offset="100%" stop-color="#1d1d29"/>
+                <linearGradient id="ecoGradB" x1="0.1" y1="0" x2="0.9" y2="1">
+                  <stop offset="0%" stop-color="var(--v-700)"/>
+                  <stop offset="100%" stop-color="var(--pink-500)"/>
                 </linearGradient>
               </defs>
-              <circle cx="400" cy="400" r="360" fill="none" stroke="rgba(255,255,255,.06)"/>
+              <circle cx="400" cy="400" r="360" fill="none" stroke="var(--line)"/>
               <g id="cms-eco-segs"></g>
-              <circle cx="400" cy="400" r="168" fill="#0d0d1a" stroke="rgba(255,255,255,.10)"/>
-              <path id="ecoFocusArc" d="M454.6 11.8 A392 392 0 0 1 786 468.1" fill="none" stroke="rgba(168,85,247,.45)" stroke-width="2"/>
-              <path d="M441 3 L427 9.5 L441.5 16.5" fill="none" stroke="rgba(168,85,247,.75)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="400" cy="400" r="168" fill="var(--paper-dim)" stroke="var(--line)"/>
+              <path id="ecoFocusArc" d="M454.6 11.8 A392 392 0 0 1 786 468.1" fill="none" stroke="var(--v-500)" stroke-opacity=".45" stroke-width="2"/>
+              <path d="M441 3 L427 9.5 L441.5 16.5" fill="none" stroke="var(--v-500)" stroke-opacity=".75" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
               <text class="eco-focus-text">
                 <textPath href="#ecoFocusArc" startOffset="52%" text-anchor="middle" id="cms-eco-focus">NUESTRO FOCO</textPath>
               </text>
@@ -875,7 +871,7 @@
 
           <div class="eco-col">
             <div>
-              <p class="eco-intro" id="cms-eco-intro">No hacemos todo. Hacemos lo que más impacto genera: contenido, adquisición, datos y tecnología, conectados para que tu negocio crezca.</p>
+              <p class="eco-intro" id="cms-eco-intro">Hacemos todo lo que tu negocio necesita para crecer: contenido, adquisición, datos y tecnología, conectados en un mismo equipo.</p>
               <p class="eco-tag"><span></span><span id="cms-eco-intro-tag">Estrategia + Ejecución + Resultados</span></p>
             </div>
             <div class="eco-note">
@@ -1455,10 +1451,8 @@
       setText('cms-eco-intro-tag', eco.introTag);
       setText('cms-eco-focus', (eco.focusLabel || '').toUpperCase());
       setHtml('cms-eco-center-title', eco.centerTitle);
-      setText('cms-eco-legend-propio', eco.legendPropio);
-      setText('cms-eco-legend-propio-nota', eco.legendPropioNota);
-      setText('cms-eco-legend-socio', eco.legendSocio);
-      setText('cms-eco-legend-socio-nota', eco.legendSocioNota);
+      setText('cms-eco-legend-label', eco.legendLabel);
+      setText('cms-eco-legend-nota', eco.legendNota);
       setHtml('cms-eco-nota-titulo', eco.notaTitulo);
       setHtml('cms-eco-nota-texto', eco.notaTexto);
       setHtml('cms-eco-resultado-titulo', eco.resultadoTitulo);
@@ -1478,7 +1472,8 @@
 
       var n = items.length, step = 360 / n, gap = Math.min(2.2, step * 0.07);
       items.forEach(function(it, i){
-        var esSocio = it.tipo === 'socio';
+        // no hay mas una mitad "con socios": el degradado alterna solo por
+        // ritmo visual entre las dos variantes de marca definidas en el svg.
         var a0 = i * step + gap / 2, a1 = (i + 1) * step - gap / 2;
         var p0 = ecoPoint(ECO_MID, a0), p1 = ecoPoint(ECO_MID, a1);
         var seg = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -1486,7 +1481,7 @@
         seg.setAttribute('d', 'M' + p0[0].toFixed(1) + ' ' + p0[1].toFixed(1) +
           ' A' + ECO_MID + ' ' + ECO_MID + ' 0 ' + ((a1 - a0) > 180 ? 1 : 0) + ' 1 ' +
           p1[0].toFixed(1) + ' ' + p1[1].toFixed(1));
-        seg.setAttribute('stroke', esSocio ? 'url(#ecoGradSocio)' : 'url(#ecoGradPropio)');
+        seg.setAttribute('stroke', (i % 2 === 0) ? 'url(#ecoGradA)' : 'url(#ecoGradB)');
         seg.setAttribute('stroke-width', ECO_BAND);
         var len = ECO_MID * (a1 - a0) * Math.PI / 180;
         seg.style.strokeDasharray = String(len);
@@ -1496,7 +1491,7 @@
 
         var mid = (a0 + a1) / 2, lp = ecoPoint(ECO_MID, mid);
         var label = document.createElement('div');
-        label.className = 'eco-label' + (esSocio ? ' eco-label--socio' : '');
+        label.className = 'eco-label';
         label.style.left = (lp[0] / 800 * 100).toFixed(2) + '%';
         label.style.top = (lp[1] / 800 * 100).toFixed(2) + '%';
         label.innerHTML = '<span class="eco-label-ico">' + ecoIcon(it.icon) + '</span><span><h4></h4><p></p></span>';
@@ -1506,7 +1501,6 @@
         ECO.labels.push(label);
 
         var li = document.createElement('li');
-        li.className = esSocio ? 'is-socio' : 'is-propio';
         li.innerHTML = '<span class="eco-label-ico">' + ecoIcon(it.icon) + '</span><div><h4></h4><p></p></div>';
         li.querySelector('h4').textContent = it.title || '';
         li.querySelector('p').textContent = it.texto || '';

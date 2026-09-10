@@ -51,41 +51,40 @@ const DEFAULT_CONTENT = {
   // rango de inversión y su botón se conservan acá, en el recuadro de cierre.
   //
   // `items` se dibuja arrancando a las 12 en punto y girando en sentido
-  // horario, así que el orden del array ES el orden en la rueda: primero los
-  // propios (mitad derecha, de arriba hacia abajo), después los de socios
-  // (mitad izquierda, de abajo hacia arriba). `tipo` decide el color:
-  // 'propio' = violeta, 'socio' = gris.
+  // horario, así que el orden del array ES el orden en la rueda. Todos los
+  // segmentos son disciplinas propias — ya no hay una mitad "con socios" —
+  // así que el color solo alterna por ritmo visual entre los dos degradados
+  // de marca según la posición (ver ecoGradA/ecoGradB en index.html), no
+  // según ningún campo del dato.
   ecosistema: {
     enabled: true,
     eyebrow: 'El marketing es un ecosistema.',
     heading: 'Nosotros cubrimos lo que realmente mueve tu negocio.',
-    intro: 'No hacemos todo. Hacemos lo que más impacto genera: contenido, adquisición, datos y tecnología, conectados para que tu negocio crezca.',
+    intro: 'Hacemos todo lo que tu negocio necesita para crecer: contenido, adquisición, datos y tecnología, conectados en un mismo equipo.',
     introTag: 'Estrategia + Ejecución + Resultados',
     focusLabel: 'Nuestro foco',
     centerTitle: 'Tino Partners',
     centerTagline: 'Contenido + Data + Tecnología = Crecimiento',
-    legendPropio: 'Lo que hacemos',
-    legendPropioNota: 'Tino Partners',
-    legendSocio: 'Lo que no hacemos',
-    legendSocioNota: '(o trabajamos con socios)',
-    notaTitulo: 'Cada negocio es distinto.',
-    notaTexto: 'Si hay áreas que hoy no cubrimos en tu proyecto, trabajamos con una red de socios de confianza para armar un equipo completo cuando hace falta.',
+    legendLabel: 'Somos especialistas en',
+    legendNota: 'Las 10 disciplinas que mueven tu negocio',
+    notaTitulo: 'Un solo equipo, todas las disciplinas.',
+    notaTexto: 'No coordinamos entre proveedores sueltos ni perdemos tiempo en traspasos: todo lo que ves en la rueda lo hacemos nosotros, desde el primer día.',
     resultadoTitulo: 'Lo importante es el resultado.',
     resultadoTexto: 'Nos enfocamos en lo que sabemos hacer muy bien y tenemos un impacto directo en tus ventas, tu crecimiento y la eficiencia de tu negocio.',
     ctaTitulo: 'Un equipo. Un mismo objetivo.',
     ctaTexto: 'Nuestro foco está en marcas o empresas con capacidad de invertir entre USD 3.000 y 20.000 en medios. ¿Tu empresa está en esta etapa?',
     ctaBoton: 'Hablemos',
     items: [
-      { tipo: 'propio', icon: 'camara', title: 'Producción audiovisual', texto: 'Video, foto, contenido para redes, podcasts, dirección de arte.' },
-      { tipo: 'propio', icon: 'grafico', title: 'Pauta en Meta y Google', texto: 'Estrategia, gestión, optimización y escalamiento.' },
-      { tipo: 'propio', icon: 'datos', title: 'Datos y analytics', texto: 'Medición, reportes y toma de decisiones en base a datos.' },
-      { tipo: 'propio', icon: 'engranaje', title: 'Automatizaciones e IA', texto: 'Procesos, CRM, flujos de comunicación, integraciones y apps.' },
-      { tipo: 'propio', icon: 'monitor', title: 'Desarrollo web y landings', texto: 'Sitios, landings, UX/UI orientado a conversión.' },
-      { tipo: 'socio', icon: 'tienda', title: 'Ventas directas y atención al cliente', texto: 'Gestión comercial, equipos de venta, atención al cliente.' },
-      { tipo: 'socio', icon: 'megafono', title: 'PR y medios', texto: 'Relaciones públicas, prensa, influencers.' },
-      { tipo: 'socio', icon: 'personas', title: 'Gestión de redes sociales', texto: 'Community management y atención al cliente.' },
-      { tipo: 'socio', icon: 'lampara', title: 'Branding', texto: 'Identidad de marca, diseño de logo, manual de marca.' },
-      { tipo: 'socio', icon: 'estrategia', title: 'Estrategia de negocio', texto: 'Consultoría empresarial, finanzas, pricing, modelo de negocio.' },
+      { icon: 'camara', title: 'Producción audiovisual', texto: 'Video, foto, contenido para redes, podcasts, dirección de arte.' },
+      { icon: 'grafico', title: 'Pauta en Meta y Google', texto: 'Estrategia, gestión, optimización y escalamiento.' },
+      { icon: 'datos', title: 'Datos y analytics', texto: 'Medición, reportes y toma de decisiones en base a datos.' },
+      { icon: 'engranaje', title: 'Automatizaciones e IA', texto: 'Procesos, CRM, flujos de comunicación, integraciones y apps.' },
+      { icon: 'monitor', title: 'Desarrollo web y landings', texto: 'Sitios, landings, UX/UI orientado a conversión.' },
+      { icon: 'tienda', title: 'Ventas directas y atención al cliente', texto: 'Gestión comercial, equipos de venta, atención al cliente.' },
+      { icon: 'megafono', title: 'PR y medios', texto: 'Relaciones públicas, prensa, influencers.' },
+      { icon: 'personas', title: 'Gestión de redes sociales', texto: 'Community management y atención al cliente.' },
+      { icon: 'lampara', title: 'Branding', texto: 'Identidad de marca, diseño de logo, manual de marca.' },
+      { icon: 'estrategia', title: 'Estrategia de negocio', texto: 'Consultoría empresarial, finanzas, pricing, modelo de negocio.' },
     ],
   },
   stats: {

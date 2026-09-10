@@ -1761,10 +1761,6 @@
     return wrap;
   }
 
-  var ECO_TIPOS = [
-    { value: 'propio', label: 'Lo que hacemos (violeta)' },
-    { value: 'socio', label: 'Con socios (gris)' }
-  ];
   var ECO_ICONOS = [
     { value: 'camara', label: 'Cámara / audiovisual' },
     { value: 'grafico', label: 'Gráfico / pauta' },
@@ -1811,10 +1807,8 @@
     wrap.appendChild(centroGroup);
 
     var izqGroup = cmsSubgroup('Columna izquierda');
-    izqGroup.appendChild(renderPlainFieldFor({ label: 'Referencia violeta', type: 'text' }, function(){ return e.legendPropio; }, function(v){ e.legendPropio = v; }));
-    izqGroup.appendChild(renderPlainFieldFor({ label: 'Referencia violeta — nota chica', type: 'text' }, function(){ return e.legendPropioNota; }, function(v){ e.legendPropioNota = v; }));
-    izqGroup.appendChild(renderPlainFieldFor({ label: 'Referencia gris', type: 'text' }, function(){ return e.legendSocio; }, function(v){ e.legendSocio = v; }));
-    izqGroup.appendChild(renderPlainFieldFor({ label: 'Referencia gris — nota chica', type: 'text' }, function(){ return e.legendSocioNota; }, function(v){ e.legendSocioNota = v; }));
+    izqGroup.appendChild(renderPlainFieldFor({ label: 'Referencia', type: 'text' }, function(){ return e.legendLabel; }, function(v){ e.legendLabel = v; }));
+    izqGroup.appendChild(renderPlainFieldFor({ label: 'Referencia — nota chica', type: 'text' }, function(){ return e.legendNota; }, function(v){ e.legendNota = v; }));
     izqGroup.appendChild(renderRichField({ label: 'Título del bloque de abajo', type: 'text' }, function(){ return e.notaTitulo; }, function(v){ e.notaTitulo = v; }));
     izqGroup.appendChild(renderRichField({ label: 'Texto del bloque de abajo', type: 'textarea' }, function(){ return e.notaTexto; }, function(v){ e.notaTexto = v; }));
     wrap.appendChild(izqGroup);
@@ -1835,7 +1829,7 @@
     var itemsTitle = cmsSubgroup('Segmentos de la rueda');
     var hint = document.createElement('p');
     hint.className = 'cms-media-hint';
-    hint.textContent = 'Se dibujan arrancando a las 12 en punto y girando en sentido horario, en este mismo orden. Conviene poner primero los violetas (lo que hacemos) y después los grises.';
+    hint.textContent = 'Se dibujan arrancando a las 12 en punto y girando en sentido horario, en este mismo orden. El color alterna solo, no hace falta elegirlo.';
     itemsTitle.appendChild(hint);
     wrap.appendChild(itemsTitle);
 
@@ -1873,7 +1867,6 @@
 
         group.appendChild(renderPlainFieldFor({ label: 'Título', type: 'text' }, function(){ return item.title; }, function(v){ item.title = v; title.textContent = (i + 1) + '. ' + (v || 'Segmento'); }));
         group.appendChild(renderPlainFieldFor({ label: 'Descripción', type: 'textarea' }, function(){ return item.texto; }, function(v){ item.texto = v; }));
-        group.appendChild(renderEcoSelect('Color', ECO_TIPOS, function(){ return item.tipo || 'propio'; }, function(v){ item.tipo = v; }));
         group.appendChild(renderEcoSelect('Ícono', ECO_ICONOS, function(){ return item.icon || 'estrategia'; }, function(v){ item.icon = v; }));
         itemsWrap.appendChild(group);
       });
@@ -1884,7 +1877,7 @@
     var addBtn = document.createElement('button');
     addBtn.type = 'button'; addBtn.className = 'cms-add-btn'; addBtn.textContent = '+ Agregar segmento';
     addBtn.addEventListener('click', function(){
-      e.items.push({ tipo: 'propio', icon: 'estrategia', title: 'Nuevo segmento', texto: '' });
+      e.items.push({ icon: 'estrategia', title: 'Nuevo segmento', texto: '' });
       renderItems();
     });
     wrap.appendChild(addBtn);
