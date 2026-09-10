@@ -471,10 +471,14 @@
     .eco-inner > :nth-child(4){ order:1; }
     .eco-heading{ font-size:clamp(1.6rem,5.4vw,2.1rem); }
   }
+  /* aca abajo la rueda ya no lleva texto (ni siquiera el titulo, que se
+     recorta antes por espacio) y la lista de abajo repite el mismo
+     contenido completo -- mostrar el circulo aca es puro peso visual
+     sin informacion antes de llegar al contenido real, asi que se saca
+     y la lista queda como unica version del listado de disciplinas. */
   @media (max-width: 780px){
-    .eco-labels{ display:none; }
+    .eco-wheel{ display:none; }
     .eco-list{ display:grid; }
-    .eco-wheel{ max-width:min(360px, 78vw); }
   }
 
   /* ---- stats ---- */
