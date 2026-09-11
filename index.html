@@ -283,16 +283,25 @@
   }
   .logos-page-grid img{ height:var(--logos-size, 36px); width:auto; object-fit:contain; opacity:.8; }
   .logos-pages-nav{ display:none; align-items:center; justify-content:center; gap:16px; margin-top:22px; }
+  /* 40px, no 34: mismo alto que .testi-arrow -- suficiente area de toque
+     en mobile sin agrandar el circulo visual mas de lo necesario. */
   .logos-page-arrow{
-    all:unset; box-sizing:border-box; cursor:pointer; width:34px; height:34px; border-radius:50%;
+    all:unset; box-sizing:border-box; cursor:pointer; width:40px; height:40px; border-radius:50%;
     border:1px solid var(--line-strong); background:var(--paper-flat); color:var(--ink);
     font-size:1.3rem; line-height:1; display:flex; align-items:center; justify-content:center;
     transition:background .2s ease;
   }
   .logos-page-arrow:hover{ background:var(--paper-dim); }
-  .logos-dots{ display:flex; gap:8px; }
-  .logos-dot{ all:unset; box-sizing:border-box; cursor:pointer; width:8px; height:8px; border-radius:50%; background:var(--line-strong); }
-  .logos-dot.is-active{ background:var(--v-500); }
+  .logos-dots{ display:flex; }
+  /* el punto que se ve sigue siendo chico (8px), pero el area clickeable
+     real es de 22x22 -- en mobile un punto de 8px solo es un blanco
+     dificil de acertar con el dedo. */
+  .logos-dot{
+    all:unset; box-sizing:border-box; cursor:pointer; width:22px; height:22px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .logos-dot::before{ content:''; width:8px; height:8px; border-radius:50%; background:var(--line-strong); }
+  .logos-dot.is-active::before{ background:var(--v-500); }
 
   /* ---- proyectos ---- */
   .work{ position:relative; padding:clamp(72px,10vh,120px) 0; }
@@ -792,17 +801,6 @@
     </div>
   </section>
 
-  <section class="logos-band is-off" id="cms-logos-band-2">
-    <div class="logos-pages section-inner" id="cms-logos-pages-2">
-      <div class="logos-page-grid" id="cms-logos-page-grid-2"></div>
-      <div class="logos-pages-nav" id="cms-logos-pages-nav-2">
-        <button type="button" class="logos-page-arrow" id="cms-logos-prev-2" aria-label="Anterior">&lsaquo;</button>
-        <div class="logos-dots" id="cms-logos-dots-2"></div>
-        <button type="button" class="logos-page-arrow" id="cms-logos-next-2" aria-label="Siguiente">&rsaquo;</button>
-      </div>
-    </div>
-  </section>
-
   <section id="servicios" class="what">
     <div class="section-inner">
       <div class="section-head reveal">
@@ -813,6 +811,17 @@
         <p id="cms-qh-texto1">No esperamos que nos digas qué hacer: somos proactivos y te decimos cuál creemos que es el mejor camino. No solo ejecutamos — evaluamos y determinamos si una acción es o no la más conveniente para tu negocio, incluso cuando esa respuesta no sea la que esperabas. Esa transparencia es parte de nuestro profesionalismo.</p>
         <p id="cms-qh-texto2">Trabajamos con empresas que ya tienen trayectoria, un negocio funcionando, un equipo detrás y presupuesto real para invertir en crecimiento.</p>
         <a href="#contacto" class="btn-primary" id="cms-qh-cta">Contactanos →</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="logos-band is-off" id="cms-logos-band-2">
+    <div class="logos-pages section-inner" id="cms-logos-pages-2">
+      <div class="logos-page-grid" id="cms-logos-page-grid-2"></div>
+      <div class="logos-pages-nav" id="cms-logos-pages-nav-2">
+        <button type="button" class="logos-page-arrow" id="cms-logos-prev-2" aria-label="Anterior">&lsaquo;</button>
+        <div class="logos-dots" id="cms-logos-dots-2"></div>
+        <button type="button" class="logos-page-arrow" id="cms-logos-next-2" aria-label="Siguiente">&rsaquo;</button>
       </div>
     </div>
   </section>
