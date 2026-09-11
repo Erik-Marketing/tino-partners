@@ -1207,7 +1207,8 @@
     { key: 'logosBand', title: 'Logos de marcas (carrusel)', custom: 'logosBand' },
     { key: 'proyectos', title: 'Nuestros proyectos', custom: 'proyectos' },
     { key: 'ticker', title: 'Cinta de palabras', custom: 'ticker' },
-    { key: 'ecosistema', title: 'Rueda del ecosistema', custom: 'ecosistema' },
+    { key: 'faq', title: 'Preguntas frecuentes', custom: 'faq' },
+    { key: 'ia', title: 'Inteligencia artificial', custom: 'ia' },
     { key: 'stats', title: 'Números', custom: 'stats' },
     { key: 'quehacemos', title: 'Partner de negocio', custom: 'quehacemos' },
     { key: 'marcas', title: 'Marcas', custom: 'marcas' },
@@ -1761,23 +1762,14 @@
     return wrap;
   }
 
-  var ECO_TIPOS = [
-    { value: 'propio', label: 'Lo que hacemos (violeta)' },
-    { value: 'socio', label: 'Con socios (gris)' }
+  var IA_ICONOS = [
+    { value: 'chip', label: 'Chip / IA' },
+    { value: 'reloj', label: 'Reloj / ahorro de tiempo' },
+    { value: 'grafico', label: 'Gráfico / decisiones' },
+    { value: 'foco', label: 'Foco / precisión' },
+    { value: 'bombilla', label: 'Lamparita / ideas' }
   ];
-  var ECO_ICONOS = [
-    { value: 'camara', label: 'Cámara / audiovisual' },
-    { value: 'grafico', label: 'Gráfico / pauta' },
-    { value: 'datos', label: 'Base de datos / analytics' },
-    { value: 'engranaje', label: 'Engranaje / automatización' },
-    { value: 'monitor', label: 'Monitor / web' },
-    { value: 'tienda', label: 'Tienda / ventas' },
-    { value: 'megafono', label: 'Megáfono / PR' },
-    { value: 'personas', label: 'Personas / redes' },
-    { value: 'lampara', label: 'Lámpara / branding' },
-    { value: 'estrategia', label: 'Bandera / estrategia' }
-  ];
-  function renderEcoSelect(labelText, opciones, getVal, setVal){
+  function renderSelectField(labelText, opciones, getVal, setVal){
     var field = document.createElement('div');
     field.className = 'cms-field';
     field.appendChild(makeLabel(labelText));
@@ -1794,87 +1786,61 @@
     return field;
   }
 
-  function renderEcosistemaSection(){
+  function renderFaqSection(){
     var wrap = document.createElement('div');
     wrap.className = 'cms-fields';
-    var e = homeContent.ecosistema;
-    if (!e.items) e.items = [];
+    var f = homeContent.faq;
+    if (!f.items) f.items = [];
 
-    wrap.appendChild(renderToggleRow('Mostrar esta sección en el sitio', function(){ return e.enabled; }, function(v){ e.enabled = v; }));
-    wrap.appendChild(renderPlainFieldFor({ label: 'Etiqueta de la sección', type: 'text' }, function(){ return e.eyebrow; }, function(v){ e.eyebrow = v; }));
-    wrap.appendChild(renderRichField({ label: 'Título', type: 'text' }, function(){ return e.heading; }, function(v){ e.heading = v; }));
+    wrap.appendChild(renderToggleRow('Mostrar esta sección en el sitio', function(){ return f.enabled; }, function(v){ f.enabled = v; }));
+    wrap.appendChild(renderPlainFieldFor({ label: 'Etiqueta de la sección', type: 'text' }, function(){ return f.eyebrow; }, function(v){ f.eyebrow = v; }));
+    wrap.appendChild(renderRichField({ label: 'Título', type: 'text' }, function(){ return f.heading; }, function(v){ f.heading = v; }));
+    wrap.appendChild(renderRichField({ label: 'Bajada', type: 'textarea' }, function(){ return f.intro; }, function(v){ f.intro = v; }));
 
-    var centroGroup = cmsSubgroup('Centro de la rueda');
-    centroGroup.appendChild(renderPlainFieldFor({ label: 'Nombre', type: 'text' }, function(){ return e.centerTitle; }, function(v){ e.centerTitle = v; }));
-    centroGroup.appendChild(renderPlainFieldFor({ label: 'Bajada (se separa sola en renglones por los "+" y el "=")', type: 'text' }, function(){ return e.centerTagline; }, function(v){ e.centerTagline = v; }));
-    centroGroup.appendChild(renderPlainFieldFor({ label: 'Texto del arco ("Nuestro foco")', type: 'text' }, function(){ return e.focusLabel; }, function(v){ e.focusLabel = v; }));
-    wrap.appendChild(centroGroup);
-
-    var izqGroup = cmsSubgroup('Columna izquierda');
-    izqGroup.appendChild(renderPlainFieldFor({ label: 'Referencia violeta', type: 'text' }, function(){ return e.legendPropio; }, function(v){ e.legendPropio = v; }));
-    izqGroup.appendChild(renderPlainFieldFor({ label: 'Referencia violeta — nota chica', type: 'text' }, function(){ return e.legendPropioNota; }, function(v){ e.legendPropioNota = v; }));
-    izqGroup.appendChild(renderPlainFieldFor({ label: 'Referencia gris', type: 'text' }, function(){ return e.legendSocio; }, function(v){ e.legendSocio = v; }));
-    izqGroup.appendChild(renderPlainFieldFor({ label: 'Referencia gris — nota chica', type: 'text' }, function(){ return e.legendSocioNota; }, function(v){ e.legendSocioNota = v; }));
-    izqGroup.appendChild(renderRichField({ label: 'Título del bloque de abajo', type: 'text' }, function(){ return e.notaTitulo; }, function(v){ e.notaTitulo = v; }));
-    izqGroup.appendChild(renderRichField({ label: 'Texto del bloque de abajo', type: 'textarea' }, function(){ return e.notaTexto; }, function(v){ e.notaTexto = v; }));
-    wrap.appendChild(izqGroup);
-
-    var derGroup = cmsSubgroup('Columna derecha');
-    derGroup.appendChild(renderRichField({ label: 'Párrafo de arriba', type: 'textarea' }, function(){ return e.intro; }, function(v){ e.intro = v; }));
-    derGroup.appendChild(renderPlainFieldFor({ label: 'Línea chica violeta', type: 'text' }, function(){ return e.introTag; }, function(v){ e.introTag = v; }));
-    derGroup.appendChild(renderRichField({ label: 'Título del bloque del medio', type: 'text' }, function(){ return e.resultadoTitulo; }, function(v){ e.resultadoTitulo = v; }));
-    derGroup.appendChild(renderRichField({ label: 'Texto del bloque del medio', type: 'textarea' }, function(){ return e.resultadoTexto; }, function(v){ e.resultadoTexto = v; }));
-    wrap.appendChild(derGroup);
-
-    var ctaGroup = cmsSubgroup('Recuadro de cierre (con el botón al formulario)');
-    ctaGroup.appendChild(renderRichField({ label: 'Título', type: 'text' }, function(){ return e.ctaTitulo; }, function(v){ e.ctaTitulo = v; }));
-    ctaGroup.appendChild(renderRichField({ label: 'Texto', type: 'textarea' }, function(){ return e.ctaTexto; }, function(v){ e.ctaTexto = v; }));
-    ctaGroup.appendChild(renderPlainFieldFor({ label: 'Texto del botón', type: 'text' }, function(){ return e.ctaBoton; }, function(v){ e.ctaBoton = v; }));
+    var ctaGroup = cmsSubgroup('Recuadro de cierre (calificación por inversión + botón)');
+    ctaGroup.appendChild(renderRichField({ label: 'Texto', type: 'textarea' }, function(){ return f.ctaTexto; }, function(v){ f.ctaTexto = v; }));
+    ctaGroup.appendChild(renderPlainFieldFor({ label: 'Texto del botón', type: 'text' }, function(){ return f.ctaBoton; }, function(v){ f.ctaBoton = v; }));
+    var ctaHint = document.createElement('p');
+    ctaHint.className = 'cms-media-hint';
+    ctaHint.textContent = 'Si dejás el texto vacío, este recuadro no se muestra.';
+    ctaGroup.appendChild(ctaHint);
     wrap.appendChild(ctaGroup);
 
-    var itemsTitle = cmsSubgroup('Segmentos de la rueda');
-    var hint = document.createElement('p');
-    hint.className = 'cms-media-hint';
-    hint.textContent = 'Se dibujan arrancando a las 12 en punto y girando en sentido horario, en este mismo orden. Conviene poner primero los violetas (lo que hacemos) y después los grises.';
-    itemsTitle.appendChild(hint);
-    wrap.appendChild(itemsTitle);
-
+    wrap.appendChild(cmsSubgroup('Preguntas'));
     var itemsWrap = document.createElement('div');
     itemsWrap.style.cssText = 'display:flex; flex-direction:column; gap:14px; margin:4px 0;';
     function renderItems(){
       itemsWrap.innerHTML = '';
-      e.items.forEach(function(item, i){
+      f.items.forEach(function(item, i){
         var group = document.createElement('div');
         group.className = 'cms-subgroup cms-list-item';
         var title = document.createElement('div');
         title.className = 'cms-subgroup-title';
-        title.textContent = (i + 1) + '. ' + (item.title || 'Segmento');
+        title.textContent = (i + 1) + '. ' + (item.pregunta || 'Pregunta');
         group.appendChild(title);
 
-        if (e.items.length > 1) {
+        if (f.items.length > 1) {
           var removeBtn = document.createElement('button');
-          removeBtn.type = 'button'; removeBtn.className = 'cms-remove-btn'; removeBtn.textContent = '\u00d7'; removeBtn.title = 'Quitar este segmento';
-          removeBtn.addEventListener('click', function(){ e.items.splice(i, 1); renderItems(); });
+          removeBtn.type = 'button'; removeBtn.className = 'cms-remove-btn'; removeBtn.textContent = '×'; removeBtn.title = 'Quitar esta pregunta';
+          removeBtn.addEventListener('click', function(){ f.items.splice(i, 1); renderItems(); });
           group.appendChild(removeBtn);
         }
 
         var orderRow = document.createElement('div');
         orderRow.style.cssText = 'display:flex; gap:8px; margin-bottom:12px;';
         var upBtn = document.createElement('button');
-        upBtn.type = 'button'; upBtn.className = 'cms-file-btn'; upBtn.textContent = '\u2191 Subir';
+        upBtn.type = 'button'; upBtn.className = 'cms-file-btn'; upBtn.textContent = '↑ Subir';
         upBtn.disabled = i === 0;
-        upBtn.addEventListener('click', function(){ var t = e.items[i - 1]; e.items[i - 1] = e.items[i]; e.items[i] = t; renderItems(); });
+        upBtn.addEventListener('click', function(){ var t = f.items[i - 1]; f.items[i - 1] = f.items[i]; f.items[i] = t; renderItems(); });
         var downBtn = document.createElement('button');
-        downBtn.type = 'button'; downBtn.className = 'cms-file-btn'; downBtn.textContent = '\u2193 Bajar';
-        downBtn.disabled = i === e.items.length - 1;
-        downBtn.addEventListener('click', function(){ var t = e.items[i + 1]; e.items[i + 1] = e.items[i]; e.items[i] = t; renderItems(); });
+        downBtn.type = 'button'; downBtn.className = 'cms-file-btn'; downBtn.textContent = '↓ Bajar';
+        downBtn.disabled = i === f.items.length - 1;
+        downBtn.addEventListener('click', function(){ var t = f.items[i + 1]; f.items[i + 1] = f.items[i]; f.items[i] = t; renderItems(); });
         orderRow.appendChild(upBtn); orderRow.appendChild(downBtn);
         group.appendChild(orderRow);
 
-        group.appendChild(renderPlainFieldFor({ label: 'Título', type: 'text' }, function(){ return item.title; }, function(v){ item.title = v; title.textContent = (i + 1) + '. ' + (v || 'Segmento'); }));
-        group.appendChild(renderPlainFieldFor({ label: 'Descripción', type: 'textarea' }, function(){ return item.texto; }, function(v){ item.texto = v; }));
-        group.appendChild(renderEcoSelect('Color', ECO_TIPOS, function(){ return item.tipo || 'propio'; }, function(v){ item.tipo = v; }));
-        group.appendChild(renderEcoSelect('Ícono', ECO_ICONOS, function(){ return item.icon || 'estrategia'; }, function(v){ item.icon = v; }));
+        group.appendChild(renderPlainFieldFor({ label: 'Pregunta', type: 'text' }, function(){ return item.pregunta; }, function(v){ item.pregunta = v; title.textContent = (i + 1) + '. ' + (v || 'Pregunta'); }));
+        group.appendChild(renderRichField({ label: 'Respuesta', type: 'textarea' }, function(){ return item.respuesta; }, function(v){ item.respuesta = v; }));
         itemsWrap.appendChild(group);
       });
     }
@@ -1882,9 +1848,82 @@
     wrap.appendChild(itemsWrap);
 
     var addBtn = document.createElement('button');
-    addBtn.type = 'button'; addBtn.className = 'cms-add-btn'; addBtn.textContent = '+ Agregar segmento';
+    addBtn.type = 'button'; addBtn.className = 'cms-add-btn'; addBtn.textContent = '+ Agregar pregunta';
     addBtn.addEventListener('click', function(){
-      e.items.push({ tipo: 'propio', icon: 'estrategia', title: 'Nuevo segmento', texto: '' });
+      f.items.push({ pregunta: 'Nueva pregunta', respuesta: '' });
+      renderItems();
+    });
+    wrap.appendChild(addBtn);
+
+    return wrap;
+  }
+
+  function renderIaSection(){
+    var wrap = document.createElement('div');
+    wrap.className = 'cms-fields';
+    var ia = homeContent.ia;
+    if (!ia.items) ia.items = [];
+
+    wrap.appendChild(renderToggleRow('Mostrar esta sección en el sitio', function(){ return ia.enabled; }, function(v){ ia.enabled = v; }));
+    wrap.appendChild(renderPlainFieldFor({ label: 'Etiqueta de la sección', type: 'text' }, function(){ return ia.eyebrow; }, function(v){ ia.eyebrow = v; }));
+    wrap.appendChild(renderRichField({ label: 'Título', type: 'text' }, function(){ return ia.heading; }, function(v){ ia.heading = v; }));
+    wrap.appendChild(renderRichField({ label: 'Bajada', type: 'textarea' }, function(){ return ia.intro; }, function(v){ ia.intro = v; }));
+
+    var ctaGroup = cmsSubgroup('Botón al artículo');
+    ctaGroup.appendChild(renderPlainFieldFor({ label: 'Texto del botón', type: 'text' }, function(){ return ia.ctaText; }, function(v){ ia.ctaText = v; }));
+    ctaGroup.appendChild(renderPlainFieldFor({ label: 'Link (URL del artículo del blog)', type: 'text' }, function(){ return ia.ctaLink; }, function(v){ ia.ctaLink = v; }));
+    var ctaHint = document.createElement('p');
+    ctaHint.className = 'cms-media-hint';
+    ctaHint.textContent = 'Si lo dejás vacío, el botón lleva al listado general del blog en vez de a una nota puntual.';
+    ctaGroup.appendChild(ctaHint);
+    wrap.appendChild(ctaGroup);
+
+    wrap.appendChild(cmsSubgroup('Tarjetas destacadas'));
+    var itemsWrap = document.createElement('div');
+    itemsWrap.style.cssText = 'display:flex; flex-direction:column; gap:14px; margin:4px 0;';
+    function renderItems(){
+      itemsWrap.innerHTML = '';
+      ia.items.forEach(function(item, i){
+        var group = document.createElement('div');
+        group.className = 'cms-subgroup cms-list-item';
+        var title = document.createElement('div');
+        title.className = 'cms-subgroup-title';
+        title.textContent = (i + 1) + '. ' + (item.title || 'Tarjeta');
+        group.appendChild(title);
+
+        if (ia.items.length > 1) {
+          var removeBtn = document.createElement('button');
+          removeBtn.type = 'button'; removeBtn.className = 'cms-remove-btn'; removeBtn.textContent = '×'; removeBtn.title = 'Quitar esta tarjeta';
+          removeBtn.addEventListener('click', function(){ ia.items.splice(i, 1); renderItems(); });
+          group.appendChild(removeBtn);
+        }
+
+        var orderRow = document.createElement('div');
+        orderRow.style.cssText = 'display:flex; gap:8px; margin-bottom:12px;';
+        var upBtn = document.createElement('button');
+        upBtn.type = 'button'; upBtn.className = 'cms-file-btn'; upBtn.textContent = '↑ Subir';
+        upBtn.disabled = i === 0;
+        upBtn.addEventListener('click', function(){ var t = ia.items[i - 1]; ia.items[i - 1] = ia.items[i]; ia.items[i] = t; renderItems(); });
+        var downBtn = document.createElement('button');
+        downBtn.type = 'button'; downBtn.className = 'cms-file-btn'; downBtn.textContent = '↓ Bajar';
+        downBtn.disabled = i === ia.items.length - 1;
+        downBtn.addEventListener('click', function(){ var t = ia.items[i + 1]; ia.items[i + 1] = ia.items[i]; ia.items[i] = t; renderItems(); });
+        orderRow.appendChild(upBtn); orderRow.appendChild(downBtn);
+        group.appendChild(orderRow);
+
+        group.appendChild(renderPlainFieldFor({ label: 'Título', type: 'text' }, function(){ return item.title; }, function(v){ item.title = v; title.textContent = (i + 1) + '. ' + (v || 'Tarjeta'); }));
+        group.appendChild(renderPlainFieldFor({ label: 'Texto', type: 'textarea' }, function(){ return item.texto; }, function(v){ item.texto = v; }));
+        group.appendChild(renderSelectField('Ícono', IA_ICONOS, function(){ return item.icon || 'chip'; }, function(v){ item.icon = v; }));
+        itemsWrap.appendChild(group);
+      });
+    }
+    renderItems();
+    wrap.appendChild(itemsWrap);
+
+    var addBtn = document.createElement('button');
+    addBtn.type = 'button'; addBtn.className = 'cms-add-btn'; addBtn.textContent = '+ Agregar tarjeta';
+    addBtn.addEventListener('click', function(){
+      ia.items.push({ icon: 'chip', title: 'Nueva tarjeta', texto: '' });
       renderItems();
     });
     wrap.appendChild(addBtn);
@@ -2213,7 +2252,8 @@
     else if (section.custom === 'proyectos') body = renderProyectosSection();
     else if (section.custom === 'ticker') body = renderTickerSection();
     else if (section.custom === 'blog') body = renderBlogSection();
-    else if (section.custom === 'ecosistema') body = renderEcosistemaSection();
+    else if (section.custom === 'faq') body = renderFaqSection();
+    else if (section.custom === 'ia') body = renderIaSection();
     else if (section.custom === 'testimonios') body = renderTestimoniosSection();
     else if (section.custom === 'marcas') body = renderMarcasSection();
     else if (section.custom === 'logosBand') body = renderLogosBandSection();

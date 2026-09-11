@@ -544,8 +544,10 @@ async function loadMergedContent() {
   merged.meta = Object.assign({}, DEFAULT_CONTENT.meta, saved.meta);
   // Same reasoning for these — a sub-field added to one of these objects
   // after a site already had it saved (the enabled toggle + copy on
-  // quehacemos, the copy around the wheel on ecosistema) must still show up.
-  merged.ecosistema = Object.assign({}, DEFAULT_CONTENT.ecosistema, saved.ecosistema);
+  // quehacemos, the accordion copy on faq, the highlight cards on ia) must
+  // still show up.
+  merged.faq = Object.assign({}, DEFAULT_CONTENT.faq, saved.faq);
+  merged.ia = Object.assign({}, DEFAULT_CONTENT.ia, saved.ia);
   merged.quehacemos = Object.assign({}, DEFAULT_CONTENT.quehacemos, saved.quehacemos);
   merged.logo = Object.assign({}, DEFAULT_CONTENT.logo, saved.logo);
   merged.marcas = Object.assign({}, DEFAULT_CONTENT.marcas, saved.marcas);
