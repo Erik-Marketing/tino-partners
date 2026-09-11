@@ -3,6 +3,7 @@
 <link rel="canonical" href="https://tinopartners.com/">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FFFFFF">
+<link rel="icon" id="cms-favicon" href="">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
@@ -267,6 +268,12 @@
      `--logos-duration` (solo carrusel) se fijan desde JS por instancia. */
   .logos-band{ background:transparent; padding:clamp(20px,3vh,32px) 0; }
   .logos-band.is-off{ display:none; }
+  /* oculto por default -- solo aparece si se carga un titulo desde el panel */
+  .logos-heading{
+    display:none; text-align:center; margin:0 0 18px;
+    font-family:'Big Shoulders Display',sans-serif; font-weight:800; text-transform:uppercase;
+    font-size:clamp(1.1rem,2.2vw,1.5rem); letter-spacing:.01em; color:var(--ink);
+  }
   .logos-row{ overflow:hidden; }
   .logos-track{
     display:flex; align-items:center; width:max-content; gap:clamp(40px,6vw,72px);
@@ -671,6 +678,7 @@
   </section>
 
   <section class="logos-band is-off" id="cms-logos-band">
+    <p class="logos-heading section-inner" id="cms-logos-heading"></p>
     <div class="logos-row" id="cms-logos-row">
       <div class="logos-track" id="cms-logos-track"></div>
     </div>
@@ -816,6 +824,7 @@
   </section>
 
   <section class="logos-band is-off" id="cms-logos-band-2">
+    <p class="logos-heading section-inner" id="cms-logos-heading-2"></p>
     <div class="logos-pages section-inner" id="cms-logos-pages-2">
       <div class="logos-page-grid" id="cms-logos-page-grid-2"></div>
       <div class="logos-pages-nav" id="cms-logos-pages-nav-2">
@@ -1120,6 +1129,9 @@
     var brandEl = document.querySelector('.brand');
     var brandLogoImg = document.getElementById('cms-brand-logo');
     var logoUrl = (c.logo && typeof c.logo.url === 'string') ? c.logo.url.trim() : '';
+    var faviconEl = document.getElementById('cms-favicon');
+    var faviconUrl = (c.logo && c.logo.favicon && typeof c.logo.favicon.url === 'string') ? c.logo.favicon.url.trim() : '';
+    if (faviconEl && faviconUrl && /^(\/|https?:\/\/|data:)/.test(faviconUrl)) faviconEl.href = faviconUrl;
     if (brandEl && brandLogoImg && logoUrl && /^(\/|https?:\/\/|data:)/.test(logoUrl)) {
       if (brandLogoImg.getAttribute('src') !== logoUrl) brandLogoImg.src = logoUrl;
       brandLogoImg.style.height = (c.logo.height || 34) + 'px';
@@ -1435,6 +1447,11 @@
         section.style.background = /^(#[0-9a-fA-F]{3,8}|rgb|hsl|transparent|var\()/.test(bg) ? bg : 'transparent';
         var size = Number(band.height) > 0 ? Number(band.height) : 36;
         section.style.setProperty('--logos-size', size + 'px');
+        var heading = ids.heading ? document.getElementById(ids.heading) : null;
+        if (heading) {
+          setHtml(ids.heading, band.heading);
+          heading.style.display = band.heading ? 'block' : 'none';
+        }
 
         var mode = opts.forcePaginas ? 'paginas' : (band.mode === 'paginas' ? 'paginas' : 'carrusel');
         if (mode === 'paginas') {
@@ -1483,12 +1500,12 @@
       } };
     }
     var logosCtrl1 = makeLogosController({
-      section: 'cms-logos-band', row: 'cms-logos-row', track: 'cms-logos-track',
+      section: 'cms-logos-band', heading: 'cms-logos-heading', row: 'cms-logos-row', track: 'cms-logos-track',
       pagesWrap: 'cms-logos-pages', pageGrid: 'cms-logos-page-grid', pagesNav: 'cms-logos-pages-nav',
       dots: 'cms-logos-dots', prev: 'cms-logos-prev', next: 'cms-logos-next'
     });
     var logosCtrl2 = makeLogosController({
-      section: 'cms-logos-band-2',
+      section: 'cms-logos-band-2', heading: 'cms-logos-heading-2',
       pagesWrap: 'cms-logos-pages-2', pageGrid: 'cms-logos-page-grid-2', pagesNav: 'cms-logos-pages-nav-2',
       dots: 'cms-logos-dots-2', prev: 'cms-logos-prev-2', next: 'cms-logos-next-2'
     });

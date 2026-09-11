@@ -1,6 +1,7 @@
 <title>Blog — Tino Partners</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FFFFFF">
+<link rel="icon" id="cms-favicon" href="">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
@@ -419,6 +420,9 @@
       var brandEl = document.querySelector('.brand');
       var brandLogoImg = document.getElementById('cms-brand-logo');
       var logoUrl = (c.logo && typeof c.logo.url === 'string') ? c.logo.url.trim() : '';
+      var faviconEl = document.getElementById('cms-favicon');
+      var faviconUrl = (c.logo && c.logo.favicon && typeof c.logo.favicon.url === 'string') ? c.logo.favicon.url.trim() : '';
+      if (faviconEl && faviconUrl && /^(\/|https?:\/\/|data:)/.test(faviconUrl)) faviconEl.href = faviconUrl;
       if (brandEl && brandLogoImg && logoUrl && /^(\/|https?:\/\/|data:)/.test(logoUrl)) {
         if (brandLogoImg.getAttribute('src') !== logoUrl) brandLogoImg.src = logoUrl;
         brandLogoImg.style.height = (c.logo.height || 34) + 'px';

@@ -1770,7 +1770,8 @@
     { value: 'foco', label: 'Foco / precisión' },
     { value: 'bombilla', label: 'Lamparita / ideas' }
   ];
-  function renderSelectField(labelText, opciones, getVal, setVal){
+  function renderSelectField(labelText, opciones, getVal, setVal){
+
     var field = document.createElement('div');
     field.className = 'cms-field';
     field.appendChild(makeLabel(labelText));
@@ -1807,7 +1808,8 @@
     ctaGroup.appendChild(ctaHint);
     wrap.appendChild(ctaGroup);
 
-    wrap.appendChild(cmsSubgroup('Preguntas'));
+    wrap.appendChild(cmsSubgroup('Preguntas'));
+
     var itemsWrap = document.createElement('div');
     itemsWrap.style.cssText = 'display:flex; flex-direction:column; gap:14px; margin:4px 0;';
     function renderItems(){
@@ -1841,7 +1843,8 @@
         group.appendChild(orderRow);
 
         group.appendChild(renderPlainFieldFor({ label: 'Pregunta', type: 'text' }, function(){ return item.pregunta; }, function(v){ item.pregunta = v; title.textContent = (i + 1) + '. ' + (v || 'Pregunta'); }));
-        group.appendChild(renderRichField({ label: 'Respuesta', type: 'textarea' }, function(){ return item.respuesta; }, function(v){ item.respuesta = v; }));
+        group.appendChild(renderRichField({ label: 'Respuesta', type: 'textarea' }, function(){ return item.respuesta; }, function(v){ item.respuesta = v; }));
+
         itemsWrap.appendChild(group);
       });
     }
@@ -1924,7 +1927,8 @@
     var addBtn = document.createElement('button');
     addBtn.type = 'button'; addBtn.className = 'cms-add-btn'; addBtn.textContent = '+ Agregar tarjeta';
     addBtn.addEventListener('click', function(){
-      ia.items.push({ icon: 'chip', title: 'Nueva tarjeta', texto: '' });
+      ia.items.push({ icon: 'chip', title: 'Nueva tarjeta', texto: '' });
+
       renderItems();
     });
     wrap.appendChild(addBtn);
@@ -1999,6 +2003,7 @@
     wrap.className = 'cms-fields';
     if (!b.logos) b.logos = [];
     wrap.appendChild(renderToggleRow('Mostrar esta sección en el sitio', function(){ return b.enabled; }, function(v){ b.enabled = v; }));
+    wrap.appendChild(renderPlainFieldFor({ label: 'Título de la sección (opcional)', type: 'text' }, function(){ return b.heading; }, function(v){ b.heading = v; }));
 
     var sizeField = document.createElement('div');
     sizeField.className = 'cms-field';
@@ -2683,10 +2688,11 @@
 
   function renderLogoCms(){
     logoCmsBody.innerHTML = '';
-    if (!homeContent.logo) homeContent.logo = { url: '', height: 34 };
+    if (!homeContent.logo) homeContent.logo = { url: '', height: 34, favicon: { url: '' } };
     var l = homeContent.logo;
     if (!l.posX) l.posX = 50;
     if (!l.posY) l.posY = 50;
+    if (!l.favicon) l.favicon = { url: '' };
 
     logoCmsBody.appendChild(renderMediaField(l, { type: 'image', label: 'Logotipo', contain: true, optional: true }));
 
@@ -2710,6 +2716,21 @@
       renderLogoCms();
     });
     logoCmsBody.appendChild(revertBtn);
+
+    var faviconGroup = cmsSubgroup('Favicon (ícono de la pestaña del navegador)');
+    var faviconHint = document.createElement('p');
+    faviconHint.className = 'cms-media-hint';
+    faviconHint.textContent = 'Independiente del logo de arriba. Ideal un PNG o SVG cuadrado — el navegador lo achica solo para la pestaña.';
+    faviconGroup.appendChild(faviconHint);
+    faviconGroup.appendChild(renderMediaField(l.favicon, { type: 'image', label: 'Favicon', contain: true, optional: true }));
+    var faviconRevertBtn = document.createElement('button');
+    faviconRevertBtn.type = 'button'; faviconRevertBtn.className = 'cms-add-btn'; faviconRevertBtn.textContent = 'Volver al favicon original (sacar el subido)';
+    faviconRevertBtn.addEventListener('click', function(){
+      l.favicon.url = '';
+      renderLogoCms();
+    });
+    faviconGroup.appendChild(faviconRevertBtn);
+    logoCmsBody.appendChild(faviconGroup);
 
     document.getElementById('logoSavebar').style.display = 'flex';
   }

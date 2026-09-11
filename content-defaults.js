@@ -110,12 +110,12 @@ const DEFAULT_CONTENT = {
   // (grilla estatica que se recorre con flechas/puntitos, y ademas avanza
   // sola cada `interval` segundos si hay mas de una pagina). `height` es el
   // alto de cada logo en px, comun a los dos formatos.
-  logosBand: { enabled: false, mode: 'carrusel', height: 36, speed: 30, perPage: 6, interval: 5, bgColor: '', logos: [] },
+  logosBand: { enabled: false, heading: '', mode: 'carrusel', height: 36, speed: 30, perPage: 6, interval: 5, bgColor: '', logos: [] },
   // Segunda franja de logos, mas abajo en la home (antes de "Agencia o
   // partner"), a pedido de Erik -- misma idea que logosBand pero siempre
   // en formato paginas (no lleva `mode` ni `speed`) y con su propia lista
   // de logos, independiente de la primera.
-  logosBand2: { enabled: false, height: 36, perPage: 6, interval: 5, bgColor: '', logos: [] },
+  logosBand2: { enabled: false, heading: '', height: 36, perPage: 6, interval: 5, bgColor: '', logos: [] },
   testimonios: {
     enabled: false,
     items: [
@@ -185,7 +185,9 @@ const DEFAULT_CONTENT = {
   // Logotipo del header. Vacío = se usa el lockup original (el ícono SVG
   // + "TINO/PARTNERS" que está escrito en el HTML de cada página). Si se
   // sube una imagen, reemplaza ese lockup completo en todas las páginas.
-  logo: { url: '', height: 34 },
+  // `favicon` es el ícono de la pestaña del navegador -- independiente del
+  // logo del header, vacío hasta que se cargue uno.
+  logo: { url: '', height: 34, favicon: { url: '' } },
   menu: {
     items: [
       { label: 'Home', url: 'index.html' },
