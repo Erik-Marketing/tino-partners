@@ -1844,6 +1844,7 @@
 
         group.appendChild(renderPlainFieldFor({ label: 'Pregunta', type: 'text' }, function(){ return item.pregunta; }, function(v){ item.pregunta = v; title.textContent = (i + 1) + '. ' + (v || 'Pregunta'); }));
         group.appendChild(renderRichField({ label: 'Respuesta', type: 'textarea' }, function(){ return item.respuesta; }, function(v){ item.respuesta = v; }));
+        group.appendChild(renderToggleRow('No mostrar esta respuesta (la pregunta queda sin flecha para desplegar)', function(){ return !!item.ocultarRespuesta; }, function(v){ item.ocultarRespuesta = v; }));
 
         itemsWrap.appendChild(group);
       });

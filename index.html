@@ -1284,6 +1284,16 @@
     }
 
     // ---- preguntas frecuentes (acordeon) ------------------------------
+    // Un contenteditable vaciado por el usuario (Ctrl+A + borrar) no queda
+    // en '', sino en cosas como '<br>' o '<p><br></p>' -- comprobar
+    // "hay respuesta" con el HTML crudo (como se hacia antes) los toma
+    // como texto real y deja la flechita de desplegar en una pregunta que
+    // en pantalla se ve vacia. Se compara el texto ya renderizado.
+    function htmlToText(html){
+      var tmp = document.createElement('div');
+      tmp.innerHTML = html || '';
+      return (tmp.textContent || '').trim();
+    }
     function setupFaq(faq){
       var section = document.getElementById('cms-faq');
       var list = document.getElementById('cms-faq-list');
@@ -1306,10 +1316,11 @@
       items.forEach(function(it, i){
         var row = document.createElement('div');
         row.className = 'faq-item';
-        // Sin respuesta cargada (pregunta nueva sin completar, o le borraron
-        // la respuesta a una existente) no hay nada que desplegar -- se
+        // Sin respuesta real cargada (pregunta nueva sin completar, le
+        // borraron la respuesta a una existente, o se tildo "No mostrar
+        // esta respuesta" desde el panel) no hay nada que desplegar -- se
         // muestra la pregunta sola, sin flecha ni boton clickeable.
-        var hasAnswer = !!(it.respuesta && String(it.respuesta).trim());
+        var hasAnswer = !it.ocultarRespuesta && !!htmlToText(it.respuesta);
         if (!hasAnswer) {
           row.classList.add('is-static');
           var qStatic = document.createElement('div');
