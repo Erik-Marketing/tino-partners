@@ -260,7 +260,11 @@
   @keyframes tickerScroll{ from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
   @media (prefers-reduced-motion: reduce){ .ticker-track{ animation:none; } }
 
-  /* ---- carrusel de logos de marcas (sin fondo por defecto, sin bordes) ---- */
+  /* ---- franja de logos de marcas (sin fondo por defecto, sin bordes) ----
+     dos formatos posibles, elegidos desde el panel: carrusel (se desliza
+     solo) o paginas (grilla estatica, con flechas/puntitos y avance
+     automatico configurable). `--logos-size` (alto de cada logo) y
+     `--logos-duration` (solo carrusel) se fijan desde JS por instancia. */
   .logos-band{ background:transparent; padding:clamp(20px,3vh,32px) 0; }
   .logos-band.is-off{ display:none; }
   .logos-row{ overflow:hidden; }
@@ -268,9 +272,27 @@
     display:flex; align-items:center; width:max-content; gap:clamp(40px,6vw,72px);
     animation:logosScroll var(--logos-duration, 30s) linear infinite;
   }
-  .logos-track img{ height:36px; width:auto; object-fit:contain; flex:none; opacity:.8; }
+  .logos-track img{ height:var(--logos-size, 36px); width:auto; object-fit:contain; flex:none; opacity:.8; }
   @keyframes logosScroll{ from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
   @media (prefers-reduced-motion: reduce){ .logos-track{ animation:none; } }
+
+  .logos-pages{ display:none; }
+  .logos-page-grid{
+    display:flex; flex-wrap:wrap; align-items:center; justify-content:center;
+    gap:clamp(28px,5vw,56px); min-height:calc(var(--logos-size, 36px) + 8px);
+  }
+  .logos-page-grid img{ height:var(--logos-size, 36px); width:auto; object-fit:contain; opacity:.8; }
+  .logos-pages-nav{ display:none; align-items:center; justify-content:center; gap:16px; margin-top:22px; }
+  .logos-page-arrow{
+    all:unset; box-sizing:border-box; cursor:pointer; width:34px; height:34px; border-radius:50%;
+    border:1px solid var(--line-strong); background:var(--paper-flat); color:var(--ink);
+    font-size:1.3rem; line-height:1; display:flex; align-items:center; justify-content:center;
+    transition:background .2s ease;
+  }
+  .logos-page-arrow:hover{ background:var(--paper-dim); }
+  .logos-dots{ display:flex; gap:8px; }
+  .logos-dot{ all:unset; box-sizing:border-box; cursor:pointer; width:8px; height:8px; border-radius:50%; background:var(--line-strong); }
+  .logos-dot.is-active{ background:var(--v-500); }
 
   /* ---- proyectos ---- */
   .work{ position:relative; padding:clamp(72px,10vh,120px) 0; }
@@ -640,8 +662,16 @@
   </section>
 
   <section class="logos-band is-off" id="cms-logos-band">
-    <div class="logos-row">
+    <div class="logos-row" id="cms-logos-row">
       <div class="logos-track" id="cms-logos-track"></div>
+    </div>
+    <div class="logos-pages section-inner" id="cms-logos-pages">
+      <div class="logos-page-grid" id="cms-logos-page-grid"></div>
+      <div class="logos-pages-nav" id="cms-logos-pages-nav">
+        <button type="button" class="logos-page-arrow" id="cms-logos-prev" aria-label="Anterior">&lsaquo;</button>
+        <div class="logos-dots" id="cms-logos-dots"></div>
+        <button type="button" class="logos-page-arrow" id="cms-logos-next" aria-label="Siguiente">&rsaquo;</button>
+      </div>
     </div>
   </section>
 
@@ -758,6 +788,17 @@
       </div>
       <div style="text-align:center;">
         <span class="example-flag" id="cms-stats-flag">Cifras de referencia — se actualizan a medida que crecemos</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="logos-band is-off" id="cms-logos-band-2">
+    <div class="logos-pages section-inner" id="cms-logos-pages-2">
+      <div class="logos-page-grid" id="cms-logos-page-grid-2"></div>
+      <div class="logos-pages-nav" id="cms-logos-pages-nav-2">
+        <button type="button" class="logos-page-arrow" id="cms-logos-prev-2" aria-label="Anterior">&lsaquo;</button>
+        <div class="logos-dots" id="cms-logos-dots-2"></div>
+        <button type="button" class="logos-page-arrow" id="cms-logos-next-2" aria-label="Siguiente">&rsaquo;</button>
       </div>
     </div>
   </section>
@@ -1322,46 +1363,126 @@
       });
     }
 
-    // ---- client logos carousel above "Nuestros proyectos" ----
-    function fillLogosBand(band){
-      var section = document.getElementById('cms-logos-band');
-      var track = document.getElementById('cms-logos-track');
-      if (!section || !track) return;
-      var logos = (band.logos || []).filter(function(l){ return l && isUsableMediaUrl(l.url); });
-      if (band.enabled === false || !logos.length) {
-        section.classList.add('is-off');
-        return;
+    // ---- franjas de logos de marcas (carrusel o paginas) --------------
+    // Fabrica un controlador por instancia (arriba de "Nuestros proyectos",
+    // y la segunda mas abajo antes de "Agencia o partner") -- cada una con
+    // su propio estado de paginacion/autoplay, para que no se pisen entre
+    // si. `ids.row`/`ids.track` son opcionales: la segunda instancia nunca
+    // usa formato carrusel, asi que no los necesita.
+    function makeLogosController(ids){
+      var state = { pages: [], index: 0, timer: null };
+      function renderPage(){
+        var grid = document.getElementById(ids.pageGrid);
+        if (!grid) return;
+        var page = state.pages[state.index] || [];
+        grid.innerHTML = '';
+        page.forEach(function(logo){
+          var img = document.createElement('img');
+          img.src = logo.url; img.alt = '';
+          grid.appendChild(img);
+        });
+        var dotsWrap = document.getElementById(ids.dots);
+        if (dotsWrap) {
+          dotsWrap.innerHTML = '';
+          state.pages.forEach(function(_, i){
+            var dot = document.createElement('button');
+            dot.type = 'button';
+            dot.className = 'logos-dot' + (i === state.index ? ' is-active' : '');
+            dot.setAttribute('aria-label', 'P\u00e1gina ' + (i + 1));
+            dot.addEventListener('click', function(){ goTo(i); });
+            dotsWrap.appendChild(dot);
+          });
+        }
       }
-      section.classList.remove('is-off');
-      // Same reasoning as isUsableMediaUrl: only honour something that reads
-      // as a colour, so a stray autofilled string can't paint the band.
-      var bg = typeof band.bgColor === 'string' ? band.bgColor.trim() : '';
-      section.style.background = /^(#[0-9a-fA-F]{3,8}|rgb|hsl|transparent|var\()/.test(bg) ? bg : 'transparent';
-      section.style.setProperty('--logos-duration', (band.speed || 30) + 's');
-      // With very few logos (even just 1), doubling the list once makes a
-      // track so narrow that the -50% loop translation is a handful of
-      // pixels — technically animating, but imperceptible. Repeat the
-      // sequence enough times to always have a reasonable number of
-      // copies, so the motion stays clearly visible regardless of count.
-      var MIN_COPIES = 8;
-      var repeatTimes = Math.max(1, Math.ceil(MIN_COPIES / logos.length));
-      var sequence = [];
-      for (var i = 0; i < repeatTimes; i++) sequence = sequence.concat(logos);
-      track.innerHTML = '';
-      sequence.concat(sequence).forEach(function(logo){
-        var img = document.createElement('img');
-        img.src = logo.url; img.alt = '';
-        track.appendChild(img);
-      });
-      // Force the CSS animation to restart from 0% now that the real logos
-      // are in place, instead of continuing whatever time had already
-      // elapsed on the empty track since page load — otherwise a slow
-      // content fetch could make the very first frame the visitor sees
-      // land mid-loop instead of a clean, complete strip of logos.
-      track.style.animation = 'none';
-      void track.offsetWidth;
-      track.style.animation = '';
+      function goTo(i){
+        if (!state.pages.length) return;
+        state.index = ((i % state.pages.length) + state.pages.length) % state.pages.length;
+        renderPage();
+      }
+      function step(dir){ goTo(state.index + dir); }
+      var prevBtn = document.getElementById(ids.prev);
+      var nextBtn = document.getElementById(ids.next);
+      if (prevBtn) prevBtn.addEventListener('click', function(){ step(-1); });
+      if (nextBtn) nextBtn.addEventListener('click', function(){ step(1); });
+
+      return { fill: function(band, opts){
+        opts = opts || {};
+        var section = document.getElementById(ids.section);
+        var carouselRow = ids.row ? document.getElementById(ids.row) : null;
+        var pagesWrap = document.getElementById(ids.pagesWrap);
+        var track = ids.track ? document.getElementById(ids.track) : null;
+        if (!section) return;
+        if (state.timer) { clearInterval(state.timer); state.timer = null; }
+        var logos = (band.logos || []).filter(function(l){ return l && isUsableMediaUrl(l.url); });
+        if (band.enabled === false || !logos.length) {
+          section.classList.add('is-off');
+          return;
+        }
+        section.classList.remove('is-off');
+        // Same reasoning as isUsableMediaUrl: only honour something that
+        // reads as a colour, so a stray autofilled string can't paint the
+        // band.
+        var bg = typeof band.bgColor === 'string' ? band.bgColor.trim() : '';
+        section.style.background = /^(#[0-9a-fA-F]{3,8}|rgb|hsl|transparent|var\()/.test(bg) ? bg : 'transparent';
+        var size = Number(band.height) > 0 ? Number(band.height) : 36;
+        section.style.setProperty('--logos-size', size + 'px');
+
+        var mode = opts.forcePaginas ? 'paginas' : (band.mode === 'paginas' ? 'paginas' : 'carrusel');
+        if (mode === 'paginas') {
+          if (carouselRow) carouselRow.style.display = 'none';
+          if (pagesWrap) pagesWrap.style.display = 'block';
+          var perPage = Number(band.perPage) > 0 ? Math.round(Number(band.perPage)) : 6;
+          var pages = [];
+          for (var p = 0; p < logos.length; p += perPage) pages.push(logos.slice(p, p + perPage));
+          state.pages = pages;
+          state.index = 0;
+          renderPage();
+          var nav = document.getElementById(ids.pagesNav);
+          if (nav) nav.style.display = pages.length > 1 ? 'flex' : 'none';
+          var interval = Number(band.interval) > 0 ? Number(band.interval) : 5;
+          if (pages.length > 1) state.timer = setInterval(function(){ step(1); }, interval * 1000);
+          return;
+        }
+
+        if (carouselRow) carouselRow.style.display = '';
+        if (pagesWrap) pagesWrap.style.display = 'none';
+        if (!track) return;
+        section.style.setProperty('--logos-duration', (band.speed || 30) + 's');
+        // With very few logos (even just 1), doubling the list once makes a
+        // track so narrow that the -50% loop translation is a handful of
+        // pixels — technically animating, but imperceptible. Repeat the
+        // sequence enough times to always have a reasonable number of
+        // copies, so the motion stays clearly visible regardless of count.
+        var MIN_COPIES = 8;
+        var repeatTimes = Math.max(1, Math.ceil(MIN_COPIES / logos.length));
+        var sequence = [];
+        for (var i = 0; i < repeatTimes; i++) sequence = sequence.concat(logos);
+        track.innerHTML = '';
+        sequence.concat(sequence).forEach(function(logo){
+          var img = document.createElement('img');
+          img.src = logo.url; img.alt = '';
+          track.appendChild(img);
+        });
+        // Force the CSS animation to restart from 0% now that the real
+        // logos are in place, instead of continuing whatever time had
+        // already elapsed on the empty track since page load — otherwise a
+        // slow content fetch could make the very first frame the visitor
+        // sees land mid-loop instead of a clean, complete strip of logos.
+        track.style.animation = 'none';
+        void track.offsetWidth;
+        track.style.animation = '';
+      } };
     }
+    var logosCtrl1 = makeLogosController({
+      section: 'cms-logos-band', row: 'cms-logos-row', track: 'cms-logos-track',
+      pagesWrap: 'cms-logos-pages', pageGrid: 'cms-logos-page-grid', pagesNav: 'cms-logos-pages-nav',
+      dots: 'cms-logos-dots', prev: 'cms-logos-prev', next: 'cms-logos-next'
+    });
+    var logosCtrl2 = makeLogosController({
+      section: 'cms-logos-band-2',
+      pagesWrap: 'cms-logos-pages-2', pageGrid: 'cms-logos-page-grid-2', pagesNav: 'cms-logos-pages-nav-2',
+      dots: 'cms-logos-dots-2', prev: 'cms-logos-prev-2', next: 'cms-logos-next-2'
+    });
 
     // ---- testimonials carousel: one item shown at a time, arrows + autoplay
     // when there's more than one ----
@@ -1522,7 +1643,8 @@
       var brandsBand = document.querySelector('.brands-band');
       if (brandsBand) brandsBand.classList.toggle('is-off', c.marcas.enabled === false);
     }
-    if (c.logosBand) fillLogosBand(c.logosBand);
+    if (c.logosBand) logosCtrl1.fill(c.logosBand);
+    if (c.logosBand2) logosCtrl2.fill(c.logosBand2, { forcePaginas: true });
     if (c.testimonios) setupTestimonials(c.testimonios);
     if (c.blog) {
       setHtml('cms-blog-heading', c.blog.heading);

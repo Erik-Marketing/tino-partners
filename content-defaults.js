@@ -104,10 +104,18 @@ const DEFAULT_CONTENT = {
     ctaText: 'Contactanos',
   },
   marcas: { enabled: true, items: 'Aura, Solden, Nimbus, Marca Ejemplo, Próximo cliente' },
-  // Logo carousel shown above "Nuestros proyectos" — separate from `marcas`
-  // (which is just a static row of text names). Starts off/empty until
-  // Erik uploads real client logos from the panel.
-  logosBand: { enabled: false, speed: 30, bgColor: '', logos: [] },
+  // Logo band shown above "Nuestros proyectos" — separate from `marcas`
+  // (which is just a static row of text names). Two formats: 'carrusel'
+  // (scrolls on its own, `speed` = segundos por vuelta) or 'paginas'
+  // (grilla estatica que se recorre con flechas/puntitos, y ademas avanza
+  // sola cada `interval` segundos si hay mas de una pagina). `height` es el
+  // alto de cada logo en px, comun a los dos formatos.
+  logosBand: { enabled: false, mode: 'carrusel', height: 36, speed: 30, perPage: 6, interval: 5, bgColor: '', logos: [] },
+  // Segunda franja de logos, mas abajo en la home (antes de "Agencia o
+  // partner"), a pedido de Erik -- misma idea que logosBand pero siempre
+  // en formato paginas (no lleva `mode` ni `speed`) y con su propia lista
+  // de logos, independiente de la primera.
+  logosBand2: { enabled: false, height: 36, perPage: 6, interval: 5, bgColor: '', logos: [] },
   testimonios: {
     enabled: false,
     items: [
@@ -436,7 +444,7 @@ function normalizeFormFields(savedFields) {
 // never translated between the two.
 const PERMISSION_KEYS = [
   'consultas',
-  'home-cms.hero', 'home-cms.logosBand', 'home-cms.proyectos', 'home-cms.ticker', 'home-cms.faq', 'home-cms.ia',
+  'home-cms.hero', 'home-cms.logosBand', 'home-cms.logosBand2', 'home-cms.proyectos', 'home-cms.ticker', 'home-cms.faq', 'home-cms.ia',
   'home-cms.stats', 'home-cms.quehacemos', 'home-cms.marcas', 'home-cms.testimonios',
   'home-cms.blog', 'home-cms.footer',
   'blog-cms.new', 'blog-cms.list',
@@ -467,6 +475,7 @@ const CONTENT_PATHS = {
   'home-cms.quehacemos': [{ path: 'quehacemos', type: 'object' }],
   'home-cms.marcas': [{ path: 'marcas', type: 'object' }],
   'home-cms.logosBand': [{ path: 'logosBand', type: 'object' }],
+  'home-cms.logosBand2': [{ path: 'logosBand2', type: 'object' }],
   'home-cms.testimonios': [{ path: 'testimonios', type: 'object' }],
   'home-cms.blog': [
     { path: 'blog.heading', type: 'string' },
