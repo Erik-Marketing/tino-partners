@@ -341,6 +341,9 @@
   }
   .faq-arrow{ flex:none; width:22px; height:22px; color:var(--v-500); transition:transform .25s ease; }
   .faq-item.is-open .faq-arrow{ transform:rotate(180deg); }
+  /* pregunta sin respuesta todavia -- misma tipografia, sin flecha ni cursor
+     de click, no hay nada que desplegar */
+  .faq-item.is-static .faq-q{ cursor:default; }
   /* grid-template-rows 0fr -> 1fr anima el alto sin medir nada en JS */
   .faq-a-wrap{ display:grid; grid-template-rows:0fr; transition:grid-template-rows .3s ease; }
   .faq-item.is-open .faq-a-wrap{ grid-template-rows:1fr; }
@@ -1241,6 +1244,19 @@
       items.forEach(function(it, i){
         var row = document.createElement('div');
         row.className = 'faq-item';
+        // Sin respuesta cargada (pregunta nueva sin completar, o le borraron
+        // la respuesta a una existente) no hay nada que desplegar -- se
+        // muestra la pregunta sola, sin flecha ni boton clickeable.
+        var hasAnswer = !!(it.respuesta && String(it.respuesta).trim());
+        if (!hasAnswer) {
+          row.classList.add('is-static');
+          var qStatic = document.createElement('div');
+          qStatic.className = 'faq-q';
+          qStatic.textContent = it.pregunta || '';
+          row.appendChild(qStatic);
+          list.appendChild(row);
+          return;
+        }
         var btnId = 'faq-q-' + i, panelId = 'faq-a-' + i;
         row.innerHTML =
           '<button type="button" class="faq-q" id="' + btnId + '" aria-expanded="false" aria-controls="' + panelId + '">' +
