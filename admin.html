@@ -1769,7 +1769,7 @@
     { value: 'foco', label: 'Foco / precisión' },
     { value: 'bombilla', label: 'Lamparita / ideas' }
   ];
-  function renderSelectField(labelText, opciones, getVal, setVal){
+  function renderSelectField(labelText, opciones, getVal, setVal){
     var field = document.createElement('div');
     field.className = 'cms-field';
     field.appendChild(makeLabel(labelText));
@@ -1806,7 +1806,7 @@
     ctaGroup.appendChild(ctaHint);
     wrap.appendChild(ctaGroup);
 
-    wrap.appendChild(cmsSubgroup('Preguntas'));
+    wrap.appendChild(cmsSubgroup('Preguntas'));
     var itemsWrap = document.createElement('div');
     itemsWrap.style.cssText = 'display:flex; flex-direction:column; gap:14px; margin:4px 0;';
     function renderItems(){
@@ -1840,7 +1840,7 @@
         group.appendChild(orderRow);
 
         group.appendChild(renderPlainFieldFor({ label: 'Pregunta', type: 'text' }, function(){ return item.pregunta; }, function(v){ item.pregunta = v; title.textContent = (i + 1) + '. ' + (v || 'Pregunta'); }));
-        group.appendChild(renderRichField({ label: 'Respuesta', type: 'textarea' }, function(){ return item.respuesta; }, function(v){ item.respuesta = v; }));
+        group.appendChild(renderRichField({ label: 'Respuesta', type: 'textarea' }, function(){ return item.respuesta; }, function(v){ item.respuesta = v; }));
         itemsWrap.appendChild(group);
       });
     }
@@ -1923,7 +1923,7 @@
     var addBtn = document.createElement('button');
     addBtn.type = 'button'; addBtn.className = 'cms-add-btn'; addBtn.textContent = '+ Agregar tarjeta';
     addBtn.addEventListener('click', function(){
-      ia.items.push({ icon: 'chip', title: 'Nueva tarjeta', texto: '' });
+      ia.items.push({ icon: 'chip', title: 'Nueva tarjeta', texto: '' });
       renderItems();
     });
     wrap.appendChild(addBtn);

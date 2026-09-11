@@ -410,19 +410,17 @@ function normalizeTestimonios(saved) {
   return DEFAULT_CONTENT.testimonios;
 }
 
-// New default questions added after some sites already had a saved
-// `form.fields` array — appends any default field whose `key` is missing,
-// leaving Erik's own fields/order/edits untouched. Also relabels the old
-// "Mensaje" field to the new copy, but only when it's still exactly the
-// untouched default label, never overwriting a custom relabel.
+// Solo rellena con los campos por defecto cuando todavia no hay nada
+// guardado (instalacion nueva) -- ya NO reinserta un campo por defecto
+// que falte en lo guardado, porque eso hacia imposible borrar una
+// pregunta desde el panel: se borraba, se guardaba bien, y en la
+// siguiente carga volvia a aparecer sola. Sigue relabeleando el viejo
+// campo "Mensaje" a la copia nueva, pero solo cuando todavia tiene el
+// label original sin tocar, nunca pisando un relabel propio.
 function normalizeFormFields(savedFields) {
   const fields = Array.isArray(savedFields) && savedFields.length
     ? savedFields.slice()
     : DEFAULT_CONTENT.form.fields.map((f) => Object.assign({}, f));
-  const existingKeys = new Set(fields.map((f) => f.key));
-  DEFAULT_CONTENT.form.fields.forEach((defaultField) => {
-    if (!existingKeys.has(defaultField.key)) fields.push(Object.assign({}, defaultField));
-  });
   const oldMensajeLabel = 'Mensaje';
   const newMensajeLabel = DEFAULT_CONTENT.form.fields.find((f) => f.key === 'mensaje').label;
   return fields.map((f) => (f.key === 'mensaje' && f.label === oldMensajeLabel)

@@ -359,7 +359,7 @@
   .ia-card-icon svg{ width:100%; height:100%; display:block; }
   .ia-card h3{ font-size:1.1rem; margin:0 0 8px; }
   .ia-card p{ margin:0; color:var(--ink-soft); line-height:1.6; font-size:.92rem; }
-  .ia-cta{ text-align:center; margin-top:clamp(28px,4vw,40px); }
+  .ia-cta{ text-align:center; margin-top:clamp(28px,4vw,40px); }
 
   /* ---- stats ---- */
   .stats{ padding:clamp(56px,8vh,88px) 0 clamp(72px,9vh,104px); text-align:center; }
@@ -722,7 +722,7 @@
       </div>
       <div class="ia-grid" id="cms-ia-grid"></div>
       <div class="ia-cta">
-        <a href="/blog" class="btn-primary" id="cms-ia-cta-boton">Leer la nota completa &rarr;</a>
+        <a href="/blog" class="btn-primary" id="cms-ia-cta-boton">Leer la nota completa &rarr;</a>
       </div>
     </div>
   </section>
@@ -1232,7 +1232,7 @@
       var ctaBtn = document.getElementById('cms-faq-cta-boton');
       var ctaWrap = document.querySelector('.faq-cta');
       if (ctaWrap) ctaWrap.style.display = faq.ctaTexto ? '' : 'none';
-      if (ctaBtn && faq.ctaBoton) ctaBtn.textContent = faq.ctaBoton + ' \u2192';
+      if (ctaBtn && faq.ctaBoton) ctaBtn.textContent = faq.ctaBoton + ' \u2192';
 
       list.innerHTML = '';
       items.forEach(function(it, i){
@@ -1254,7 +1254,7 @@
           row.classList.toggle('is-open', !wasOpen);
           this.setAttribute('aria-expanded', String(!wasOpen));
         });
-        list.appendChild(row);
+        list.appendChild(row);
       });
     }
 
