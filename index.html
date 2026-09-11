@@ -359,7 +359,8 @@
   .ia-card-icon svg{ width:100%; height:100%; display:block; }
   .ia-card h3{ font-size:1.1rem; margin:0 0 8px; }
   .ia-card p{ margin:0; color:var(--ink-soft); line-height:1.6; font-size:.92rem; }
-  .ia-cta{ text-align:center; margin-top:clamp(28px,4vw,40px); }
+  .ia-cta{ text-align:center; margin-top:clamp(28px,4vw,40px); }
+
 
   /* ---- stats ---- */
   .stats{ padding:clamp(56px,8vh,88px) 0 clamp(72px,9vh,104px); text-align:center; }
@@ -649,7 +650,7 @@
         <p class="eyebrow" id="cms-proy-eyebrow">Nuestros proyectos</p>
         <h2><span id="cms-proy-h1">Marcas con las que</span><br><span id="cms-proy-h2">hemos trabajado.</span></h2>
         <div class="work-actions" style="margin-top:24px;">
-          <a href="portfolio.html" class="btn-ghost">Ver portfolio</a>
+          <a href="portfolio.html" class="btn-ghost" id="cms-proy-portfolio-link">Ver portfolio</a>
         </div>
       </div>
       <div class="work-grid" id="cms-work-grid">
@@ -722,7 +723,8 @@
       </div>
       <div class="ia-grid" id="cms-ia-grid"></div>
       <div class="ia-cta">
-        <a href="/blog" class="btn-primary" id="cms-ia-cta-boton">Leer la nota completa &rarr;</a>
+        <a href="/blog" class="btn-primary" id="cms-ia-cta-boton">Leer la nota completa &rarr;</a>
+
       </div>
     </div>
   </section>
@@ -1232,7 +1234,8 @@
       var ctaBtn = document.getElementById('cms-faq-cta-boton');
       var ctaWrap = document.querySelector('.faq-cta');
       if (ctaWrap) ctaWrap.style.display = faq.ctaTexto ? '' : 'none';
-      if (ctaBtn && faq.ctaBoton) ctaBtn.textContent = faq.ctaBoton + ' \u2192';
+      if (ctaBtn && faq.ctaBoton) ctaBtn.textContent = faq.ctaBoton + ' \u2192';
+
 
       list.innerHTML = '';
       items.forEach(function(it, i){
@@ -1254,7 +1257,8 @@
           row.classList.toggle('is-open', !wasOpen);
           this.setAttribute('aria-expanded', String(!wasOpen));
         });
-        list.appendChild(row);
+        list.appendChild(row);
+
       });
     }
 
@@ -1431,6 +1435,14 @@
       setHtml('cms-proy-h2', c.proyectos.headingLine2);
       setHtml('cms-proy-nota', c.proyectos.nota);
       renderWorkGrid(c.proyectos.tiles);
+      // El link estatico "Ver portfolio" no pasa por el mismo filtro que el
+      // menu (DISABLED_KEY_BY_FILE mas abajo) -- si Portfolio esta apagado
+      // desde SEO, este boton no puede quedar apuntando a una pagina 404.
+      var portfolioLink = document.getElementById('cms-proy-portfolio-link');
+      if (portfolioLink) {
+        var portfolioOff = c.meta && c.meta.portfolio && c.meta.portfolio.enabled === false;
+        portfolioLink.style.display = portfolioOff ? 'none' : '';
+      }
     }
     if (c.ticker) {
       var tickerBand = document.getElementById('cms-ticker');
