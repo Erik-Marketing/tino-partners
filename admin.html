@@ -448,6 +448,10 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           SEO
         </a>
+        <a class="sb-link" href="#marketing" data-view="marketing-cms">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l18-7-5 18-4-8-9-3z"/></svg>
+          Marketing
+        </a>
         <button class="sb-link sb-group-toggle" type="button" id="sbUsuariosToggle">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           Usuarios
@@ -590,6 +594,18 @@
           </div>
         </div>
 
+        <div id="view-marketing-cms" style="display:none;">
+          <div class="main-head">
+            <h2>Marketing</h2>
+            <p>Píxel de Meta Ads (con Conversions API) y Google Analytics. Se cargan en las 9 páginas del sitio apenas se guardan acá — no hace falta tocar código.</p>
+          </div>
+          <div id="marketingCmsBody"><p class="state-msg">Cargando...</p></div>
+          <div class="cms-savebar" id="marketingSavebar" style="display:none;">
+            <button class="btn-primary" type="button" id="marketingSaveBtn">Guardar cambios</button>
+            <span class="cms-save-status" id="marketingSaveStatus"></span>
+          </div>
+        </div>
+
         <div id="view-usuarios-cms" style="display:none;">
           <div class="main-head">
             <h2 id="usuariosSectionTitle">Usuarios</h2>
@@ -663,10 +679,10 @@
 
   // ---------- view switching (Consultas / Home) ----------
   var viewLinks = Array.prototype.slice.call(document.querySelectorAll('.sb-link[data-view]'));
-  var views = { consultas: document.getElementById('view-consultas'), 'home-cms': document.getElementById('view-home-cms'), 'blog-cms': document.getElementById('view-blog-cms'), 'logo-cms': document.getElementById('view-logo-cms'), 'menu-cms': document.getElementById('view-menu-cms'), 'form-cms': document.getElementById('view-form-cms'), 'nosotros-cms': document.getElementById('view-nosotros-cms'), 'portfolio-cms': document.getElementById('view-portfolio-cms'), 'seo-cms': document.getElementById('view-seo-cms'), 'usuarios-cms': document.getElementById('view-usuarios-cms'), 'no-access': document.getElementById('view-no-access') };
+  var views = { consultas: document.getElementById('view-consultas'), 'home-cms': document.getElementById('view-home-cms'), 'blog-cms': document.getElementById('view-blog-cms'), 'logo-cms': document.getElementById('view-logo-cms'), 'menu-cms': document.getElementById('view-menu-cms'), 'form-cms': document.getElementById('view-form-cms'), 'nosotros-cms': document.getElementById('view-nosotros-cms'), 'portfolio-cms': document.getElementById('view-portfolio-cms'), 'seo-cms': document.getElementById('view-seo-cms'), 'marketing-cms': document.getElementById('view-marketing-cms'), 'usuarios-cms': document.getElementById('view-usuarios-cms'), 'no-access': document.getElementById('view-no-access') };
   var topbarTitle = document.querySelector('.topbar-title');
   var homeCmsLoaded = false;
-  var VIEW_TITLES = { consultas: 'Consultas', 'home-cms': 'Home', 'blog-cms': 'Blog', 'logo-cms': 'Logo', 'menu-cms': 'Menú', 'form-cms': 'Form', 'nosotros-cms': 'Nosotros', 'portfolio-cms': 'Portfolio', 'seo-cms': 'SEO', 'usuarios-cms': 'Usuarios', 'no-access': 'Sin acceso' };
+  var VIEW_TITLES = { consultas: 'Consultas', 'home-cms': 'Home', 'blog-cms': 'Blog', 'logo-cms': 'Logo', 'menu-cms': 'Menú', 'form-cms': 'Form', 'nosotros-cms': 'Nosotros', 'portfolio-cms': 'Portfolio', 'seo-cms': 'SEO', 'marketing-cms': 'Marketing', 'usuarios-cms': 'Usuarios', 'no-access': 'Sin acceso' };
 
   // ---------- permissions ----------
   // Populated from GET /api/me right after login/bootstrap. `allAccess`
@@ -685,10 +701,10 @@
   // Priority order used to pick a fallback view when the requested one
   // isn't allowed (stale sessionStorage, a hand-typed hash, a role that
   // lost a permission after the tab already loaded).
-  var VIEW_PERMISSION_ORDER = ['consultas', 'home-cms', 'blog-cms', 'logo-cms', 'menu-cms', 'form-cms', 'nosotros-cms', 'portfolio-cms', 'seo-cms', 'usuarios-cms'];
+  var VIEW_PERMISSION_ORDER = ['consultas', 'home-cms', 'blog-cms', 'logo-cms', 'menu-cms', 'form-cms', 'nosotros-cms', 'portfolio-cms', 'seo-cms', 'marketing-cms', 'usuarios-cms'];
   function canSeeView(name){
     if (name === 'usuarios-cms') return hasGroupPermission('usuarios');
-    if (name === 'logo-cms' || name === 'menu-cms' || name === 'form-cms' || name === 'nosotros-cms' || name === 'seo-cms' || name === 'consultas') return hasPermission(name);
+    if (name === 'logo-cms' || name === 'menu-cms' || name === 'form-cms' || name === 'nosotros-cms' || name === 'seo-cms' || name === 'marketing-cms' || name === 'consultas') return hasPermission(name);
     return hasGroupPermission(name); // home-cms, blog-cms, portfolio-cms
   }
   function firstAllowedView(){
@@ -2386,6 +2402,7 @@
   wireSaveButton('nosotrosSaveBtn', 'nosotrosSaveStatus');
   wireSaveButton('portfolioSaveBtn', 'portfolioSaveStatus');
   wireSaveButton('seoSaveBtn', 'seoSaveStatus');
+  wireSaveButton('marketingSaveBtn', 'marketingSaveStatus');
   wireSaveButton('consultasSaveBtn', 'consultasSaveStatus');
 
   var contentLoading = false;
@@ -2739,6 +2756,47 @@
   document.querySelector('.sb-link[data-view="logo-cms"]').addEventListener('click', function(){
     if (!homeCmsLoaded) loadContent(renderLogoCms);
     else renderLogoCms();
+  });
+
+  // ---------- Marketing CMS (Meta Pixel/CAPI + Google Analytics) --------
+  var marketingCmsBody = document.getElementById('marketingCmsBody');
+  function renderMarketingCms(){
+    marketingCmsBody.innerHTML = '';
+    if (!homeContent.tracking) homeContent.tracking = { metaPixelId: '', metaCapiToken: '', metaTestEventCode: '', gaId: '' };
+    var t = homeContent.tracking;
+
+    var metaGroup = cmsSubgroup('Meta Ads (Pixel + Conversions API)');
+    var metaHint = document.createElement('p');
+    metaHint.className = 'cms-media-hint';
+    metaHint.innerHTML = 'El Pixel ID y el token salen de <b>Meta Events Manager</b> → tu píxel → Configuración → Conversions API → Generar token de acceso.';
+    metaGroup.appendChild(metaHint);
+    metaGroup.appendChild(renderPlainFieldFor({ label: 'Pixel ID', type: 'text' }, function(){ return t.metaPixelId; }, function(v){ t.metaPixelId = v; }));
+    metaGroup.appendChild(renderPlainFieldFor({ label: 'Token de acceso (Conversions API)', type: 'text' }, function(){ return t.metaCapiToken; }, function(v){ t.metaCapiToken = v; }));
+    var capiHint = document.createElement('p');
+    capiHint.className = 'cms-media-hint';
+    capiHint.textContent = 'Con el token cargado, cuando alguien completa el formulario de contacto el evento "Lead" se manda también desde el servidor (ademas del Píxel del navegador, no en su lugar) — mejora la medición aunque el visitante bloquee cookies. Sin token, sigue funcionando el Píxel solo.';
+    metaGroup.appendChild(capiHint);
+    metaGroup.appendChild(renderPlainFieldFor({ label: 'Código de prueba (opcional)', type: 'text' }, function(){ return t.metaTestEventCode; }, function(v){ t.metaTestEventCode = v; }));
+    var testHint = document.createElement('p');
+    testHint.className = 'cms-media-hint';
+    testHint.textContent = 'Events Manager → Conversions API → Probar eventos. Pegalo acá mientras confirmás que los eventos llegan bien — mientras esté cargado, esos eventos van a la pestaña de prueba y NO cuentan para la optimización real de las campañas. Borralo cuando termines de probar.';
+    metaGroup.appendChild(testHint);
+    marketingCmsBody.appendChild(metaGroup);
+
+    var gaGroup = cmsSubgroup('Google Analytics (GA4)');
+    var gaHint = document.createElement('p');
+    gaHint.className = 'cms-media-hint';
+    gaHint.innerHTML = 'Google Analytics → Administrar → Flujos de datos → tu flujo web. Empieza con "G-".';
+    gaGroup.appendChild(gaHint);
+    gaGroup.appendChild(renderPlainFieldFor({ label: 'ID de medición', type: 'text' }, function(){ return t.gaId; }, function(v){ t.gaId = v; }));
+    marketingCmsBody.appendChild(gaGroup);
+
+    document.getElementById('marketingSavebar').style.display = 'flex';
+  }
+
+  document.querySelector('.sb-link[data-view="marketing-cms"]').addEventListener('click', function(){
+    if (!homeCmsLoaded) loadContent(renderMarketingCms);
+    else renderMarketingCms();
   });
 
   // ---------- Menú CMS ----------
@@ -3414,6 +3472,7 @@
     { key: 'nosotros-cms', label: 'Nosotros' },
     { key: 'portfolio-cms', label: 'Portfolio', children: [{ key: 'general', label: 'Contenido general' }, { key: 'new', label: 'Nuevo caso' }, { key: 'list', label: 'Casos' }] },
     { key: 'seo-cms', label: 'SEO' },
+    { key: 'marketing-cms', label: 'Marketing' },
     { key: 'usuarios', label: 'Usuarios', children: [{ key: 'users', label: 'Usuarios' }, { key: 'roles', label: 'Roles' }] },
   ];
 
@@ -4003,7 +4062,7 @@
         renderUsuariosCms();
       } else {
         showView(state.view);
-        var renderers = { 'logo-cms': renderLogoCms, 'menu-cms': renderMenuCms, 'form-cms': renderFormCms, 'nosotros-cms': renderNosotrosCms, 'seo-cms': renderSeoCms };
+        var renderers = { 'logo-cms': renderLogoCms, 'menu-cms': renderMenuCms, 'form-cms': renderFormCms, 'nosotros-cms': renderNosotrosCms, 'seo-cms': renderSeoCms, 'marketing-cms': renderMarketingCms };
         if (renderers[state.view]) renderers[state.view]();
       }
       restoreAdminScroll(state.scrollY);

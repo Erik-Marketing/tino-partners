@@ -188,6 +188,15 @@ const DEFAULT_CONTENT = {
   // `favicon` es el ícono de la pestaña del navegador -- independiente del
   // logo del header, vacío hasta que se cargue uno.
   logo: { url: '', height: 34, favicon: { url: '' } },
+  // Meta Ads (Pixel + Conversions API) y Google Analytics, configurados
+  // desde el panel (Marketing) e inyectados server-side en las 9 páginas
+  // (ver sendPageFile en server.js) -- disparan apenas carga la página, sin
+  // depender de que el JS del sitio termine de leer /api/content primero.
+  // `metaTestEventCode` es el código de "Probar eventos" de Meta Events
+  // Manager: mientras está cargado, los eventos van a la pestaña de prueba
+  // y NO cuentan para la optimización real de las campañas -- se completa
+  // solo mientras se está probando la integración, después se borra.
+  tracking: { metaPixelId: '', metaCapiToken: '', metaTestEventCode: '', gaId: '' },
   menu: {
     items: [
       { label: 'Home', url: 'index.html' },
@@ -451,6 +460,7 @@ const PERMISSION_KEYS = [
   'home-cms.blog', 'home-cms.footer',
   'blog-cms.new', 'blog-cms.list',
   'logo-cms',
+  'marketing-cms',
   'menu-cms',
   'form-cms',
   'nosotros-cms',
@@ -488,6 +498,7 @@ const CONTENT_PATHS = {
   'blog-cms.new': [{ path: 'blog.articles', type: 'array' }],
   'blog-cms.list': [{ path: 'blog.articles', type: 'array' }],
   'logo-cms': [{ path: 'logo', type: 'object' }],
+  'marketing-cms': [{ path: 'tracking', type: 'object' }],
   'menu-cms': [{ path: 'menu', type: 'object' }],
   'form-cms': [{ path: 'form', type: 'object' }],
   'nosotros-cms': [{ path: 'nosotros', type: 'object' }],

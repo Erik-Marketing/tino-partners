@@ -4,6 +4,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FFFFFF">
 <link rel="icon" id="cms-favicon" href="">
+<!-- cms-tracking-head -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
@@ -1065,6 +1066,12 @@
 
     submitBtn.disabled = true;
     setNote('Enviando...', false);
+    // Mismo id viaja al servidor (dentro de "data", como _fbEventId) y acá
+    // abajo al Pixel del navegador -- así Meta deduplica el Lead que manda
+    // el Conversions API del lado del servidor con el que manda el Pixel,
+    // en vez de contar el mismo envío dos veces.
+    var fbEventId = 'lead-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+    data._fbEventId = fbEventId;
     fetch('/api/contact', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1075,6 +1082,8 @@
         if (!res.ok) { setNote(res.body.error || 'Hubo un problema al enviar el mensaje. Probá de nuevo o escribinos por WhatsApp.', true); return; }
         setNote('¡Gracias! Recibimos tu mensaje, te contactamos a la brevedad.', false);
         form.reset();
+        if (typeof window.fbq === 'function') window.fbq('track', 'Lead', {}, { eventID: fbEventId });
+        if (typeof window.gtag === 'function') window.gtag('event', 'generate_lead');
       })
       .catch(function(){
         setNote('Hubo un problema al enviar el mensaje. Probá de nuevo o escribinos por WhatsApp.', true);

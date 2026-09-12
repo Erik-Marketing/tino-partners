@@ -465,6 +465,52 @@ async function canServePage(req, content, key) {
 // on a plain reload. That let more than one deploy in this project go
 // unnoticed until a hard refresh. no-store removes that judgment call
 // entirely: the page is refetched from the origin every single time.
+// Arma el <script> del Pixel de Meta Ads + el snippet de Google Analytics
+// (gtag.js) listos para pegar en el <head>. Se generan server-side y se
+// sirven ya en el primer HTML (ver sendPageFile más abajo) en vez de
+// esperar a que el JS del sitio termine de leer /api/content — misma
+// razón que el favicon: el Pixel Helper de Meta y las herramientas de
+// verificación de Google Tag pueden no correr JavaScript, y aunque lo
+// corran, un evento de PageView disparado más tarde de lo necesario es
+// justamente el tipo de cosa que rompe la medición.
+// Los valores se validan con una forma esperada (solo dígitos para el
+// Pixel, "G-"/"AW-"/"DC-" + alfanumérico para GA) antes de interpolarlos
+// en un <script> — un valor pegado mal (espacios, HTML, comillas) nunca
+// termina escrito tal cual en el HTML servido.
+function buildTrackingHtml(tracking) {
+  if (!tracking) return '';
+  const parts = [];
+  const pixelId = typeof tracking.metaPixelId === 'string' ? tracking.metaPixelId.trim() : '';
+  const gaId = typeof tracking.gaId === 'string' ? tracking.gaId.trim() : '';
+  if (/^\d{6,}$/.test(pixelId)) {
+    parts.push(
+      '<script>\n' +
+      "!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?" +
+      "n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;" +
+      "n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;" +
+      "t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,\n" +
+      "document,'script','https://connect.facebook.net/en_US/fbevents.js');\n" +
+      "fbq('init', '" + pixelId + "');\n" +
+      "fbq('track', 'PageView');\n" +
+      '</script>\n' +
+      '<noscript><img height="1" width="1" style="display:none" ' +
+      'src="https://www.facebook.com/tr?id=' + pixelId + '&ev=PageView&noscript=1"/></noscript>\n'
+    );
+  }
+  if (/^(G|AW|DC)-[A-Za-z0-9]+$/.test(gaId)) {
+    parts.push(
+      '<script async src="https://www.googletagmanager.com/gtag/js?id=' + gaId + '"></script>\n' +
+      '<script>\n' +
+      "window.dataLayer = window.dataLayer || [];\n" +
+      "function gtag(){dataLayer.push(arguments);}\n" +
+      "gtag('js', new Date());\n" +
+      "gtag('config', '" + gaId + "');\n" +
+      '</script>\n'
+    );
+  }
+  return parts.join('');
+}
+
 async function sendPageFile(res, filePath, content) {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
   res.setHeader('Pragma', 'no-cache');
@@ -475,18 +521,26 @@ async function sendPageFile(res, filePath, content) {
   // bot that may not run JavaScript at all, so an empty href there could
   // mean it never sees a custom favicon no matter how long it waits.
   // When one's set, patch it into the HTML here so it's already present
-  // in the very first response, no JS required.
+  // in the very first response, no JS required. Same reasoning covers the
+  // Meta Pixel / Google Analytics snippet below.
   const faviconUrl = content && content.logo && content.logo.favicon && typeof content.logo.favicon.url === 'string'
     ? content.logo.favicon.url.trim() : '';
-  if (faviconUrl && /^(\/|https?:\/\/|data:)/.test(faviconUrl)) {
+  const needsFaviconPatch = Boolean(faviconUrl) && /^(\/|https?:\/\/|data:)/.test(faviconUrl);
+  const trackingHtml = content ? buildTrackingHtml(content.tracking) : '';
+  if (needsFaviconPatch || trackingHtml) {
     try {
-      const html = await fs.readFile(filePath, 'utf8');
-      const patched = html.replace(
-        '<link rel="icon" id="cms-favicon" href="">',
-        '<link rel="icon" id="cms-favicon" href="' + faviconUrl.replace(/"/g, '&quot;') + '">'
-      );
+      let html = await fs.readFile(filePath, 'utf8');
+      if (needsFaviconPatch) {
+        html = html.replace(
+          '<link rel="icon" id="cms-favicon" href="">',
+          '<link rel="icon" id="cms-favicon" href="' + faviconUrl.replace(/"/g, '&quot;') + '">'
+        );
+      }
+      if (trackingHtml) {
+        html = html.replace('<!-- cms-tracking-head -->', trackingHtml);
+      }
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      return res.send(patched);
+      return res.send(html);
     } catch (err) {
       // fall through to the plain sendFile below — a read/patch failure
       // here should never turn into a broken page.
@@ -573,6 +627,7 @@ async function loadMergedContent() {
   merged.ia = Object.assign({}, DEFAULT_CONTENT.ia, saved.ia);
   merged.quehacemos = Object.assign({}, DEFAULT_CONTENT.quehacemos, saved.quehacemos);
   merged.logo = Object.assign({}, DEFAULT_CONTENT.logo, saved.logo);
+  merged.tracking = Object.assign({}, DEFAULT_CONTENT.tracking, saved.tracking);
   merged.marcas = Object.assign({}, DEFAULT_CONTENT.marcas, saved.marcas);
   merged.logosBand = Object.assign({}, DEFAULT_CONTENT.logosBand, saved.logosBand);
   merged.logosBand2 = Object.assign({}, DEFAULT_CONTENT.logosBand2, saved.logosBand2);
@@ -685,13 +740,73 @@ const MAX_FIELDS = 30;
 const MAX_KEY_LENGTH = 60;
 const MAX_VALUE_LENGTH = 4000;
 
+function sha256Hex(value) {
+  return crypto.createHash('sha256').update(String(value).trim().toLowerCase()).digest('hex');
+}
+
+// Manda el evento "Lead" al servidor de Meta (Conversions API) cuando se
+// completa el formulario de contacto -- ademas del Pixel del lado del
+// navegador (index.html dispara fbq('track','Lead',...) con el mismo
+// event_id), nunca en su lugar: mandar los dos con el mismo event_id es
+// justamente lo que permite que Meta los deduplique como un solo evento
+// en vez de contarlo dos veces. No configurado (falta el pixel o el
+// token) simplemente no hace nada. Nunca bloquea la respuesta al
+// visitante -- se llama sin esperar, y un fallo acá no vuelve a fallar
+// el guardado de la consulta, que ya pasó.
+async function sendMetaLeadEvent(req, entry, clientEventId) {
+  const content = await loadMergedContent();
+  const tracking = content.tracking || {};
+  const pixelId = typeof tracking.metaPixelId === 'string' ? tracking.metaPixelId.trim() : '';
+  const token = typeof tracking.metaCapiToken === 'string' ? tracking.metaCapiToken.trim() : '';
+  if (!/^\d{6,}$/.test(pixelId) || !token) return;
+
+  const userData = {
+    client_ip_address: getClientIp(req),
+    client_user_agent: req.headers['user-agent'] || '',
+  };
+  if (entry.email && String(entry.email).includes('@')) {
+    userData.em = [sha256Hex(entry.email)];
+  }
+
+  const eventPayload = {
+    event_name: 'Lead',
+    event_time: Math.floor(Date.now() / 1000),
+    action_source: 'website',
+    event_source_url: req.headers.referer || `https://${req.headers.host || ''}/`,
+    user_data: userData,
+  };
+  if (clientEventId) eventPayload.event_id = clientEventId;
+
+  const payload = { data: [eventPayload] };
+  const testCode = typeof tracking.metaTestEventCode === 'string' ? tracking.metaTestEventCode.trim() : '';
+  if (testCode) payload.test_event_code = testCode;
+
+  const url = `https://graph.facebook.com/v19.0/${pixelId}/events?access_token=${encodeURIComponent(token)}`;
+  const resp = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!resp.ok) {
+    const text = await resp.text().catch(() => '');
+    throw new Error(`Meta CAPI ${resp.status}: ${text.slice(0, 300)}`);
+  }
+}
+
 app.post('/api/contact', contactLimiter, jsonBody, async (req, res) => {
   const body = req.body;
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
     return res.status(400).json({ error: 'Faltan campos requeridos' });
   }
 
-  const entries = Object.entries(body).slice(0, MAX_FIELDS);
+  // Reservado para nosotros — nunca un campo real del formulario (esos
+  // vienen de labels tipeados desde el panel, que no pueden empezar con
+  // "_", mismo criterio que "_id"/"_savedAt" en otras partes de esta
+  // API): el event_id que ya uso el Pixel del navegador para este mismo
+  // envío, para que el CAPI lo deduplique en vez de contarlo dos veces.
+  const clientEventId = typeof body._fbEventId === 'string' ? body._fbEventId.slice(0, 100) : '';
+
+  const entries = Object.entries(body).filter(([key]) => !key.startsWith('_')).slice(0, MAX_FIELDS);
   const hasContent = entries.some(([, value]) => String(value || '').trim());
   if (!entries.length || !hasContent) {
     return res.status(400).json({ error: 'Faltan campos requeridos' });
@@ -710,6 +825,9 @@ app.post('/api/contact', contactLimiter, jsonBody, async (req, res) => {
 
   try {
     await fs.writeFile(path.join(CONSULTAS_DIR, filename), JSON.stringify(entry));
+    sendMetaLeadEvent(req, entry, clientEventId).catch((err) => {
+      console.error('meta capi lead event failed', err);
+    });
     return res.status(200).json({ ok: true });
   } catch (err) {
     console.error('contact submission failed', err);
