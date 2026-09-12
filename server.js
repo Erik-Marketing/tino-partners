@@ -431,7 +431,7 @@ app.get('/', async (req, res) => {
   const content = await loadMergedContent();
   const homeSlug = (content.slugs || {}).home;
   if (homeSlug) return res.redirect(301, '/' + homeSlug);
-  return sendPageFile(res, path.join(ROOT, 'index.html'));
+  return sendPageFile(res, path.join(ROOT, 'index.html'), content);
 });
 
 // pages whose .html path is also reachable through a custom slug (see
@@ -465,10 +465,33 @@ async function canServePage(req, content, key) {
 // on a plain reload. That let more than one deploy in this project go
 // unnoticed until a hard refresh. no-store removes that judgment call
 // entirely: the page is refetched from the origin every single time.
-function sendPageFile(res, filePath) {
+async function sendPageFile(res, filePath, content) {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
+  // The favicon <link> ships with href="" in the static HTML and gets
+  // filled in by the page's own JS after /api/content loads — fine for a
+  // real browser, but Google crawls favicons with a separate, lightweight
+  // bot that may not run JavaScript at all, so an empty href there could
+  // mean it never sees a custom favicon no matter how long it waits.
+  // When one's set, patch it into the HTML here so it's already present
+  // in the very first response, no JS required.
+  const faviconUrl = content && content.logo && content.logo.favicon && typeof content.logo.favicon.url === 'string'
+    ? content.logo.favicon.url.trim() : '';
+  if (faviconUrl && /^(\/|https?:\/\/|data:)/.test(faviconUrl)) {
+    try {
+      const html = await fs.readFile(filePath, 'utf8');
+      const patched = html.replace(
+        '<link rel="icon" id="cms-favicon" href="">',
+        '<link rel="icon" id="cms-favicon" href="' + faviconUrl.replace(/"/g, '&quot;') + '">'
+      );
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      return res.send(patched);
+    } catch (err) {
+      // fall through to the plain sendFile below — a read/patch failure
+      // here should never turn into a broken page.
+    }
+  }
   // Belt and suspenders on top of no-store: skip sendFile's own ETag/
   // Last-Modified entirely, so there's no conditional-request pair left for
   // a browser or an in-between proxy to revalidate against in the first
@@ -484,12 +507,12 @@ function sendPageFile(res, filePath) {
 app.get('/blog-post.html', async (req, res, next) => {
   const content = await loadMergedContent();
   if (!(await canServePage(req, content, 'blog'))) return next();
-  return sendPageFile(res, path.join(ROOT, 'blog-post.html'));
+  return sendPageFile(res, path.join(ROOT, 'blog-post.html'), content);
 });
 app.get('/caso.html', async (req, res, next) => {
   const content = await loadMergedContent();
   if (!(await canServePage(req, content, 'portfolio'))) return next();
-  return sendPageFile(res, path.join(ROOT, 'caso.html'));
+  return sendPageFile(res, path.join(ROOT, 'caso.html'), content);
 });
 
 // admin.html gets no redirect route at all (see the comment on
@@ -1349,7 +1372,7 @@ app.get('/:seg', async (req, res, next) => {
   const matchKey = Object.keys(SLUG_PAGE_FILES).find((k) => slugs[k] === seg);
   if (!matchKey) return next();
   if (TOGGLABLE_PAGES.includes(matchKey) && !(await canServePage(req, content, matchKey))) return next();
-  return sendPageFile(res, path.join(ROOT, SLUG_PAGE_FILES[matchKey]));
+  return sendPageFile(res, path.join(ROOT, SLUG_PAGE_FILES[matchKey]), content);
 });
 
 // Global error handler (4 args — Express only calls this shape for
