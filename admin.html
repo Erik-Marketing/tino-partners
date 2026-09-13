@@ -339,6 +339,21 @@
     border:1px solid var(--line-strong); border-radius:8px; padding:12px 14px; letter-spacing:.04em;
   }
 
+  /* ---------- Aviso de contenido desactualizado (otra pestaña/usuario guardó algo nuevo) ---------- */
+  .stale-banner{
+    position:fixed; top:0; left:0; right:0; z-index:70; display:none; align-items:center; gap:14px;
+    justify-content:center; flex-wrap:wrap; background:var(--v-900); color:#fff; padding:10px 20px;
+    font-size:.85rem; box-shadow:0 6px 20px -8px rgba(0,0,0,.4);
+  }
+  .stale-banner.show{ display:flex; }
+  .stale-banner button{ font-family:'IBM Plex Mono',monospace; font-weight:600; border-radius:999px; cursor:pointer; }
+  .stale-banner #staleBannerReload{
+    background:var(--gradient-vivid); color:#fff; border:none; padding:7px 16px; font-size:.78rem; text-transform:uppercase; letter-spacing:.04em;
+  }
+  .stale-banner #staleBannerDismiss{
+    background:none; border:1px solid rgba(255,255,255,.4); color:#fff; width:26px; height:26px; line-height:1; font-size:1rem;
+  }
+
   /* ---------- Popup de consulta (detalle completo + comentarios) ---------- */
   .consulta-backdrop{ position:fixed; inset:0; background:rgba(8,4,18,.6); z-index:60; display:none; }
   .consulta-backdrop.open{ display:block; }
@@ -436,6 +451,12 @@
         <p class="form-error" id="totpError"></p>
       </form>
     </div>
+  </div>
+
+  <div class="stale-banner" id="staleBanner">
+    <span>Este contenido cambió en otro lugar mientras esta pestaña estaba abierta. Recargá antes de guardar para no pisar esos cambios.</span>
+    <button type="button" id="staleBannerReload">Recargar ahora</button>
+    <button type="button" id="staleBannerDismiss" aria-label="Cerrar">×</button>
   </div>
 
   <div id="app-view">
@@ -793,7 +814,15 @@
     saveAdminViewState({ view: name });
   }
   viewLinks.forEach(function(a){
-    a.addEventListener('click', function(e){ e.preventDefault(); showView(a.dataset.view); });
+    a.addEventListener('click', function(e){
+      e.preventDefault();
+      var dirty = getDirtySections();
+      if (dirty.length) {
+        var ok = confirm('Tenés cambios sin guardar en: ' + dirty.join(', ') + '.\n\n¿Salir de todas formas sin guardarlos?');
+        if (!ok) return;
+      }
+      showView(a.dataset.view);
+    });
   });
 
   // Generic sidebar filtering — flat links + Blog/Portfolio/Usuarios
@@ -1318,15 +1347,43 @@
   function startPolling(){
     stopPolling();
     pollTimer = setInterval(function(){
-      if (document.visibilityState === 'visible') loadConsultas(false);
+      if (document.visibilityState === 'visible') { loadConsultas(false); checkContentVersion(); }
     }, POLL_MS);
   }
   function stopPolling(){
     if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
   }
   document.addEventListener('visibilitychange', function(){
-    if (document.visibilityState === 'visible' && pollTimer) loadConsultas(false);
+    if (document.visibilityState === 'visible' && pollTimer) { loadConsultas(false); checkContentVersion(); }
   });
+
+  // ---------- Aviso de contenido desactualizado ----------
+  // Corre en el mismo intervalo que el polling de Consultas (cada 12s
+  // mientras la pestaña está visible) — si el archivo cambió en el
+  // servidor desde que ESTA pestaña cargó (o guardó) su copia, es porque
+  // otra pestaña, otro usuario, o un cambio hecho directo por Claude
+  // guardó algo más nuevo mientras tanto. El guardado real ya está
+  // protegido del lado del servidor (ver `_expectedVersion` en
+  // wireSaveButton) — esto es solo para avisar ANTES de que alguien
+  // intente guardar y se encuentre con el rechazo.
+  var staleBanner = document.getElementById('staleBanner');
+  var staleBannerDismissed = false;
+  document.getElementById('staleBannerReload').addEventListener('click', function(){ location.reload(); });
+  document.getElementById('staleBannerDismiss').addEventListener('click', function(){
+    staleBannerDismissed = true;
+    staleBanner.classList.remove('show');
+  });
+  function checkContentVersion(){
+    if (contentVersion == null || staleBannerDismissed) return;
+    fetch('/api/content-version')
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(data){
+        if (data && typeof data.version === 'number' && data.version > contentVersion) {
+          staleBanner.classList.add('show');
+        }
+      })
+      .catch(function(){});
+  }
 
   // ---------- login (email+password, then an optional 2FA step) ----------
   var totpForm = document.getElementById('totpForm');
@@ -1398,6 +1455,55 @@
 
   // ---------- Home CMS ----------
   var homeContent = null;
+  // The content file's mtime as of the last time THIS tab loaded or saved
+  // it — sent back on every save as `_expectedVersion` so the server can
+  // tell whether someone else (another tab, another user, a direct patch)
+  // saved something newer in between, and refuse to let this tab silently
+  // overwrite it. Also what contentStalePoll compares against to show the
+  // "content changed elsewhere" banner. null until the first successful load.
+  var contentVersion = null;
+  // A JSON snapshot of `homeContent` as of the last successful load or save
+  // -- every "Guardar cambios" button (Home/Blog/Logo/Menú/Form/Nosotros/
+  // Portfolio/SEO/Marketing) posts this SAME shared object, so there's no
+  // real per-section dirty state to track, just "has anything in
+  // homeContent changed since I last loaded/saved it". Comparing top-level
+  // keys against this snapshot is what powers both the unsaved-changes
+  // prompt on section switch and the beforeunload warning below.
+  var lastSavedSnapshot = null;
+  function snapshotSaved(){
+    try { lastSavedSnapshot = JSON.stringify(homeContent); } catch (e) { lastSavedSnapshot = null; }
+  }
+  // Human-readable labels for the top-level homeContent keys people
+  // actually edit, so the unsaved-changes prompt can say "Home, Marketing"
+  // instead of raw keys like "hero"/"tracking". Falls back to the raw key
+  // for anything not listed here (still useful, just less polished).
+  var SECTION_KEY_LABELS = {
+    hero: 'Home — Hero', quehacemos: 'Home — Partner de negocio', proyectos: 'Home — Trabajos',
+    ticker: 'Home — Marcas (ticker)', faq: 'Home — Preguntas frecuentes', ia: 'Home — Inteligencia artificial',
+    testimonios: 'Home — Testimonios', marcas: 'Home — Marcas', logosBand2: 'Home — Logos de marcas',
+    stats: 'Home — Números', diferenciales: 'Home — Diferenciales', logo: 'Logo', menu: 'Menú',
+    form: 'Form', nosotros: 'Nosotros', portfolio: 'Portfolio', meta: 'SEO', slugs: 'SEO (URLs)',
+    tracking: 'Marketing', blog: 'Blog', footer: 'Footer', kanban: 'Consultas (columnas)',
+  };
+  function getDirtySections(){
+    if (!lastSavedSnapshot || !homeContent) return [];
+    var saved;
+    try { saved = JSON.parse(lastSavedSnapshot); } catch (e) { return []; }
+    var changed = [];
+    Object.keys(homeContent).forEach(function(key){
+      if (key.charAt(0) === '_') return; // _savedAt/_expectedVersion: bookkeeping, not real content
+      if (JSON.stringify(homeContent[key]) !== JSON.stringify(saved[key])) {
+        changed.push(SECTION_KEY_LABELS[key] || key);
+      }
+    });
+    return changed;
+  }
+  window.addEventListener('beforeunload', function(e){
+    // Browsers refuse to show a custom message here (generic text only,
+    // by design, so a site can't fake a scarier warning) -- this just
+    // decides WHETHER their own "leave site?" prompt appears at all.
+    if (getDirtySections().length) { e.preventDefault(); e.returnValue = ''; }
+  });
   var homeCmsBody = document.getElementById('homeCmsBody');
   var activeSectionKey = 'hero';
 
@@ -2553,15 +2659,29 @@
       btn.disabled = true;
       status.textContent = 'Guardando...'; status.className = 'cms-save-status';
       homeContent._savedAt = Date.now();
+      homeContent._expectedVersion = contentVersion;
       fetch('/api/content', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(homeContent)
       })
-        .then(function(r){ return r.json().then(function(data){ return { ok: r.ok, data: data }; }); })
+        .then(function(r){ return r.json().then(function(data){ return { ok: r.ok, status: r.status, data: data }; }); })
         .then(function(res){
+          if (res.status === 409) {
+            // A guardado más nuevo ganó mientras esta pestaña tenía cargada
+            // una versión vieja -- rechazado a propósito (ver el chequeo de
+            // _expectedVersion en el servidor), no se guardó nada. No se
+            // toca homeContent ni el caché local: el usuario puede recargar
+            // y volver a hacer el cambio sobre lo último, en vez de perderlo
+            // en silencio.
+            status.textContent = res.data.error || 'Este contenido cambió en otro lado. Recargá la página (F5) y volvé a intentar.';
+            status.className = 'cms-save-status is-error';
+            return;
+          }
           if (!res.ok) throw new Error(res.data.error || 'No se pudo guardar.');
+          if (typeof res.data.version === 'number') contentVersion = res.data.version;
           try { localStorage.setItem(ADMIN_CACHE_KEY, JSON.stringify(homeContent)); } catch (e) {}
+          snapshotSaved();
           status.textContent = 'Guardado. Ya está visible en la web.';
           status.className = 'cms-save-status is-ok';
         })
@@ -2591,7 +2711,11 @@
     if (contentLoading) return; // a fetch is already in flight — queue behind it instead of racing a second one
     contentLoading = true;
     fetch('/api/content?t=' + Date.now())
-      .then(function(r){ return r.json(); })
+      .then(function(r){
+        var v = r.headers.get('X-Content-Version');
+        contentVersion = v ? Number(v) : null;
+        return r.json();
+      })
       .then(function(data){
         homeContent = data;
         // if the server's copy looks older than the last save this browser
@@ -2607,6 +2731,7 @@
             }
           }
         } catch (e) {}
+        snapshotSaved();
         homeCmsLoaded = true;
         contentLoading = false;
         var callbacks = pendingContentCallbacks;

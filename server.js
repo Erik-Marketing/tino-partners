@@ -637,10 +637,31 @@ async function loadMergedContent() {
   return merged;
 }
 
+// The file's own mtime doubles as a free version counter -- it advances on
+// every write to CONTENT_FILE no matter who/what wrote it (a save from the
+// panel, a restricted-role partial merge, or a direct guarded patch run by
+// hand over SSH), with no bookkeeping required on the writer's part.
+async function getContentVersion() {
+  try {
+    return (await fs.stat(CONTENT_FILE)).mtimeMs;
+  } catch (err) {
+    return 0;
+  }
+}
+
 app.get('/api/content', async (req, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
-  const merged = await loadMergedContent();
+  const [merged, version] = await Promise.all([loadMergedContent(), getContentVersion()]);
+  res.setHeader('X-Content-Version', String(version));
   return res.status(200).json(merged);
+});
+
+// Cheap polling target for the admin panel to notice "someone saved
+// elsewhere while this tab was open" without re-fetching/re-parsing the
+// whole content file every time.
+app.get('/api/content-version', async (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+  return res.status(200).json({ version: await getContentVersion() });
 });
 
 // Dotted-path get/set for the permission-scoped merge below. Never a
@@ -697,9 +718,35 @@ app.post('/api/content', requireAuth, jsonBody, async (req, res) => {
   try {
     const { allAccess, permissions } = permissionsOf(req.currentRole);
     if (allAccess) {
-      // owner: unchanged behaviour, save the whole body verbatim.
+      // owner: saves the whole body verbatim -- which is exactly why a tab
+      // left open across someone else's save (another tab, another user, or
+      // a direct guarded patch) can silently wipe that change out from
+      // under it the next time THIS tab clicks "Guardar cambios": it POSTs
+      // whatever it loaded, plus its own edit, with no idea anything moved
+      // underneath it. `_expectedVersion` is the file's mtime as of when
+      // this tab last loaded/saved content (see getContentVersion above) --
+      // if the file on disk is newer than that, someone/something wrote to
+      // it since, and this save is refused instead of clobbering it.
+      // Fails CLOSED on purpose, not just when the version is stale: a
+      // request with no `_expectedVersion` at all (an old cached admin.html
+      // tab, or some other script POSTing straight to this endpoint without
+      // ever reading the current version first — e.g. a blind periodic
+      // autosave loop) is exactly the kind of write this guard exists to
+      // stop, and letting it through "to be safe" would defeat the whole
+      // point. Every legitimate save must prove which version it started
+      // from.
+      const expectedVersion = typeof body._expectedVersion === 'number' ? body._expectedVersion : null;
+      delete body._expectedVersion;
+      const currentVersion = await getContentVersion();
+      if (expectedVersion === null || currentVersion > expectedVersion) {
+        return res.status(409).json({
+          error: expectedVersion === null
+            ? 'Falta indicar qué versión del contenido se cargó antes de guardar. Recargá la página del panel (F5) e intentá de nuevo.'
+            : 'Este contenido se guardó desde otro lado después de que abriste esta sección. Recargá la página (F5) y volvé a hacer el cambio antes de guardar, para no pisar lo que ya se guardó.',
+        });
+      }
       await fs.writeFile(CONTENT_FILE, JSON.stringify(body));
-      return res.status(200).json({ ok: true });
+      return res.status(200).json({ ok: true, version: await getContentVersion() });
     }
 
     // Restricted role: start from the current stored truth, and only
