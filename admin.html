@@ -2727,7 +2727,7 @@
   var marketingCmsBody = document.getElementById('marketingCmsBody');
   function renderMarketingCms(){
     marketingCmsBody.innerHTML = '';
-    if (!homeContent.tracking) homeContent.tracking = { metaPixelId: '', metaCapiToken: '', metaTestEventCode: '', gaId: '' };
+    if (!homeContent.tracking) homeContent.tracking = { metaPixelId: '', metaCapiToken: '', metaTestEventCode: '', gaId: '', n8nWebhookUrl: '' };
     var t = homeContent.tracking;
 
     var metaGroup = cmsSubgroup('Meta Ads (Pixel + Conversions API)');
@@ -2755,6 +2755,14 @@
     gaGroup.appendChild(gaHint);
     gaGroup.appendChild(renderPlainFieldFor({ label: 'ID de medición', type: 'text' }, function(){ return t.gaId; }, function(v){ t.gaId = v; }));
     marketingCmsBody.appendChild(gaGroup);
+
+    var n8nGroup = cmsSubgroup('Integraciones (n8n)');
+    var n8nHint = document.createElement('p');
+    n8nHint.className = 'cms-media-hint';
+    n8nHint.textContent = 'Con esto cargado, cada consulta del formulario de contacto se manda también a ese workflow de n8n (además de guardarse acá, no en su lugar) — por ejemplo para que la cargue en una planilla de Google Sheets.';
+    n8nGroup.appendChild(n8nHint);
+    n8nGroup.appendChild(renderPlainFieldFor({ label: 'URL del webhook de n8n', type: 'text' }, function(){ return t.n8nWebhookUrl; }, function(v){ t.n8nWebhookUrl = v; }));
+    marketingCmsBody.appendChild(n8nGroup);
 
     document.getElementById('marketingSavebar').style.display = 'flex';
   }

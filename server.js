@@ -792,6 +792,28 @@ async function sendMetaLeadEvent(req, entry, clientEventId) {
   }
 }
 
+// Manda la consulta recien guardada a un workflow de n8n (por ejemplo para
+// cargarla en Google Sheets), ademas de guardarla en CONSULTAS_DIR -- nunca
+// en su lugar. No configurado (falta la URL) simplemente no hace nada.
+// Mismo criterio que sendMetaLeadEvent: nunca bloquea la respuesta al
+// visitante, se llama sin esperar, y un fallo aca no vuelve a fallar el
+// guardado de la consulta, que ya paso.
+async function sendConsultaToN8n(entry) {
+  const content = await loadMergedContent();
+  const url = typeof content.tracking?.n8nWebhookUrl === 'string' ? content.tracking.n8nWebhookUrl.trim() : '';
+  if (!/^https?:\/\//.test(url)) return;
+
+  const resp = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(entry),
+  });
+  if (!resp.ok) {
+    const text = await resp.text().catch(() => '');
+    throw new Error(`n8n webhook ${resp.status}: ${text.slice(0, 300)}`);
+  }
+}
+
 app.post('/api/contact', contactLimiter, jsonBody, async (req, res) => {
   const body = req.body;
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
@@ -826,6 +848,9 @@ app.post('/api/contact', contactLimiter, jsonBody, async (req, res) => {
     await fs.writeFile(path.join(CONSULTAS_DIR, filename), JSON.stringify(entry));
     sendMetaLeadEvent(req, entry, clientEventId).catch((err) => {
       console.error('meta capi lead event failed', err);
+    });
+    sendConsultaToN8n(entry).catch((err) => {
+      console.error('n8n webhook failed', err);
     });
     return res.status(200).json({ ok: true });
   } catch (err) {

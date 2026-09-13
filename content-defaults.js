@@ -194,7 +194,7 @@ const DEFAULT_CONTENT = {
   // Manager: mientras está cargado, los eventos van a la pestaña de prueba
   // y NO cuentan para la optimización real de las campañas -- se completa
   // solo mientras se está probando la integración, después se borra.
-  tracking: { metaPixelId: '', metaCapiToken: '', metaTestEventCode: '', gaId: '' },
+  tracking: { metaPixelId: '', metaCapiToken: '', metaTestEventCode: '', gaId: '', n8nWebhookUrl: '' },
   menu: {
     items: [
       { label: 'Home', url: 'index.html' },
