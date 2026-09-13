@@ -1822,11 +1822,22 @@
     urlInput.placeholder = 'o pegá una URL directa (para archivos grandes que ya subió Claude)';
     urlInput.style.cssText = 'flex:1; min-width:220px; background:var(--paper-flat); border:1px solid var(--line-strong); color:var(--ink); padding:9px 12px; border-radius:9px; font-size:.82rem;';
     urlInput.addEventListener('change', function(){
-      if (urlInput.value.trim()) {
-        mediaObj.url = urlInput.value.trim();
-        mediaEl.src = mediaObj.url;
-        status.textContent = 'URL actualizada.'; status.className = 'cms-media-status is-ok';
+      var value = urlInput.value.trim();
+      if (!value) return;
+      // Mismo chequeo que isUsableMediaUrl del lado público -- sin esto,
+      // el autocompletado del navegador (Chrome sugiriendo el email
+      // guardado, por ejemplo) puede meter cualquier cosa en este campo de
+      // texto libre y este listener lo guardaba tal cual como si fuera una
+      // URL real, rompiendo la foto/video en el sitio sin ningún aviso.
+      if (!/^(\/|https?:\/\/|data:)/.test(value)) {
+        status.textContent = 'Eso no es una URL válida (tiene que empezar con "http://", "https://" o "/"). ¿Se autocompletó solo?';
+        status.className = 'cms-media-status is-error';
+        urlInput.value = '';
+        return;
       }
+      mediaObj.url = value;
+      mediaEl.src = mediaObj.url;
+      status.textContent = 'URL actualizada.'; status.className = 'cms-media-status is-ok';
     });
     row.appendChild(urlInput);
     wrap.appendChild(row);
