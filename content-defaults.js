@@ -104,17 +104,15 @@ const DEFAULT_CONTENT = {
     ctaText: 'Contactanos',
   },
   marcas: { enabled: true, items: 'Aura, Solden, Nimbus, Marca Ejemplo, Próximo cliente' },
-  // Logo band shown above "Nuestros proyectos" — separate from `marcas`
-  // (which is just a static row of text names). Two formats: 'carrusel'
-  // (scrolls on its own, `speed` = segundos por vuelta) or 'paginas'
-  // (grilla estatica que se recorre con flechas/puntitos, y ademas avanza
-  // sola cada `interval` segundos si hay mas de una pagina). `height` es el
-  // alto de cada logo en px, comun a los dos formatos.
-  logosBand: { enabled: false, heading: '', mode: 'carrusel', height: 36, speed: 30, perPage: 6, interval: 5, bgColor: '', logos: [] },
-  // Segunda franja de logos, mas abajo en la home (antes de "Agencia o
-  // partner"), a pedido de Erik -- misma idea que logosBand pero siempre
-  // en formato paginas (no lleva `mode` ni `speed`) y con su propia lista
-  // de logos, independiente de la primera.
+  // Franja de logos de marcas, más abajo en la home (después de "Agencia
+  // o partner") — separada de `marcas` (que es solo una fila de texto).
+  // Formato páginas: grilla estática que se recorre con flechas/puntitos
+  // y además avanza sola cada `interval` segundos si hay más de una
+  // página. `perPage` es un techo, no una cifra fija — si a lo ancho no
+  // entran todos, el frente muestra menos y arma más páginas solas (ver
+  // measureLogosFit en index.html). `height` es el alto de cada logo en
+  // px. (Hubo una segunda franja igual, más arriba, que Erik pidió sacar
+  // — esta clave se llama "logosBand2" por eso, no hace falta renombrarla.)
   logosBand2: { enabled: false, heading: '', height: 36, perPage: 6, interval: 5, bgColor: '', logos: [] },
   testimonios: {
     enabled: false,
@@ -455,7 +453,7 @@ function normalizeFormFields(savedFields) {
 // never translated between the two.
 const PERMISSION_KEYS = [
   'consultas',
-  'home-cms.hero', 'home-cms.logosBand', 'home-cms.logosBand2', 'home-cms.proyectos', 'home-cms.ticker', 'home-cms.faq', 'home-cms.ia',
+  'home-cms.hero', 'home-cms.logosBand2', 'home-cms.proyectos', 'home-cms.ticker', 'home-cms.faq', 'home-cms.ia',
   'home-cms.stats', 'home-cms.quehacemos', 'home-cms.marcas', 'home-cms.testimonios',
   'home-cms.blog', 'home-cms.footer',
   'blog-cms.new', 'blog-cms.list',
@@ -486,7 +484,6 @@ const CONTENT_PATHS = {
   'home-cms.stats': [{ path: 'stats', type: 'object' }],
   'home-cms.quehacemos': [{ path: 'quehacemos', type: 'object' }],
   'home-cms.marcas': [{ path: 'marcas', type: 'object' }],
-  'home-cms.logosBand': [{ path: 'logosBand', type: 'object' }],
   'home-cms.logosBand2': [{ path: 'logosBand2', type: 'object' }],
   'home-cms.testimonios': [{ path: 'testimonios', type: 'object' }],
   'home-cms.blog': [

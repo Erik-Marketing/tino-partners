@@ -629,7 +629,6 @@ async function loadMergedContent() {
   merged.logo = Object.assign({}, DEFAULT_CONTENT.logo, saved.logo);
   merged.tracking = Object.assign({}, DEFAULT_CONTENT.tracking, saved.tracking);
   merged.marcas = Object.assign({}, DEFAULT_CONTENT.marcas, saved.marcas);
-  merged.logosBand = Object.assign({}, DEFAULT_CONTENT.logosBand, saved.logosBand);
   merged.logosBand2 = Object.assign({}, DEFAULT_CONTENT.logosBand2, saved.logosBand2);
   merged.testimonios = normalizeTestimonios(saved.testimonios);
   merged.form = Object.assign({}, DEFAULT_CONTENT.form, saved.form, {

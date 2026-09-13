@@ -263,10 +263,8 @@
   @media (prefers-reduced-motion: reduce){ .ticker-track{ animation:none; } }
 
   /* ---- franja de logos de marcas (sin fondo por defecto, sin bordes) ----
-     dos formatos posibles, elegidos desde el panel: carrusel (se desliza
-     solo) o paginas (grilla estatica, con flechas/puntitos y avance
-     automatico configurable). `--logos-size` (alto de cada logo) y
-     `--logos-duration` (solo carrusel) se fijan desde JS por instancia. */
+     grilla estatica, con flechas/puntitos y avance automatico configurable.
+     `--logos-size` (alto de cada logo) se fija desde JS. */
   .logos-band{ background:transparent; padding:clamp(20px,3vh,32px) 0; }
   .logos-band.is-off{ display:none; }
   /* oculto por default -- solo aparece si se carga un titulo desde el panel */
@@ -275,14 +273,6 @@
     font-family:'Big Shoulders Display',sans-serif; font-weight:800; text-transform:uppercase;
     font-size:clamp(1.1rem,2.2vw,1.5rem); letter-spacing:.01em; color:var(--ink);
   }
-  .logos-row{ overflow:hidden; }
-  .logos-track{
-    display:flex; align-items:center; width:max-content; gap:clamp(40px,6vw,72px);
-    animation:logosScroll var(--logos-duration, 30s) linear infinite;
-  }
-  .logos-track img{ height:var(--logos-size, 36px); width:auto; object-fit:contain; flex:none; opacity:.8; }
-  @keyframes logosScroll{ from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
-  @media (prefers-reduced-motion: reduce){ .logos-track{ animation:none; } }
 
   .logos-pages{ display:none; }
   /* nowrap a proposito: en vez de que los logos que no entran bajen a una
@@ -679,21 +669,6 @@
         <img id="cms-hero-img" src="https://8re8o884kengswvt.public.blob.vercel-storage.com/uploads/1788359629540-man-portrait-editorial-collage-2k-202609021132.jpeg" alt="Foto de portada de Tino Partners" style="--hero-img-pos:53% 44%">
       </picture>
       <span class="hero-fade-dots" id="cms-hero-fade" aria-hidden="true"></span>
-    </div>
-  </section>
-
-  <section class="logos-band is-off" id="cms-logos-band">
-    <p class="logos-heading section-inner" id="cms-logos-heading"></p>
-    <div class="logos-row" id="cms-logos-row">
-      <div class="logos-track" id="cms-logos-track"></div>
-    </div>
-    <div class="logos-pages section-inner" id="cms-logos-pages">
-      <div class="logos-page-grid" id="cms-logos-page-grid"></div>
-      <div class="logos-pages-nav" id="cms-logos-pages-nav">
-        <button type="button" class="logos-page-arrow" id="cms-logos-prev" aria-label="Anterior">&lsaquo;</button>
-        <div class="logos-dots" id="cms-logos-dots"></div>
-        <button type="button" class="logos-page-arrow" id="cms-logos-next" aria-label="Siguiente">&rsaquo;</button>
-      </div>
     </div>
   </section>
 
@@ -1457,7 +1432,7 @@
     }
 
     function makeLogosController(ids){
-      var state = { pages: [], index: 0, timer: null, mode: null, logos: [], maxPerPage: 6, interval: 5, height: 36 };
+      var state = { pages: [], index: 0, timer: null, logos: [], maxPerPage: 6, interval: 5, height: 36, gen: 0 };
       function renderPage(){
         var grid = document.getElementById(ids.pageGrid);
         if (!grid) return;
@@ -1475,7 +1450,7 @@
             var dot = document.createElement('button');
             dot.type = 'button';
             dot.className = 'logos-dot' + (i === state.index ? ' is-active' : '');
-            dot.setAttribute('aria-label', 'P\u00e1gina ' + (i + 1));
+            dot.setAttribute('aria-label', 'Página ' + (i + 1));
             dot.addEventListener('click', function(){ goTo(i); });
             dotsWrap.appendChild(dot);
           });
@@ -1498,12 +1473,25 @@
       // ciegas, para que en una pantalla angosta entren menos y haya mas
       // paginas, en vez de que los logos que sobran bajen a una segunda
       // fila.
+      //
+      // `state.gen` evita una condicion de carrera real que hizo que
+      // cambiar "logos por pagina" o el intervalo pareciera no tener
+      // efecto: index.html aplica el contenido dos veces (una con la
+      // copia cacheada en localStorage, apenas parsea, y otra con el
+      // contenido recien pedido a /api/content) -- measureLogosFit es
+      // async (espera a que las imagenes carguen para medirlas), asi que
+      // sin esto, si la corrida vieja (con datos cacheados, quizas ya
+      // desactualizados) tardaba mas en resolver que la nueva, terminaba
+      // pisando el resultado correcto. Con el numero de corrida, solo la
+      // ULTIMA que se pidio puede escribir el resultado.
       function applyPaginas(){
         var grid = document.getElementById(ids.pageGrid);
         var nav = document.getElementById(ids.pagesNav);
         if (!grid || !state.logos.length) return;
+        var myGen = ++state.gen;
         var gapPx = parseFloat(getComputedStyle(grid).columnGap || getComputedStyle(grid).gap) || 0;
         measureLogosFit(state.logos, grid, state.height, gapPx, state.maxPerPage).then(function(fitCount){
+          if (myGen !== state.gen) return; // una corrida mas nueva ya arranco -- esta quedo vieja
           var pages = [];
           for (var p = 0; p < state.logos.length; p += fitCount) pages.push(state.logos.slice(p, p + fitCount));
           state.pages = pages;
@@ -1516,14 +1504,10 @@
       }
 
       return {
-        fill: function(band, opts){
-          opts = opts || {};
+        fill: function(band){
           var section = document.getElementById(ids.section);
-          var carouselRow = ids.row ? document.getElementById(ids.row) : null;
           var pagesWrap = document.getElementById(ids.pagesWrap);
-          var track = ids.track ? document.getElementById(ids.track) : null;
           if (!section) return;
-          if (state.timer) { clearInterval(state.timer); state.timer = null; }
           var logos = (band.logos || []).filter(function(l){ return l && isUsableMediaUrl(l.url); });
           if (band.enabled === false || !logos.length) {
             section.classList.add('is-off');
@@ -1543,57 +1527,17 @@
             heading.style.display = band.heading ? 'block' : 'none';
           }
 
-          var mode = opts.forcePaginas ? 'paginas' : (band.mode === 'paginas' ? 'paginas' : 'carrusel');
-          if (mode === 'paginas') {
-            if (carouselRow) carouselRow.style.display = 'none';
-            if (pagesWrap) pagesWrap.style.display = 'block';
-            state.mode = 'paginas';
-            state.logos = logos;
-            state.height = size;
-            state.maxPerPage = Number(band.perPage) > 0 ? Math.round(Number(band.perPage)) : 6;
-            state.interval = Number(band.interval) > 0 ? Number(band.interval) : 5;
-            applyPaginas();
-            return;
-          }
-          state.mode = 'carrusel';
-
-          if (carouselRow) carouselRow.style.display = '';
-          if (pagesWrap) pagesWrap.style.display = 'none';
-          if (!track) return;
-          section.style.setProperty('--logos-duration', (band.speed || 30) + 's');
-          // With very few logos (even just 1), doubling the list once makes a
-          // track so narrow that the -50% loop translation is a handful of
-          // pixels — technically animating, but imperceptible. Repeat the
-          // sequence enough times to always have a reasonable number of
-          // copies, so the motion stays clearly visible regardless of count.
-          var MIN_COPIES = 8;
-          var repeatTimes = Math.max(1, Math.ceil(MIN_COPIES / logos.length));
-          var sequence = [];
-          for (var i = 0; i < repeatTimes; i++) sequence = sequence.concat(logos);
-          track.innerHTML = '';
-          sequence.concat(sequence).forEach(function(logo){
-            var img = document.createElement('img');
-            img.src = logo.url; img.alt = '';
-            track.appendChild(img);
-          });
-          // Force the CSS animation to restart from 0% now that the real
-          // logos are in place, instead of continuing whatever time had
-          // already elapsed on the empty track since page load — otherwise a
-          // slow content fetch could make the very first frame the visitor
-          // sees land mid-loop instead of a clean, complete strip of logos.
-          track.style.animation = 'none';
-          void track.offsetWidth;
-          track.style.animation = '';
+          if (pagesWrap) pagesWrap.style.display = 'block';
+          state.logos = logos;
+          state.height = size;
+          state.maxPerPage = Number(band.perPage) > 0 ? Math.round(Number(band.perPage)) : 6;
+          state.interval = Number(band.interval) > 0 ? Number(band.interval) : 5;
+          applyPaginas();
         },
-        refit: function(){ if (state.mode === 'paginas') applyPaginas(); }
+        refit: function(){ applyPaginas(); }
       };
     }
-    var logosCtrl1 = makeLogosController({
-      section: 'cms-logos-band', heading: 'cms-logos-heading', row: 'cms-logos-row', track: 'cms-logos-track',
-      pagesWrap: 'cms-logos-pages', pageGrid: 'cms-logos-page-grid', pagesNav: 'cms-logos-pages-nav',
-      dots: 'cms-logos-dots', prev: 'cms-logos-prev', next: 'cms-logos-next'
-    });
-    var logosCtrl2 = makeLogosController({
+    var logosCtrl = makeLogosController({
       section: 'cms-logos-band-2', heading: 'cms-logos-heading-2',
       pagesWrap: 'cms-logos-pages-2', pageGrid: 'cms-logos-page-grid-2', pagesNav: 'cms-logos-pages-nav-2',
       dots: 'cms-logos-dots-2', prev: 'cms-logos-prev-2', next: 'cms-logos-next-2'
@@ -1601,7 +1545,7 @@
     var logosResizeTimer = null;
     window.addEventListener('resize', function(){
       clearTimeout(logosResizeTimer);
-      logosResizeTimer = setTimeout(function(){ logosCtrl1.refit(); logosCtrl2.refit(); }, 200);
+      logosResizeTimer = setTimeout(function(){ logosCtrl.refit(); }, 200);
     });
 
     // ---- testimonials carousel: one item shown at a time, arrows + autoplay
@@ -1763,8 +1707,7 @@
       var brandsBand = document.querySelector('.brands-band');
       if (brandsBand) brandsBand.classList.toggle('is-off', c.marcas.enabled === false);
     }
-    if (c.logosBand) logosCtrl1.fill(c.logosBand);
-    if (c.logosBand2) logosCtrl2.fill(c.logosBand2, { forcePaginas: true });
+    if (c.logosBand2) logosCtrl.fill(c.logosBand2);
     if (c.testimonios) setupTestimonials(c.testimonios);
     if (c.blog) {
       setHtml('cms-blog-heading', c.blog.heading);

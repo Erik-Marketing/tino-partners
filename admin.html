@@ -1220,8 +1220,7 @@
         { path: 'image', label: 'Foto del hero (desktop)', type: 'image', fadeToggle: true },
         { path: 'mobileImage', label: 'Foto del hero (mobile — opcional)', type: 'image', optional: true }
     ]},
-    { key: 'logosBand', title: 'Logos de marcas (arriba)', custom: 'logosBand' },
-    { key: 'logosBand2', title: 'Logos de marcas (antes de «Agencia o partner»)', custom: 'logosBand2' },
+    { key: 'logosBand2', title: 'Logos de marcas', custom: 'logosBand2' },
     { key: 'proyectos', title: 'Nuestros proyectos', custom: 'proyectos' },
     { key: 'ticker', title: 'Cinta de palabras', custom: 'ticker' },
     { key: 'faq', title: 'Preguntas frecuentes', custom: 'faq' },
@@ -2007,15 +2006,7 @@
     return wrap;
   }
 
-  var LOGOS_MODES = [
-    { value: 'carrusel', label: 'Carrusel (se desliza solo)' },
-    { value: 'paginas', label: 'Páginas (con flechas, y avanza sola cada tanto)' }
-  ];
-  // Compartida por las dos franjas de logos (la de arriba, con las dos
-  // opciones de formato, y la segunda mas abajo -- que a pedido de Erik
-  // siempre es en formato paginas, asi que a esa no se le pasa opts.showMode).
-  function renderLogosBandFields(b, opts){
-    opts = opts || {};
+  function renderLogosBandFields(b){
     var wrap = document.createElement('div');
     wrap.className = 'cms-fields';
     if (!b.logos) b.logos = [];
@@ -2032,47 +2023,25 @@
     sizeField.appendChild(sizeInput);
     wrap.appendChild(sizeField);
 
-    var modeFieldsWrap = document.createElement('div');
-    function renderModeFields(){
-      modeFieldsWrap.innerHTML = '';
-      var mode = opts.showMode ? (b.mode || 'carrusel') : 'paginas';
-      if (mode === 'carrusel') {
-        var speedField = document.createElement('div');
-        speedField.className = 'cms-field';
-        speedField.appendChild(makeLabel('Velocidad — segundos por vuelta completa (menos = más rápido)'));
-        var speedInput = document.createElement('input');
-        speedInput.type = 'number'; speedInput.min = '6'; speedInput.max = '90'; speedInput.step = '1';
-        speedInput.value = b.speed || 30;
-        speedInput.addEventListener('input', function(){ b.speed = Number(speedInput.value) || 30; });
-        speedField.appendChild(speedInput);
-        modeFieldsWrap.appendChild(speedField);
-      } else {
-        var perPageField = document.createElement('div');
-        perPageField.className = 'cms-field';
-        perPageField.appendChild(makeLabel('Logos por página'));
-        var perPageInput = document.createElement('input');
-        perPageInput.type = 'number'; perPageInput.min = '1'; perPageInput.max = '20'; perPageInput.step = '1';
-        perPageInput.value = b.perPage || 6;
-        perPageInput.addEventListener('input', function(){ b.perPage = Number(perPageInput.value) || 6; });
-        perPageField.appendChild(perPageInput);
-        modeFieldsWrap.appendChild(perPageField);
+    var perPageField = document.createElement('div');
+    perPageField.className = 'cms-field';
+    perPageField.appendChild(makeLabel('Logos por página (techo — si no entran todos a lo ancho, se muestran menos y se arman más páginas solas)'));
+    var perPageInput = document.createElement('input');
+    perPageInput.type = 'number'; perPageInput.min = '1'; perPageInput.max = '20'; perPageInput.step = '1';
+    perPageInput.value = b.perPage || 6;
+    perPageInput.addEventListener('input', function(){ b.perPage = Number(perPageInput.value) || 6; });
+    perPageField.appendChild(perPageInput);
+    wrap.appendChild(perPageField);
 
-        var intervalField = document.createElement('div');
-        intervalField.className = 'cms-field';
-        intervalField.appendChild(makeLabel('Segundos entre cada avance automático (si hay más de una página)'));
-        var intervalInput = document.createElement('input');
-        intervalInput.type = 'number'; intervalInput.min = '2'; intervalInput.max = '60'; intervalInput.step = '1';
-        intervalInput.value = b.interval || 5;
-        intervalInput.addEventListener('input', function(){ b.interval = Number(intervalInput.value) || 5; });
-        intervalField.appendChild(intervalInput);
-        modeFieldsWrap.appendChild(intervalField);
-      }
-    }
-    if (opts.showMode) {
-      wrap.appendChild(renderSelectField('Formato', LOGOS_MODES, function(){ return b.mode || 'carrusel'; }, function(v){ b.mode = v; renderModeFields(); }));
-    }
-    renderModeFields();
-    wrap.appendChild(modeFieldsWrap);
+    var intervalField = document.createElement('div');
+    intervalField.className = 'cms-field';
+    intervalField.appendChild(makeLabel('Segundos entre cada avance automático (si hay más de una página)'));
+    var intervalInput = document.createElement('input');
+    intervalInput.type = 'number'; intervalInput.min = '2'; intervalInput.max = '60'; intervalInput.step = '1';
+    intervalInput.value = b.interval || 5;
+    intervalInput.addEventListener('input', function(){ b.interval = Number(intervalInput.value) || 5; });
+    intervalField.appendChild(intervalInput);
+    wrap.appendChild(intervalField);
 
     var bgField = document.createElement('div');
     bgField.className = 'cms-field';
@@ -2130,11 +2099,8 @@
 
     return wrap;
   }
-  function renderLogosBandSection(){
-    return renderLogosBandFields(homeContent.logosBand, { showMode: true });
-  }
   function renderLogosBand2Section(){
-    return renderLogosBandFields(homeContent.logosBand2, { showMode: false });
+    return renderLogosBandFields(homeContent.logosBand2);
   }
 
   // plain (non-rich) field bound via explicit getter/setter, for array items
@@ -2334,7 +2300,6 @@
     else if (section.custom === 'ia') body = renderIaSection();
     else if (section.custom === 'testimonios') body = renderTestimoniosSection();
     else if (section.custom === 'marcas') body = renderMarcasSection();
-    else if (section.custom === 'logosBand') body = renderLogosBandSection();
     else if (section.custom === 'logosBand2') body = renderLogosBand2Section();
     else {
       body = document.createElement('div');
