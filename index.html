@@ -1015,7 +1015,11 @@
       if (field.type === 'checkbox') return; // checkbox-group fields are collected separately below
       var value = field.value.trim();
       data[field.name] = value;
-      if (field.hasAttribute('required') && !value) {
+      // El email siempre exige "@", más allá de si el panel lo marcó como
+      // obligatorio -- sin esto cualquiera puede mandar cualquier texto ahí
+      // (spam directo, o un email inválido que después no sirve para nada).
+      var isInvalidEmail = field.type === 'email' && (!value || value.indexOf('@') === -1);
+      if ((field.hasAttribute('required') && !value) || isInvalidEmail) {
         field.classList.add('field-invalid');
         firstInvalid = firstInvalid || field;
       } else {

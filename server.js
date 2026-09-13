@@ -833,6 +833,25 @@ app.post('/api/contact', contactLimiter, jsonBody, async (req, res) => {
     return res.status(400).json({ error: 'Faltan campos requeridos' });
   }
 
+  // El email siempre se exige con formato válido (tiene que traer "@"),
+  // sin importar cómo esté configurado "required" para ese campo en el
+  // panel -- si no, cualquiera puede mandar cualquier texto ahí, tanto
+  // para spam directo como para ensuciar Consultas/Sheets/el email
+  // hasheado que se manda a Meta. Se identifica el campo por su `type`
+  // en `form.fields` (no por una clave fija como "email"), porque Erik
+  // puede renombrar la clave desde el panel.
+  const content = await loadMergedContent();
+  const emailKeys = (content.form && Array.isArray(content.form.fields) ? content.form.fields : [])
+    .filter((f) => f && f.type === 'email' && typeof f.key === 'string')
+    .map((f) => f.key);
+  for (const key of emailKeys) {
+    const found = entries.find(([k]) => k === key);
+    const value = found ? String(found[1] || '').trim() : '';
+    if (!value || !value.includes('@')) {
+      return res.status(400).json({ error: 'Ingresá un email válido' });
+    }
+  }
+
   const entry = {};
   for (const [key, value] of entries) {
     const safeKey = String(key).slice(0, MAX_KEY_LENGTH);
@@ -864,6 +883,36 @@ app.post('/api/contact', contactLimiter, jsonBody, async (req, res) => {
 // below) — anything not matching this exact shape is never trusted enough
 // to build a file path from, whether read here or in the move-column route.
 const CONSULTA_ID_RE = /^[0-9]+-[a-z0-9]+$/;
+const MAX_COMMENT_LENGTH = 2000;
+
+// One consulta = one file, but comments/read-state/delete are all
+// read-modify-write on that same file — two team members clicking around
+// the same consulta at once could otherwise clobber each other's write.
+// A tiny per-id queue (same pattern as makeFileWriteQueue, just keyed by id
+// instead of closing over a single fixed path) serializes them.
+const consultaWriteQueues = new Map();
+function queueConsultaWrite(id, mutate) {
+  const filePath = path.join(CONSULTAS_DIR, id + '.json');
+  const prev = consultaWriteQueues.get(id) || Promise.resolve();
+  const result = prev.then(async () => {
+    const text = await fs.readFile(filePath, 'utf8');
+    const entry = JSON.parse(text);
+    const value = await mutate(entry);
+    await fs.writeFile(filePath, JSON.stringify(entry));
+    return value;
+  });
+  consultaWriteQueues.set(id, result.catch(() => {}));
+  return result;
+}
+function queueConsultaDelete(id) {
+  const filePath = path.join(CONSULTAS_DIR, id + '.json');
+  const prev = consultaWriteQueues.get(id) || Promise.resolve();
+  const result = prev.then(() => fs.unlink(filePath).catch((err) => {
+    if (err.code !== 'ENOENT') throw err;
+  }));
+  consultaWriteQueues.set(id, result.catch(() => {}));
+  return result;
+}
 
 app.get('/api/consultas', requirePermission('consultas'), async (req, res) => {
   try {
@@ -915,6 +964,75 @@ app.post('/api/consultas/:id/column', requirePermission('consultas'), jsonBody, 
     if (err.code === 'ENOENT') return res.status(404).json({ error: 'No se encontró la consulta' });
     console.error('move consulta column failed', err);
     return res.status(500).json({ error: 'No se pudo mover la consulta' });
+  }
+});
+
+// ---------- /api/consultas/:id/comments (comentarios internos, visibles para todo el equipo) ----------
+app.post('/api/consultas/:id/comments', requirePermission('consultas'), jsonBody, async (req, res) => {
+  const id = String(req.params.id || '');
+  if (!CONSULTA_ID_RE.test(id)) return res.status(400).json({ error: 'Id inválido' });
+
+  const text = typeof (req.body && req.body.text) === 'string' ? req.body.text.trim().slice(0, MAX_COMMENT_LENGTH) : '';
+  if (!text) return res.status(400).json({ error: 'El comentario está vacío' });
+
+  const comment = {
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+    authorId: req.currentUser.id,
+    authorName: req.currentUser.name,
+    text,
+    createdAt: new Date().toISOString(),
+  };
+
+  try {
+    await queueConsultaWrite(id, (entry) => {
+      if (!Array.isArray(entry.comments)) entry.comments = [];
+      entry.comments.push(comment);
+      // Escribir un comentario implica haber visto todos los anteriores —
+      // se marca como leído para quien lo escribe en el mismo movimiento.
+      if (!entry.readBy || typeof entry.readBy !== 'object') entry.readBy = {};
+      entry.readBy[req.currentUser.id] = entry.comments.length;
+    });
+    return res.status(200).json({ ok: true, comment });
+  } catch (err) {
+    if (err.code === 'ENOENT') return res.status(404).json({ error: 'No se encontró la consulta' });
+    console.error('add consulta comment failed', err);
+    return res.status(500).json({ error: 'No se pudo guardar el comentario' });
+  }
+});
+
+// ---------- /api/consultas/:id/read (marca los comentarios como leídos para el usuario actual) ----------
+app.post('/api/consultas/:id/read', requirePermission('consultas'), async (req, res) => {
+  const id = String(req.params.id || '');
+  if (!CONSULTA_ID_RE.test(id)) return res.status(400).json({ error: 'Id inválido' });
+
+  try {
+    await queueConsultaWrite(id, (entry) => {
+      if (!entry.readBy || typeof entry.readBy !== 'object') entry.readBy = {};
+      entry.readBy[req.currentUser.id] = Array.isArray(entry.comments) ? entry.comments.length : 0;
+    });
+    return res.status(200).json({ ok: true });
+  } catch (err) {
+    if (err.code === 'ENOENT') return res.status(404).json({ error: 'No se encontró la consulta' });
+    console.error('mark consulta read failed', err);
+    return res.status(500).json({ error: 'No se pudo marcar como leída' });
+  }
+});
+
+// ---------- DELETE /api/consultas/:id ----------
+// Borra solo el archivo local (la copia que ya se mandó a Sheets vía n8n en
+// el momento de la consulta, si estaba configurado, no se toca nunca desde
+// acá — ese envío fue fire-and-forget en /api/contact y no guarda ninguna
+// referencia hacia atrás).
+app.delete('/api/consultas/:id', requirePermission('consultas'), async (req, res) => {
+  const id = String(req.params.id || '');
+  if (!CONSULTA_ID_RE.test(id)) return res.status(400).json({ error: 'Id inválido' });
+
+  try {
+    await queueConsultaDelete(id);
+    return res.status(200).json({ ok: true });
+  } catch (err) {
+    console.error('delete consulta failed', err);
+    return res.status(500).json({ error: 'No se pudo borrar la consulta' });
   }
 });
 
