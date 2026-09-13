@@ -495,6 +495,20 @@
   }
   .field input::placeholder, .field textarea::placeholder{ color:rgba(255,255,255,.42); }
   .field input:focus, .field textarea:focus, .field select:focus{ border-color:#FFFFFF; }
+  /* Chrome (y otros basados en WebKit) pintan un fondo claro propio sobre
+     cualquier campo que autocompletan, ignorando el background:transparent
+     de arriba -- ahí el fondo no es un color plano sino este gradiente
+     violeta/rosa, así que no hay un color sólido "correcto" para tapar con
+     el truco de box-shadow. Retrasar la transición de ese color casi al
+     infinito evita que el navegador llegue a pintarlo, y el campo queda
+     con su propio fondo transparente de siempre. */
+  .field input:-webkit-autofill,
+  .field input:-webkit-autofill:hover,
+  .field input:-webkit-autofill:focus,
+  .field input:-webkit-autofill:active{
+    -webkit-text-fill-color:#FFFFFF; caret-color:#FFFFFF;
+    transition:background-color 9999s ease-in-out 0s, color 9999s ease-in-out 0s;
+  }
   .field input.field-invalid, .field textarea.field-invalid, .field select.field-invalid{ border-bottom-color:#3B1A78; }
   .field textarea{ resize:vertical; min-height:90px; }
   .field-error{
@@ -618,7 +632,7 @@
 </a>
 
 <header class="nav" id="siteNav">
-  <a class="brand" href="#home">
+  <a class="brand" href="index.html">
     <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
       <circle cx="20" cy="20" r="18.5" stroke="currentColor" stroke-width="1.4"/>
       <circle cx="20" cy="20" r="10" stroke="currentColor" stroke-width="1.4"/>
@@ -648,7 +662,7 @@
 </header>
 
 <nav class="menu-panel" id="siteMenu">
-  <a class="menu-link" href="#home" data-section aria-current="page">Home</a>
+  <a class="menu-link" href="index.html" aria-current="page">Home</a>
   <a class="menu-link" href="nosotros.html">Nosotros</a>
   <a class="menu-link" href="#servicios" data-section>Qué hacemos</a>
   <a class="menu-link" href="#trabajos" data-section>Trabajos</a>
