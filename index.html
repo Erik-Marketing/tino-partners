@@ -497,6 +497,11 @@
   .field input:focus, .field textarea:focus, .field select:focus{ border-color:#FFFFFF; }
   .field input.field-invalid, .field textarea.field-invalid, .field select.field-invalid{ border-bottom-color:#3B1A78; }
   .field textarea{ resize:vertical; min-height:90px; }
+  .field-error{
+    display:none; margin-top:7px; font-family:'IBM Plex Mono',monospace; font-size:.72rem;
+    letter-spacing:.02em; color:#3B1A78; font-weight:600;
+  }
+  .field-error.is-visible{ display:block; }
   .field select{
     appearance:none; -webkit-appearance:none; border-radius:0; cursor:pointer;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='white' stroke-width='1.6'%3E%3Cpath d='M5 7.5L10 12.5L15 7.5'/%3E%3C/svg%3E");
@@ -873,42 +878,29 @@
         <form id="contactForm" novalidate>
           <div id="contactFields">
             <div class="field">
-              <label for="nombre">Nombre</label>
+              <label for="nombre">Nombre *</label>
               <input id="nombre" name="nombre" type="text" placeholder="Tu nombre" required>
+              <div class="field-error"></div>
             </div>
             <div class="field">
-              <label for="email">Email</label>
+              <label for="celular">Celular</label>
+              <input id="celular" name="celular" type="tel" placeholder="Ej: +54 9 11 1234-5678">
+              <div class="field-error"></div>
+            </div>
+            <div class="field">
+              <label for="email">Email *</label>
               <input id="email" name="email" type="email" placeholder="tu@empresa.com" required>
+              <div class="field-error"></div>
             </div>
             <div class="field">
-              <label for="rubro">Rubro del negocio</label>
+              <label for="rubro">Rubro del negocio *</label>
               <input id="rubro" name="rubro" type="text" placeholder="Ej: indumentaria, gastronomía, salud" required>
+              <div class="field-error"></div>
             </div>
             <div class="field">
-              <label for="tamano">Tamaño de la empresa</label>
-              <select id="tamano" name="tamano" required>
-                <option value="" disabled selected>Seleccioná una opción</option>
-                <option value="1 a 5 personas">1 a 5 personas</option>
-                <option value="6 a 20 personas">6 a 20 personas</option>
-                <option value="21 a 50 personas">21 a 50 personas</option>
-                <option value="51 a 200 personas">51 a 200 personas</option>
-                <option value="Más de 200 personas">Más de 200 personas</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="ganancias">Presupuesto para Marketing</label>
-              <select id="ganancias" name="ganancias" required>
-                <option value="" disabled selected>Seleccioná una opción</option>
-                <option value="0 a 1.000 USD">0 a 1.000 USD</option>
-                <option value="1.001 a 5.000 USD">1.001 a 5.000 USD</option>
-                <option value="5.001 a 20.000 USD">5.001 a 20.000 USD</option>
-                <option value="20.001 a 50.000 USD">20.001 a 50.000 USD</option>
-                <option value="Más de 50.000 USD">Más de 50.000 USD</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="mensaje">Mensaje</label>
+              <label for="mensaje">Contanos tu principal desafío hoy *</label>
               <textarea id="mensaje" name="mensaje" placeholder="Contanos sobre tu marca y qué necesitás" required></textarea>
+              <div class="field-error"></div>
             </div>
           </div>
           <button class="submit-btn" type="submit">Enviar mensaje →</button>
@@ -997,8 +989,36 @@
   // fields can be rebuilt dynamically once /api/content loads (admin-configured
   // questions), so validation is delegated to the container instead of bound
   // to specific field references captured at page-load time.
-  contactFields.addEventListener('input', function(e){ e.target.classList.remove('field-invalid'); });
-  contactFields.addEventListener('change', function(e){ e.target.classList.remove('field-invalid'); });
+  function fieldErrorEl(){
+    var el = document.createElement('div');
+    el.className = 'field-error';
+    return el;
+  }
+  // `el` is either the input/select/textarea itself, or the .checkbox-group
+  // div — both live directly inside the same .field wrapper as the message,
+  // so closest('.field') finds the right one either way.
+  function clearFieldError(el){
+    el.classList.remove('field-invalid');
+    var wrap = el.closest('.field');
+    var errEl = wrap && wrap.querySelector('.field-error');
+    if (errEl) { errEl.textContent = ''; errEl.classList.remove('is-visible'); }
+  }
+  function showFieldError(el, message){
+    el.classList.add('field-invalid');
+    var wrap = el.closest('.field');
+    var errEl = wrap && wrap.querySelector('.field-error');
+    if (errEl) { errEl.textContent = message; errEl.classList.add('is-visible'); }
+  }
+
+  contactFields.addEventListener('input', function(e){ clearFieldError(e.target); });
+  contactFields.addEventListener('change', function(e){
+    if (e.target.type === 'checkbox') {
+      var group = e.target.closest('.checkbox-group');
+      if (group) clearFieldError(group);
+    } else {
+      clearFieldError(e.target);
+    }
+  });
 
   function setNote(text, isError){
     note.textContent = text;
@@ -1019,11 +1039,14 @@
       // obligatorio -- sin esto cualquiera puede mandar cualquier texto ahí
       // (spam directo, o un email inválido que después no sirve para nada).
       var isInvalidEmail = field.type === 'email' && (!value || value.indexOf('@') === -1);
-      if ((field.hasAttribute('required') && !value) || isInvalidEmail) {
-        field.classList.add('field-invalid');
+      if (isInvalidEmail) {
+        showFieldError(field, 'Ingresá un email válido.');
+        firstInvalid = firstInvalid || field;
+      } else if (field.hasAttribute('required') && !value) {
+        showFieldError(field, 'Este campo es obligatorio.');
         firstInvalid = firstInvalid || field;
       } else {
-        field.classList.remove('field-invalid');
+        clearFieldError(field);
       }
     });
     Array.prototype.slice.call(contactFields.querySelectorAll('.checkbox-group')).forEach(function(group){
@@ -1031,14 +1054,14 @@
       var checked = Array.prototype.slice.call(group.querySelectorAll('input:checked')).map(function(cb){ return cb.value; });
       data[name] = checked.join(', ');
       if (group.getAttribute('data-required') === '1' && !checked.length) {
-        group.classList.add('field-invalid');
+        showFieldError(group, 'Elegí al menos una opción.');
         firstInvalid = firstInvalid || group.querySelector('input');
       } else {
-        group.classList.remove('field-invalid');
+        clearFieldError(group);
       }
     });
     if (firstInvalid) {
-      setNote('Completá todos los campos antes de enviar.', true);
+      setNote('Revisá los campos marcados.', true);
       firstInvalid.focus();
       return;
     }
@@ -1724,8 +1747,9 @@
       c.form.fields.forEach(function(f){
         var fieldWrap = document.createElement('div');
         fieldWrap.className = 'field';
+        var isRequired = f.required !== false;
         var label = document.createElement('label');
-        label.textContent = f.label;
+        label.textContent = f.label + (isRequired ? ' *' : '');
 
         if (f.type === 'checkbox-group') {
           fieldWrap.appendChild(label);
@@ -1748,6 +1772,7 @@
             group.appendChild(optLabel);
           });
           fieldWrap.appendChild(group);
+          fieldWrap.appendChild(fieldErrorEl());
           fieldsContainer.appendChild(fieldWrap);
           return;
         }
@@ -1774,8 +1799,9 @@
         input.id = f.key;
         input.name = f.key;
         if (f.placeholder && f.type !== 'select') input.placeholder = f.placeholder;
-        if (f.required !== false) input.required = true;
+        if (isRequired) input.required = true;
         fieldWrap.appendChild(input);
+        fieldWrap.appendChild(fieldErrorEl());
         fieldsContainer.appendChild(fieldWrap);
       });
     }

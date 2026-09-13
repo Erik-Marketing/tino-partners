@@ -171,6 +171,7 @@ const DEFAULT_CONTENT = {
   form: {
     fields: [
       { key: 'nombre', label: 'Nombre', type: 'text', required: true, placeholder: 'Tu nombre' },
+      { key: 'celular', label: 'Celular', type: 'tel', required: false, placeholder: 'Ej: +54 9 11 1234-5678' },
       { key: 'email', label: 'Email', type: 'email', required: true, placeholder: 'tu@empresa.com' },
       { key: 'rubro', label: 'Rubro del negocio', type: 'text', required: true, placeholder: 'Ej: indumentaria, gastronomía, salud' },
       { key: 'tamano', label: 'Tamaño de la empresa', type: 'select', required: true, options: '1 a 5 personas, 6 a 20 personas, 21 a 50 personas, 51 a 200 personas, Más de 200 personas' },
