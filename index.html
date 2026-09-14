@@ -622,7 +622,7 @@
 
 <div class="grain"></div>
 
-<a class="wa-float" href="https://wa.me/5491125378238" target="_blank" rel="noopener" aria-label="Escribinos por WhatsApp">
+<a class="wa-float" id="btn-whatsapp-float" href="https://wa.me/5491125378238" target="_blank" rel="noopener" aria-label="Escribinos por WhatsApp">
   <span class="wa-ping"></span>
   <span class="wa-ping wa-ping-2"></span>
   <span class="wa-badge">1</span>
@@ -668,7 +668,7 @@
   <a class="menu-link" href="#trabajos" data-section>Trabajos</a>
   <a class="menu-link" href="portfolio.html">Portfolio</a>
   <a class="menu-link" href="blog.html">Blog</a>
-  <a class="menu-cta" href="#contacto">Contactanos →</a>
+  <a class="menu-cta" id="btn-nav-contactanos" href="#contacto">Contactanos →</a>
 </nav>
 
 <main>
@@ -679,7 +679,7 @@
       <h1><span id="cms-hero-pre">Somos Tino, </span><em id="cms-hero-em">tu partner</em><span id="cms-hero-post"> de negocio.</span></h1>
       <p class="lede" id="cms-hero-lede">Tino Partners une producción de contenido, planificación de medios y tecnología aplicada en un mismo equipo, para que cada decisión de marca esté tan bien apuntada como se ve.</p>
       <div>
-        <a href="#contacto" class="btn-primary"><span id="cms-hero-cta">Contactanos</span> →</a>
+        <a href="#contacto" class="btn-primary" id="btn-hero-cta"><span id="cms-hero-cta">Contactanos</span> →</a>
       </div>
     </div>
     <div class="hero-media reveal">
@@ -707,11 +707,11 @@
           <div class="video-frame" data-video>
             <video id="cms-proy-video" src="https://8re8o884kengswvt.public.blob.vercel-storage.com/marcas/nobrand/trailer-vertical.mp4" muted loop playsinline preload="metadata"></video>
             <div class="video-controls">
-              <button class="v-btn v-mute" type="button" aria-label="Activar sonido">
+              <button class="v-btn v-mute" id="btn-video-mute-proyectos-nobrand" type="button" aria-label="Activar sonido">
                 <svg class="icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
                 <svg class="icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
               </button>
-              <button class="v-btn v-expand" type="button" aria-label="Ampliar video">
+              <button class="v-btn v-expand" id="btn-video-expand-proyectos-nobrand" type="button" aria-label="Ampliar video">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
               </button>
             </div>
@@ -873,7 +873,7 @@
           <p class="eyebrow">Contenido interesante</p>
           <h2 id="cms-blog-heading">Lo que estamos pensando.</h2>
         </div>
-        <a href="blog.html" class="btn-ghost">Ver todos los artículos</a>
+        <a href="blog.html" class="btn-ghost" id="btn-blog-ver-todos">Ver todos los artículos</a>
       </div>
       <div class="blog-empty reveal" id="cms-blog-empty">
         <p id="cms-blog-texto">Estamos armando el blog de Tino Partners. Cuando esté listo, vas a encontrar acá notas sobre estrategia, producción y tecnología aplicada a marcas — por ahora, seguinos en Instagram para lo último.</p>
@@ -917,7 +917,7 @@
               <div class="field-error"></div>
             </div>
           </div>
-          <button class="submit-btn" type="submit">Enviar mensaje →</button>
+          <button class="submit-btn" id="btn-contact-submit" type="submit">Enviar mensaje →</button>
           <p class="form-note" id="formNote"></p>
         </form>
       </div>
@@ -1240,7 +1240,7 @@
       var grid = document.getElementById('cms-work-grid');
       if (!grid || !tiles || !tiles.length) return;
       grid.innerHTML = '';
-      tiles.forEach(function(tile){
+      tiles.forEach(function(tile, i){
         var hasVideo = tile.video && tile.video.url;
         var el = document.createElement('div');
         el.className = 'work-tile reveal' + (hasVideo ? ' has-video' : '');
@@ -1261,6 +1261,14 @@
           setMedia(el.querySelector('video'), tile.video);
           var logoImg = el.querySelector('.tile-logo');
           if (logoImg) logoImg.src = tile.logo.url;
+          // Los botones de mute/expand vienen del mismo VIDEO_CONTROLS_HTML
+          // compartido para cada tile -- sin un id por instancia acá, las N
+          // tarjetas de este grid tendrían todos los botones con el mismo
+          // (ningún) id, imposibles de distinguir en Tag Manager.
+          var muteBtn = el.querySelector('.v-mute');
+          if (muteBtn) muteBtn.id = 'btn-video-mute-proyectos-' + i;
+          var expandBtn = el.querySelector('.v-expand');
+          if (expandBtn) expandBtn.id = 'btn-video-expand-proyectos-' + i;
           wireVideoFrame(el.querySelector('.video-frame'));
         } else {
           var eyebrow = document.createElement('span'); eyebrow.className = 'eyebrow'; eyebrow.textContent = tile.category || '';
@@ -1490,6 +1498,7 @@
           state.pages.forEach(function(_, i){
             var dot = document.createElement('button');
             dot.type = 'button';
+            dot.id = 'btn-logos-dot-' + i;
             dot.className = 'logos-dot' + (i === state.index ? ' is-active' : '');
             dot.setAttribute('aria-label', 'Página ' + (i + 1));
             dot.addEventListener('click', function(){ goTo(i); });
@@ -1642,6 +1651,7 @@
       articles.slice(-n).reverse().forEach(function(art){
         var card = document.createElement('a');
         card.className = 'blog-card reveal';
+        card.id = 'btn-blog-card-' + (art.slug || articles.indexOf(art));
         card.href = 'blog-post.html?s=' + encodeURIComponent(art.slug || '');
         var tag = document.createElement('span'); tag.className = 'eyebrow'; tag.textContent = art.tag || '';
         var title = document.createElement('h3');
@@ -1890,6 +1900,7 @@
         if (c.menu.ctaLabel) {
           var cta = document.createElement('a');
           cta.className = 'menu-cta';
+          cta.id = 'btn-nav-contactanos';
           cta.href = c.menu.ctaUrl || '#contacto';
           cta.textContent = c.menu.ctaLabel + ' →';
           menuNav.appendChild(cta);

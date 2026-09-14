@@ -117,7 +117,7 @@
   <a class="menu-link" href="index.html#trabajos" data-section>Clientes</a>
   <a class="menu-link" href="portfolio.html">Portfolio</a>
   <a class="menu-link" href="blog.html">Blog</a>
-  <a class="menu-cta" href="index.html#contacto">Contactanos →</a>
+  <a class="menu-cta" id="btn-nav-contactanos" href="index.html#contacto">Contactanos →</a>
 </nav>
 
 <main class="legal">
@@ -252,6 +252,7 @@
     if (c.menu.ctaLabel) {
       var cta = document.createElement('a');
       cta.className = 'menu-cta';
+      cta.id = 'btn-nav-contactanos';
       cta.href = c.menu.ctaUrl || '#contacto';
       cta.textContent = c.menu.ctaLabel + ' →';
       menu.appendChild(cta);

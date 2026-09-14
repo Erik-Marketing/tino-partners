@@ -214,7 +214,7 @@
 
 <div class="grain"></div>
 
-<a class="wa-float" href="https://wa.me/5491125378238" target="_blank" rel="noopener" aria-label="Escribinos por WhatsApp">
+<a class="wa-float" id="btn-whatsapp-float" href="https://wa.me/5491125378238" target="_blank" rel="noopener" aria-label="Escribinos por WhatsApp">
   <svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">
     <path d="M16.001 3C9.373 3 4 8.373 4 15c0 2.36.687 4.56 1.872 6.41L4 29l7.78-1.84A11.94 11.94 0 0 0 16 27c6.627 0 12-5.373 12-12S22.628 3 16.001 3zm6.965 16.845c-.294.828-1.463 1.518-2.403 1.716-.64.135-1.475.243-4.29-.92-3.6-1.49-5.918-5.14-6.098-5.378-.173-.238-1.457-1.94-1.457-3.7 0-1.76.92-2.62 1.246-2.98.294-.32.646-.4.862-.4.216 0 .432.002.62.012.2.01.468-.076.732.56.294.703 1 2.42 1.087 2.596.087.176.146.383.03.62-.116.238-.176.383-.343.588-.173.207-.36.462-.514.62-.173.176-.353.365-.152.716.2.35.887 1.464 1.905 2.372 1.31 1.166 2.415 1.528 2.767 1.702.353.176.56.148.767-.09.207-.236.883-1.03 1.118-1.383.235-.353.47-.294.79-.176.323.118 2.043.966 2.394 1.142.353.176.588.264.674.412.088.148.088.856-.206 1.684z"/>
   </svg>
@@ -256,7 +256,7 @@
   <a class="menu-link" href="index.html#trabajos" data-section>Trabajos</a>
   <a class="menu-link" href="portfolio.html" aria-current="page">Portfolio</a>
   <a class="menu-link" href="blog.html">Blog</a>
-  <a class="menu-cta" href="index.html#contacto">Contactanos →</a>
+  <a class="menu-cta" id="btn-nav-contactanos" href="index.html#contacto">Contactanos →</a>
 </nav>
 
 <main id="mainContent">
@@ -398,6 +398,7 @@
         if (c.menu.ctaLabel) {
           var cta = document.createElement('a');
           cta.className = 'menu-cta';
+          cta.id = 'btn-nav-contactanos';
           cta.href = c.menu.ctaUrl || '#contacto';
           cta.textContent = c.menu.ctaLabel + ' →';
           menuNav.appendChild(cta);
@@ -449,6 +450,8 @@
             '</button>' +
           '</div>';
         coverEl.appendChild(frame);
+        var casoMuteBtn = frame.querySelector('.v-mute'); if (casoMuteBtn) casoMuteBtn.id = 'btn-caso-cover-mute';
+        var casoExpandBtn = frame.querySelector('.v-expand'); if (casoExpandBtn) casoExpandBtn.id = 'btn-caso-cover-expand';
         wireVideoFrame(frame);
       } else {
         var img = document.createElement('img');

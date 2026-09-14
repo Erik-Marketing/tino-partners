@@ -311,7 +311,7 @@
 
 <div class="grain"></div>
 
-<a class="wa-float" href="https://wa.me/5491125378238" target="_blank" rel="noopener" aria-label="Escribinos por WhatsApp">
+<a class="wa-float" id="btn-whatsapp-float" href="https://wa.me/5491125378238" target="_blank" rel="noopener" aria-label="Escribinos por WhatsApp">
   <span class="wa-ping"></span>
   <span class="wa-ping wa-ping-2"></span>
   <span class="wa-badge">1</span>
@@ -357,7 +357,7 @@
   <a class="menu-link" href="index.html#trabajos" data-section>Clientes</a>
   <a class="menu-link" href="portfolio.html">Portfolio</a>
   <a class="menu-link" href="blog.html">Blog</a>
-  <a class="menu-cta" href="index.html#contacto">Contactanos →</a>
+  <a class="menu-cta" id="btn-nav-contactanos" href="index.html#contacto">Contactanos →</a>
 </nav>
 
 <main>
@@ -415,7 +415,7 @@
       <p class="eyebrow reveal" id="cms-nos-cta-eyebrow">¿Hablamos?</p>
       <h2 class="reveal" id="cms-nos-cta-heading">Contános en qué estás pensando.</h2>
       <p class="reveal" id="cms-nos-cta-texto">Una primera charla no tiene costo ni compromiso. Si hay fit de los dos lados, seguimos adelante juntos.</p>
-      <a href="index.html#contacto" class="btn-primary reveal"><span id="cms-nos-cta-btn">Contactanos</span> →</a>
+      <a href="index.html#contacto" class="btn-primary reveal" id="btn-nosotros-cta"><span id="cms-nos-cta-btn">Contactanos</span> →</a>
     </div>
   </section>
 </main>
@@ -532,6 +532,7 @@
       if (c.menu.ctaLabel) {
         var cta = document.createElement('a');
         cta.className = 'menu-cta';
+        cta.id = 'btn-nav-contactanos';
         cta.href = c.menu.ctaUrl || '#contacto';
         cta.textContent = c.menu.ctaLabel + ' →';
         menu.appendChild(cta);
