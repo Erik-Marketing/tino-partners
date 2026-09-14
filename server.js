@@ -482,6 +482,25 @@ function buildTrackingHtml(tracking) {
   const parts = [];
   const pixelId = typeof tracking.metaPixelId === 'string' ? tracking.metaPixelId.trim() : '';
   const gaId = typeof tracking.gaId === 'string' ? tracking.gaId.trim() : '';
+  const gtmId = typeof tracking.gtmId === 'string' ? tracking.gtmId.trim() : '';
+  if (/^GTM-[A-Z0-9]+$/i.test(gtmId)) {
+    // El fragmento <noscript> oficial de GTM va justo después de <body> --
+    // estas páginas nunca tienen una etiqueta <body> real en el HTML (el
+    // navegador la agrega sola), así que se manda acá adentro con el resto
+    // de scripts de tracking, mismo criterio que ya usa el <noscript> del
+    // Pixel de Meta un poco más abajo. Solo afecta a visitantes sin
+    // JavaScript, que de todos modos no ven nada del contenido de este
+    // sitio (se arma entero por CMS del lado del cliente).
+    parts.push(
+      "<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':\n" +
+      "new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],\n" +
+      "j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=\n" +
+      "'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);\n" +
+      "})(window,document,'script','dataLayer','" + gtmId + "');</script>\n" +
+      '<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=' + gtmId + '" ' +
+      'height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>\n'
+    );
+  }
   if (/^\d{6,}$/.test(pixelId)) {
     parts.push(
       '<script>\n' +

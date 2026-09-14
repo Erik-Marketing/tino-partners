@@ -3065,7 +3065,7 @@
   var marketingCmsBody = document.getElementById('marketingCmsBody');
   function renderMarketingCms(){
     marketingCmsBody.innerHTML = '';
-    if (!homeContent.tracking) homeContent.tracking = { metaPixelId: '', metaCapiToken: '', metaTestEventCode: '', gaId: '', n8nWebhookUrl: '' };
+    if (!homeContent.tracking) homeContent.tracking = { metaPixelId: '', metaCapiToken: '', metaTestEventCode: '', gaId: '', gtmId: '', n8nWebhookUrl: '' };
     var t = homeContent.tracking;
 
     var metaGroup = cmsSubgroup('Meta Ads (Pixel + Conversions API)');
@@ -3093,6 +3093,14 @@
     gaGroup.appendChild(gaHint);
     gaGroup.appendChild(renderPlainFieldFor({ label: 'ID de medición', type: 'text' }, function(){ return t.gaId; }, function(v){ t.gaId = v; }));
     marketingCmsBody.appendChild(gaGroup);
+
+    var gtmGroup = cmsSubgroup('Google Tag Manager');
+    var gtmHint = document.createElement('p');
+    gtmHint.className = 'cms-media-hint';
+    gtmHint.innerHTML = 'Google Tag Manager → tu contenedor → el ID sale arriba a la derecha. Empieza con "GTM-". Se agrega en las 9 páginas apenas lo guardás, sin tocar código — no hace falta nada en Cloudflare para esto.';
+    gtmGroup.appendChild(gtmHint);
+    gtmGroup.appendChild(renderPlainFieldFor({ label: 'Container ID', type: 'text' }, function(){ return t.gtmId; }, function(v){ t.gtmId = v; }));
+    marketingCmsBody.appendChild(gtmGroup);
 
     var n8nGroup = cmsSubgroup('Integraciones (n8n)');
     var n8nHint = document.createElement('p');
