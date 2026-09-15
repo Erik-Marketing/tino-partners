@@ -1100,6 +1100,12 @@
         form.reset();
         if (typeof window.fbq === 'function') window.fbq('track', 'Lead', {}, { eventID: fbEventId });
         if (typeof window.gtag === 'function') window.gtag('event', 'generate_lead');
+        // Evento propio para Tag Manager, separado del gtag directo de arriba
+        // -- así un tag/trigger armado en GTM puede escuchar el envio
+        // realmente exitoso ("form_submit_success") en vez de tener que
+        // engancharse al click del boton, que tambien dispara si la
+        // validacion bloquea el envio o si falla en el servidor.
+        if (window.dataLayer) window.dataLayer.push({ event: 'form_submit_success' });
       })
       .catch(function(){
         setNote('Hubo un problema al enviar el mensaje. Probá de nuevo o escribinos por WhatsApp.', true);
