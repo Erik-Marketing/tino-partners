@@ -296,6 +296,23 @@
     box-shadow:0 0 0 2px rgba(0,0,0,.35);
   }
   .cms-media-hint{ font-size:.76rem; color:var(--ink-soft); margin-top:8px; max-width:320px; }
+
+  /* ---------- Referencia de IDs/eventos para Tag Manager (Marketing) ---------- */
+  .id-ref-group-label{
+    font-family:'IBM Plex Mono',monospace; font-size:.68rem; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--ink-soft); margin:18px 0 6px;
+  }
+  .id-ref-table{ display:flex; flex-direction:column; gap:1px; border-radius:10px; overflow:hidden; }
+  .id-ref-row{
+    display:grid; grid-template-columns:minmax(180px,320px) 1fr; gap:16px; padding:9px 12px;
+    align-items:baseline; background:var(--paper-dim);
+  }
+  .id-ref-row:nth-child(even){ background:var(--paper-flat); }
+  .id-ref-code{ font-family:'IBM Plex Mono',monospace; font-size:.78rem; color:var(--v-500); word-break:break-word; }
+  .id-ref-desc{ font-size:.83rem; color:var(--ink-soft); line-height:1.45; }
+  @media (max-width:640px){
+    .id-ref-row{ grid-template-columns:1fr; gap:4px; }
+  }
   .cms-toggle-row{ display:flex; align-items:center; gap:9px; margin-top:12px; cursor:pointer; font-size:.85rem; color:var(--ink); }
   .cms-toggle-row input{ width:16px; height:16px; accent-color:var(--v-500); cursor:pointer; }
   .cms-media-row{ display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-top:10px; }
@@ -3101,6 +3118,72 @@
     gtmGroup.appendChild(gtmHint);
     gtmGroup.appendChild(renderPlainFieldFor({ label: 'Container ID', type: 'text' }, function(){ return t.gtmId; }, function(v){ t.gtmId = v; }));
     marketingCmsBody.appendChild(gtmGroup);
+
+    var idsGroup = cmsSubgroup('IDs de botones y eventos (para Tag Manager)');
+    var idsHint = document.createElement('p');
+    idsHint.className = 'cms-media-hint';
+    idsHint.style.maxWidth = 'none';
+    idsHint.innerHTML = 'Referencia de los identificadores ya cargados en el sitio, para armar activadores en Google Tag Manager. Es solo informativo — no se guarda ni se edita acá; si en algún momento se agrega o saca un botón del sitio, esta lista puede quedar desactualizada.';
+    idsGroup.appendChild(idsHint);
+
+    function idRefGroupLabel(text){
+      var el = document.createElement('div');
+      el.className = 'id-ref-group-label';
+      el.textContent = text;
+      return el;
+    }
+    function idRefTable(rows){
+      var wrap = document.createElement('div');
+      wrap.className = 'id-ref-table';
+      rows.forEach(function(pair){
+        var row = document.createElement('div');
+        row.className = 'id-ref-row';
+        var code = document.createElement('span'); code.className = 'id-ref-code'; code.textContent = pair[0];
+        var desc = document.createElement('span'); desc.className = 'id-ref-desc'; desc.textContent = pair[1];
+        row.appendChild(code); row.appendChild(desc);
+        wrap.appendChild(row);
+      });
+      return wrap;
+    }
+
+    idsGroup.appendChild(idRefGroupLabel('Eventos personalizados en dataLayer — activador tipo "Evento personalizado" en GTM'));
+    idsGroup.appendChild(idRefTable([
+      ['form_submit_success', 'Formulario de contacto (Home) enviado con éxito de verdad — no un simple click en el botón'],
+      ['whatsapp_click', 'Click real en el botón flotante de WhatsApp (en todas las páginas que lo tienen)'],
+    ]));
+
+    idsGroup.appendChild(idRefGroupLabel('IDs fijos — activador tipo "Clic" con condición Click ID'));
+    idsGroup.appendChild(idRefTable([
+      ['btn-whatsapp-float', 'Botón flotante de WhatsApp (Home, Nosotros, Portfolio, Blog, notas de Blog, Casos, NOBRAND)'],
+      ['btn-nav-contactanos', '"Contactanos →" del menú, en las 9 páginas'],
+      ['btn-hero-cta', 'CTA "Contactanos" del Hero (Home)'],
+      ['btn-contact-submit', 'Botón "Enviar mensaje" del formulario de contacto (Home)'],
+      ['btn-blog-ver-todos', '"Ver todos los artículos" (Home)'],
+      ['btn-nosotros-cta', 'CTA final de la página Nosotros'],
+      ['btn-portfolio-cta', 'CTA final de la página Portfolio'],
+      ['btn-nobrand-cta', 'CTA final de la página NOBRAND'],
+      ['postLikeBtn', 'Botón de "me gusta" de una nota de blog'],
+      ['btn-video-mute-proyectos-nobrand / -expand', 'Controles del primer video de "Nuestros proyectos" (Home) — el de NOBRAND, siempre fijo'],
+      ['btn-port-tile1/2/3-mute / -expand', 'Controles de los 3 videos destacados de Portfolio (Ecommerce / Marcas & Servicios / Eventos & Experiencias)'],
+      ['btn-port-video-nobrand (+ -mute / -expand)', 'Video de NOBRAND en "Piezas en video" (Portfolio)'],
+      ['btn-nobrand-feature-mute / -expand', 'Video principal de la página NOBRAND'],
+      ['btn-nobrand-margen01-mute / -expand', 'Video "Pieza 01" de la campaña Margen (NOBRAND)'],
+      ['btn-nobrand-margen02-mute / -expand', 'Video "Pieza 02" de la campaña Margen (NOBRAND)'],
+      ['btn-nobrand-margen-adaptacion-mute / -expand', 'Video "Adaptación" de la campaña Margen (NOBRAND)'],
+      ['btn-nobrand-backstage-mute / -expand', 'Video de backstage (NOBRAND)'],
+      ['btn-post-cover-mute / -expand', 'Video de portada de una nota de blog, solo si esa nota usa video'],
+      ['btn-caso-cover-mute / -expand', 'Video de portada de un caso de Portfolio, solo si ese caso usa video'],
+    ]));
+
+    idsGroup.appendChild(idRefGroupLabel('IDs que se repiten (uno por elemento) — un Click ID exacto no les sirve; mejor "Click Element" con selector CSS, o pedir que se sume un evento propio como los de arriba'));
+    idsGroup.appendChild(idRefTable([
+      ['btn-video-mute-proyectos-0, -1, -2...', 'Controles de cada video de "Nuestros proyectos" (Home) que se carga desde el panel — uno por tile'],
+      ['btn-logos-dot-0, -1, -2...', 'Puntitos de paginación de la franja de logos (Home)'],
+      ['btn-blog-card-<slug del artículo>', 'Cada tarjeta de blog (Home y Blog)'],
+      ['btn-caso-card-<slug del caso>', 'Cada tarjeta de caso (Portfolio)'],
+    ]));
+
+    marketingCmsBody.appendChild(idsGroup);
 
     var n8nGroup = cmsSubgroup('Integraciones (n8n)');
     var n8nHint = document.createElement('p');
